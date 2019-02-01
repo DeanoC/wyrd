@@ -1,8 +1,8 @@
 set(LibName tinyformat)
 
-set( Interface tinyformat.h)
+set( CInterface )
 set( CPPInterface
-		)
+		tinyformat.h )
 set( Src tinyformat.cpp )
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "")
