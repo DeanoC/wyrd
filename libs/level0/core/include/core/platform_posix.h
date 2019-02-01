@@ -1,5 +1,5 @@
-#	include <cstdint>
-#	include <cstdlib>
+#	include <stdint.h>
+#	include <stdlib.h>
 #	include <memory.h>
 
 #define READONLY_MEM

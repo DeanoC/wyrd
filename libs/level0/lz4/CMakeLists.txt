@@ -1,17 +1,20 @@
 set( Name lz4)
-set( Interface
+set( CInterface
+		lz4.h
+		lz4hc.h
+		xxhash.h
+		)
+set( CPPInterface
 		)
 
-set( Impl
+set( Src
 		lz4.c
-		lz4.h
 		lz4frame.c
 		lz4frame.h
 		lz4frame_static.h
 		lz4hc.c
-		lz4hc.h
 		xxhash.c
-		xxhash.h
 		)
 
-ADD_LIB(${Name} ${Interface} ${Impl} )
+ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "")
+target_include_directories(${Name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/lz4)

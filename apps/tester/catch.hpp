@@ -50,7 +50,7 @@
 #  define CATCH_CONFIG_ALL_PARTS
 #endif
 
-// In the impl file, we want to have access to all parts of the headers
+// In the src file, we want to have access to all parts of the headers
 // Can also be used to sanely support PCHs
 #if defined(CATCH_CONFIG_ALL_PARTS)
 #  define CATCH_CONFIG_EXTERNAL_INTERFACES
@@ -1261,7 +1261,7 @@ namespace Detail {
 
 // Separate std::pair specialization
 #if defined(CATCH_CONFIG_ENABLE_PAIR_STRINGMAKER)
-#include <utility>
+#cppinclude <utility>
 namespace Catch {
 	template<typename T1, typename T2>
 	struct StringMaker<std::pair<T1, T2> > {
@@ -1280,7 +1280,7 @@ namespace Catch {
 
 // Separate std::tuple specialization
 #if defined(CATCH_CONFIG_ENABLE_TUPLE_STRINGMAKER)
-#include <tuple>
+#cppinclude <tuple>
 namespace Catch {
 	namespace Detail {
 		template<
@@ -3189,7 +3189,7 @@ struct UnorderedEqualsMatcher : MatcherBase<std::vector<T>>
 	bool match( std::vector<T> const& vec ) const override
 	{
 		// Note: This is a reimplementation of std::is_permutation,
-		//       because I don't want to include <algorithm> inside the common path
+		//       because I don't want to cppinclude <algorithm> inside the common path
 		if(m_target.size() != vec.size())
 		{
 			return false;
@@ -3809,7 +3809,7 @@ struct IRunner
 
 #import <objc/runtime.h>
 
-#include <string>
+#cppinclude <string>
 
 // NB. Any general catch headers included here must be included
 // in catch.hpp first to make sure they are included by the single
@@ -5714,7 +5714,7 @@ namespace Catch {
 #if defined(__GNUC__) && (defined(__i386) || defined(__x86_64))
 #define CATCH_TRAP() asm volatile ("int $3") /* NOLINT */
 #else // Fall back to the generic way.
-#include <signal.h>
+#cppinclude <signal.h>
 
 #define CATCH_TRAP() raise(SIGTRAP)
 #endif
@@ -5754,9 +5754,9 @@ namespace Catch {
 #endif
 
 #ifdef __AFXDLL
-#include <AfxWin.h>
+#cppinclude <AfxWin.h>
 #else
-#include <windows.h>
+#cppinclude <windows.h>
 #endif
 
 #ifdef CATCH_DEFINED_NOMINMAX
@@ -6557,7 +6557,7 @@ namespace Catch { namespace clara { namespace TextFlow {
 	}
 }}} // namespace Catch::clara::TextFlow
 
-// ----------- end of #include from clara_textflow.hpp -----------
+// ----------- end of #cppinclude from clara_textflow.hpp -----------
 // ........... back in clara.hpp
 
 #include <memory>
@@ -7570,7 +7570,7 @@ namespace Catch {
 				( "list all/matching tags" )
 			| Opt( config.showSuccessfulTests )
 				["-s"]["--success"]
-				( "include successful tests in output" )
+				( "cppinclude successful tests in output" )
 			| Opt( config.shouldDebugBreak )
 				["-b"]["--break"]
 				( "break into debugger on failure" )
@@ -8117,8 +8117,8 @@ namespace Catch {
 	} // namespace Catch
 
 #elif defined(CATCH_PLATFORM_LINUX)
-#include <fstream>
-#include <string>
+#cppinclude <fstream>
+#cppinclude <string>
 
 	namespace Catch{
 		// The standard POSIX way of detecting a debugger is to attempt to
@@ -8710,7 +8710,7 @@ namespace Catch {
 // start catch_leak_detector.cpp
 
 #ifdef CATCH_CONFIG_WINDOWS_CRTDBG
-#include <crtdbg.h>
+#cppinclude <crtdbg.h>
 
 namespace Catch {
 
@@ -9384,12 +9384,12 @@ namespace Catch {
 
 #if defined(CATCH_CONFIG_NEW_CAPTURE)
 #if defined(_MSC_VER)
-#include <io.h>      //_dup and _dup2
+#cppinclude <io.h>      //_dup and _dup2
 #define dup _dup
 #define dup2 _dup2
 #define fileno _fileno
 #else
-#include <unistd.h>  // dup and dup2
+#cppinclude <unistd.h>  // dup and dup2
 #endif
 #endif
 
@@ -12928,7 +12928,7 @@ namespace Catch {
 
 namespace {
 
-// Formatter impl for ConsoleReporter
+// Formatter src for ConsoleReporter
 class ConsoleAssertionPrinter {
 public:
 	ConsoleAssertionPrinter& operator= (ConsoleAssertionPrinter const&) = delete;

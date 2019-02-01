@@ -2,9 +2,15 @@
 #include "core/core.h"
 #include "catch.hpp"
 
-#include "shell/interface.h"
-#include "cityhash/city.h"
+#include "cmdlineshell/cmdlineshell.h"
 
+int Main(int argc, char* argv[])
+{
+	return Catch::Session().run( argc, argv );
+
+}
+
+/*
 Shell::ShellInterface* globalShell;
 
 int Main(Shell::ShellInterface& shell_)
@@ -65,3 +71,4 @@ TEST_CASE( "CityHash128 1000 bytes", "[CityHash]" )
 		REQUIRE( result0.second != result1.second );
 	}
 }
+ */

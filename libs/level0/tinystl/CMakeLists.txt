@@ -1,5 +1,7 @@
-set( Name tinystl)
-set( Interface
+set( Name tinystl )
+set( CInterface
+		)
+set( CPPInterface
 		allocator.h
 		buffer.h
 		hash.h
@@ -13,8 +15,7 @@ set( Interface
 		unordered_set.h
 		vector.h
 		)
-
-set( Impl
+set( Src
 		)
 
-ADD_LIB(${Name} ${Interface} ${Impl} )
+ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "" )

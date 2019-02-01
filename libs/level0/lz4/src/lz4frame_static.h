@@ -38,7 +38,7 @@
 
 /* The declarations that formerly were made here have been merged into
  * lz4frame.h, protected by the LZ4F_STATIC_LINKING_ONLY macro. Going forward,
- * it is recommended to simply include that header directly.
+ * it is recommended to simply cppinclude that header directly.
  */
 
 #define LZ4F_STATIC_LINKING_ONLY

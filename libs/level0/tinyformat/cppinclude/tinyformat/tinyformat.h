@@ -29,11 +29,11 @@
 // Tinyformat: A minimal type safe printf replacement
 //
 // tinyformat.h is a type safe printf replacement library in a single C++
-// header file.  Design goals include:
+// header file.  Design goals cppinclude:
 //
 // * Type safety and extensibility for user defined types.
 // * C99 printf() compatibility, to the extent possible using std::ostream
-// * Simplicity and minimalism.  A single header file to include and distribute
+// * Simplicity and minimalism.  A single header file to cppinclude and distribute
 //   with your projects.
 // * Augment rather than replace the standard stream formatting mechanism
 // * C++98 support, with optional C++11 niceties
