@@ -1,4 +1,5 @@
 set( Name lz4)
+
 set( CInterface
 		lz4.h
 		lz4hc.h
@@ -17,4 +18,4 @@ set( Src
 		)
 
 ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "")
-target_include_directories(${Name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/lz4)
+target_include_directories(${Name} PRIVATE include/lz4)

@@ -19,6 +19,6 @@ set( CPPInterface
 		quick_hash.h
 		utils.h
 		)
-set( Src )
+set(Src)
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "")

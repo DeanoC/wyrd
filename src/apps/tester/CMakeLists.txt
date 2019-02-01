@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(TESTER_SOURCE
 		tester.cpp
-		catch.hpp )
+		catch.hpp)
 
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/live)
 add_executable(tester ${TESTER_SOURCE})

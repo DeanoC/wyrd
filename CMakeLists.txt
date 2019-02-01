@@ -8,5 +8,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/live)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/live)
 set(CMAKE_DEBUG_POSTFIX d)
 
-add_subdirectory(libs)
-add_subdirectory(apps)
+add_subdirectory(src/libs)
+add_subdirectory(src/apps)
