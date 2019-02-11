@@ -3,14 +3,21 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(TESTER_SOURCE
 		tester.cpp
-		catch.hpp)
+		catch.hpp
+		level0/binify/test_binify_c.cpp
+		)
 
 add_executable(tester ${TESTER_SOURCE})
 target_link_libraries(tester
-		core
+		binify
 		cmdlineshell
+		core
+		singleheaders
 		lz4
+		math
+		os
 		tinystl
 		tinyformat
-		singleheaders
+
+#		logmanager
 		)

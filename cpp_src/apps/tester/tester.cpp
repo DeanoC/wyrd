@@ -11,29 +11,6 @@ int Main(int argc, char* argv[])
 }
 
 /*
-Shell::ShellInterface* globalShell;
-
-int Main(Shell::ShellInterface& shell_)
-{
-	globalShell = &shell_; // just for test cases
-
-	shell_.init({
-		"Tester",
-		true,
-		false,
-	});
-
-	auto args = shell_.getArguments();
-	std::vector<char const*> argv(args.size());
-	for(auto i = 0u; i < args.size(); ++i)
-	{
-		argv[i] = args[i].c_str();
-	}
-
-	return Catch::Session().run( (int)args.size(), (char**)argv.data() );
-
-}
-
 TEST_CASE( "CityHash128 100 bytes", "[CityHash]" )
 {
 	using namespace CityHash;

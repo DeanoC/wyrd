@@ -12,3 +12,4 @@ inline char* _strdup(char const* str)
 {
 	return strdup(str);
 }
+

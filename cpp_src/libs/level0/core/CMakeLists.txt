@@ -1,8 +1,8 @@
 set( LibName core)
 
 set( CInterface
+		core.h
 		platform.h
-		platform_cuda.h
 		platform_linux.h
 		platform_osx.h
 		platform_posix.h
@@ -11,7 +11,6 @@ set( CInterface
 
 set( CPPInterface
 		any.h
-		core.h
 		exception.h
 		filesystem.h
 		freelist.h
@@ -19,6 +18,8 @@ set( CPPInterface
 		quick_hash.h
 		utils.h
 		)
-set(Src)
+set(Src
+		logger.c
+		)
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "")

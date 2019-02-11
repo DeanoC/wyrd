@@ -5,3 +5,4 @@
 import Foundation
 
 print("hello world")
+print("hello")
