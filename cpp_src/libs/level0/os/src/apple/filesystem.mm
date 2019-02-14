@@ -8,7 +8,6 @@
 #include "os/os.h"
 #include "tinystl/string.h"
 #include "tinystl/vector.h"
-#include "../file_details.hpp"
 //#include "../Interfaces/IMemoryManager.h"
 
 #include <unistd.h>
@@ -19,51 +18,7 @@
 
 #define RESOURCE_DIR "Shaders/Metal"
 
-EXTERN_C File_Handle File_Open(const char* filename, const File_Mode mode)
-{
-	char flags[4];
-	FileDetails::TranslateFileAccessFlags(mode, flags, 4);
-	FILE* fp = fopen(filename, flags);
-	return fp;
-}
-
-bool File_close(File_Handle handle)
-{
-	return (fclose((::FILE*) handle) == 0);
-}
-
-void File_Flush(File_Handle handle)
-{
-	fflush((::FILE*) handle);
-}
-
-size_t File_Read(File_Handle handle, void* buffer, size_t byteCount)
-{
-	return fread(buffer,
-				 1,
-				 byteCount,
-				 (::FILE*) handle);
-}
-
-bool File_Seek(File_Handle handle, uint64_t offset, File_SeekDir origin)
-{
-	return fseek((::FILE*) handle, offset, origin) == 0;
-}
-
-int64_t File_Tell(File_Handle handle)
-{
-	return ftell((::FILE*) handle);
-}
-
-size_t File_Write(File_Handle handle, void const * buffer, size_t byteCount)
-{
-	return fwrite(buffer,
-				  1,
-				  byteCount,
-				  (::FILE*) handle);
-}
-
-size_t FS_GetLastModifiedTime(const char* _fileName)
+EXTERN_C size_t FS_GetLastModifiedTime(const char* _fileName)
 {
 	struct stat fileInfo;
 
@@ -77,18 +32,48 @@ size_t FS_GetLastModifiedTime(const char* _fileName)
 	}
 }
 
-bool FS_GetCurrentDir(char* dirOut, int maxSize)
+EXTERN_C bool FS_GetCurrentDir(char* dirOut, int maxSize)
 {
 	if( getcwd(dirOut, maxSize) != NULL) return true;
 	else return false;
 }
 
 
-tinystl::string get_exe_path()
+EXTERN_C bool FS_GetExePath(char* dirOut, int maxSize)
 {
 	const char* exePath = [[[[NSBundle mainBundle] bundlePath] stringByStandardizingPath] cStringUsingEncoding:NSUTF8StringEncoding];
-	tinystl::string str(exePath);
-	return str;
+	if(exePath == NULL) return false;
+	if(strlen(exePath) >= maxSize) return false;
+
+	strncpy(dirOut, exePath, maxSize);
+	return true;
+}
+
+EXTERN_C bool FS_GetInternalPath(char const* path, char* pathOut, int maxSize)
+{
+	// just copy
+	if(strlen(path) >= maxSize) return false;
+	strcpy(pathOut, path);
+	return true;
+}
+
+EXTERN_C bool FS_GetPlatformPath(char const* path, char* pathOut, int maxSize)
+{
+	// just copy
+	if(strlen(path) >= maxSize) return false;
+	strcpy(pathOut, path);
+	return true;
+}
+
+void FileSystem::SplitPath(
+		tinystl::string const& fullPath, tinystl::string* pathName, tinystl::string* fileName, tinystl::string* extension,
+		bool lowercaseExtension)
+{
+	tinystl::string fullPathCopy = GetInternalPath(fullPath);
+
+	unsigned int extPos = fullPathCopy.find_last('.');
+	unsigned int pathPos = fullPathCopy.find_last('/');
+
 }
 
 tinystl::string get_app_prefs_dir(const char* org, const char* app)

@@ -28,7 +28,11 @@ EXTERN_C bool FS_GetFileName(char const* fullPath, char const* dir, int maxSize)
 EXTERN_C bool FS_GetExtension(char const* fullPath, char* dirOut, int maxSize);
 EXTERN_C bool FS_ReplaceExtension(char const* fullPath, char const* newExtension, char* dirOut, int maxSize);
 EXTERN_C bool FS_GetParentPath(char const* pathName, char* dirOut, int maxSize);
-EXTERN_C bool FS_GetNativePath(char const* pathName, char* dirOut, int maxSize);
+
+// internal paths are normalized to use forward slash '/' as directory seperates
+EXTERN_C bool FS_GetInternalPath(char const* pathName, char* dirOut, int maxSize);
+// native paths are slashes in the platform preferred direction
+EXTERN_C bool FS_GetPlatformPath(char const* pathName, char* dirOut, int maxSize);
 
 #ifdef __cplusplus
 #include "os/filesystem.hpp"

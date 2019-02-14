@@ -5,9 +5,32 @@
 #ifndef WYRD_OS_FILE_HPP
 #define WYRD_OS_FILE_HPP
 
+#include "core/core.h"
+#include "os/file.h"
 #include "tinystl/string.h"
 
-tinystl::string get_current_dir();
+namespace Os {
+
+// C++ wrapper for File_*
+struct File
+{
+	static File Open(tinystl::string const& filename, const File_Mode mode)
+	{
+		return { File_Open(filename.c_str(), mode) };
+	}
+
+	bool Close() { return File_Close(handle); }
+	void Flush() { File_Flush(handle); }
+	size_t Read(void* buffer, size_t byteCount) { return File_Read(handle, buffer, byteCount); }
+	size_t Write(void const* buffer, size_t byteCount) { return File_Write(handle, buffer, byteCount); };
+	bool Seek(int64_t offset, File_SeekDir origin) { return File_Seek(handle, offset, origin); }
+	int64_t Tell() const { return File_Tell(handle); };
+
+	File_Handle handle;
+};
+
+} // end Os namespace
+
 tinystl::string get_exe_path();
 tinystl::string get_app_prefs_dir(const char* org, const char* app);
 tinystl::string get_user_documents_dir();
