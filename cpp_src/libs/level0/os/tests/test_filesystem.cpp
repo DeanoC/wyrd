@@ -74,3 +74,23 @@ TEST_CASE("ReplaceExtension (C)", "[OS FileSystem]") {
   REQUIRE(strcmp("test_data/test.tmp", buffer) == 0);
 
 }
+
+TEST_CASE("GetParentPath (C)", "[OS FileSystem]") {
+  char const testFilePath[] = "bob/test_data/test.txt";
+  char const testDir0Path[] = "bob/test_data/";
+  char const testDir1Path[] = "bob/test_data";
+
+  char buffer[1024];
+  bool parentOk = FS_GetParentPath(testFilePath, buffer, sizeof(buffer));
+  REQUIRE(parentOk);
+  REQUIRE(strcmp("bob/test_data/", buffer) == 0);
+
+  bool parent0Ok = FS_GetParentPath(testDir0Path, buffer, sizeof(buffer));
+  REQUIRE(parent0Ok);
+  REQUIRE(strcmp("bob/", buffer) == 0);
+
+  bool parent1Ok = FS_GetParentPath(testDir1Path, buffer, sizeof(buffer));
+  REQUIRE(parent1Ok);
+  REQUIRE(strcmp("bob/", buffer) == 0);
+
+}

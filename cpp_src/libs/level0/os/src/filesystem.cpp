@@ -60,11 +60,17 @@ EXTERN_C bool FS_GetParentPath(char const *pathc, char *dirOut, int maxSize) {
   tinystl::string path(pathc);
 
   if (path.back() == '/') {
-    path.resize(path.size());
+    path.resize(path.size() - 1);
   }
 
   size_t lastSlash = path.find_last('/');
+  tinystl::string n(path.c_str(), lastSlash + 1);
 
+  if (n.size() > maxSize) { return false; }
+  else {
+    strcpy(dirOut, n.c_str());
+    return true;
+  }
 }
 
 namespace FileSystem {

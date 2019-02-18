@@ -407,7 +407,7 @@ inline typename basic_string<allocator>::size_type basic_string<allocator>::find
 template<typename allocator>
 inline char basic_string<allocator>::back() const {
   if (empty()) { return 0; }
-  else { return *(c_str() + size()); }
+  else { return *(c_str() + size() - 1); }
 }
 
 template<typename allocatorl, typename allocatorr>
