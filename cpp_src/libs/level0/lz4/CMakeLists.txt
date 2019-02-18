@@ -17,5 +17,5 @@ set( Src
 		xxhash.c
 		)
 
-ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "")
+ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "" "")
 target_include_directories(${Name} PRIVATE include/lz4)

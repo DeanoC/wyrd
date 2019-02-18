@@ -8,6 +8,7 @@ set( CInterface
 		file.h
 		filesystem.h
 		)
+
 set( CPPInterface
 		platformevents.hpp
 		thread.hpp
@@ -16,9 +17,8 @@ set( CPPInterface
 
 set( Src
 		os.c
-		file.cpp
-		file_details.hpp
-
+		file.c
+		filesystem.cpp
 		)
 
 if(WINDOWS)
@@ -26,7 +26,7 @@ if(WINDOWS)
 endif()
 
 if(APPLE)
-	list(APPEND Src apple/file.mm)
+	list(APPEND Src apple/filesystem.mm)
 endif()
 
 set( Deps
@@ -34,4 +34,9 @@ set( Deps
 		level0/tinystl
 		level0/math )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
+set(Tests
+		test_os.cpp
+		test_file.cpp
+		test_filesystem.cpp)
+
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")

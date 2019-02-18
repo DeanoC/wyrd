@@ -3,7 +3,7 @@
 #define WYRD_FILESYSTEM_H
 
 #include "core/core.h"
-#if PLATFORM_OS == OSX
+#if PLATFORM_OS == OS_OSX
 #include "include/core/macos/experimental/filesystem"
 #error MACOS still doesn't support filesystem sadly, use cppfs
 #else

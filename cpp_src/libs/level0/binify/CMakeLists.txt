@@ -20,6 +20,12 @@ set( Src
 		stack.hh
 		)
 set( Deps
-		)
+        level0/core
+        )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
+set(Tests
+        test_binify.cpp
+        test_binify_c.cpp
+        )
+
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")

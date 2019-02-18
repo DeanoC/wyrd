@@ -5,7 +5,7 @@ set( CPPInterface
 		tinyformat.h )
 set( Src tinyformat.cpp )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "" "" "")
 
 target_compile_definitions(
 		${LibName}

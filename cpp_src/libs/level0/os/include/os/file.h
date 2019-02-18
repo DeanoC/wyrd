@@ -9,7 +9,7 @@
 
 typedef void* File_Handle;
 
-enum File_Mode
+typedef enum File_Mode
 {
 	FM_Read = 1,
 	FM_Write = FM_Read << 1,
@@ -19,14 +19,14 @@ enum File_Mode
 	FM_ReadAppend = FM_Read | FM_Append,
 	FM_WriteBinary = FM_Write | FM_Binary,
 	FM_ReadBinary = FM_Read | FM_Binary
-};
+} File_Mode;
 
-enum File_SeekDir
+typedef enum File_SeekDir
 {
 	FSD_BEGIN = 0,
 	FSD_CUR,
 	FSD_END,
-};
+} File_SeekDir;
 
 /// Low level file system interface providing basic file I/O operations
 /// Implementations platform dependent

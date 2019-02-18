@@ -1,7 +1,6 @@
-#include "../../catch.hpp"
 #include "core/core.h"
+#include "catch/catch.hpp"
 #include "binify/binify_c.h"
-#include "os/thread.h"
 
 TEST_CASE( "Alloc and Free", "[Binify_C]" )
 {

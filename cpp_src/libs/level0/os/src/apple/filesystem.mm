@@ -2,19 +2,11 @@
 #include <AppKit/NSOpenPanel.h>
 
 #include "core/core.h"
-#include "core/logger.h"
-#include "os/file.h"
-#include "os/filesystem.h"
+#include "os/filesystem.hpp"
 #include "os/os.h"
-#include "tinystl/string.h"
-#include "tinystl/vector.h"
 //#include "../Interfaces/IMemoryManager.h"
 
-#include <unistd.h>
-#include <limits.h>       // for UINT_MAX
 #include <sys/stat.h>     // for mkdir
-#include <sys/errno.h>    // for errno
-#include <dirent.h>
 
 #define RESOURCE_DIR "Shaders/Metal"
 
@@ -49,6 +41,11 @@ EXTERN_C bool FS_GetExePath(char* dirOut, int maxSize)
 	return true;
 }
 
+// internal and platform path are the same on this platform
+EXTERN_C bool FS_IsInternalPath(char const *path) {
+  return true;
+}
+
 EXTERN_C bool FS_GetInternalPath(char const* path, char* pathOut, int maxSize)
 {
 	// just copy
@@ -65,17 +62,7 @@ EXTERN_C bool FS_GetPlatformPath(char const* path, char* pathOut, int maxSize)
 	return true;
 }
 
-void FileSystem::SplitPath(
-		tinystl::string const& fullPath, tinystl::string* pathName, tinystl::string* fileName, tinystl::string* extension,
-		bool lowercaseExtension)
-{
-	tinystl::string fullPathCopy = GetInternalPath(fullPath);
-
-	unsigned int extPos = fullPathCopy.find_last('.');
-	unsigned int pathPos = fullPathCopy.find_last('/');
-
-}
-
+/*
 tinystl::string get_app_prefs_dir(const char* org, const char* app)
 {
 	const char* rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
@@ -94,180 +81,162 @@ tinystl::string get_user_documents_dir()
 }
 
 void set_current_dir(const char* path) { chdir(path); }
+*/
+namespace FileSystem {
+/*
+void get_files_with_extension(const char *dir, const char *ext, tinystl::vector<tinystl::string>& filesOut) {
+  tinystl::string path = FileSystem::GetPlatformPath(dir);
+  DIR *pDir = opendir(dir);
+  if (!pDir) {
+    LOGWARNINGF("Could not open directory: %s", dir);
+    return;
+  }
 
-void get_files_with_extension(const char* dir, const char* ext, tinystl::vector<tinystl::string>& filesOut)
-{
-	tinystl::string path = FileSystem::GetNativePath(dir);
-	DIR* pDir = opendir(dir);
-	if(!pDir)
-	{
-		LOGWARNINGF("Could not open directory: %s", dir);
-		return;
-	}
+  // recursively search the directory for files with given extension
+  dirent *entry = NULL;
+  while ((entry = readdir(pDir)) != NULL) {
+    if (FileSystem::GetExtension(entry->d_name) == ext) {
+      filesOut.push_back(path + entry->d_name);
+    }
+  }
 
-	// recursively search the directory for files with given extension
-	dirent* entry = NULL;
-	while((entry = readdir(pDir)) != NULL)
-	{
-		if(FileSystem::GetExtension(entry->d_name) == ext)
-		{
-			filesOut.push_back(path + entry->d_name);
-		}
-	}
-
-	closedir(pDir);
+  closedir(pDir);
 }
 
-const char* pszRoots[FSR_Count] = {
-		RESOURCE_DIR "/Binary/",    // FSR_BinShaders
-		RESOURCE_DIR "/",           // FSR_SrcShaders
-		"Textures/",                // FSR_Textures
-		"Meshes/",                  // FSR_Meshes
-		"Fonts/",                   // FSR_Builtin_Fonts
-		"GPUCfg/",                  // FSR_GpuConfig
-		"Animation/",               // FSR_Animation
-		"",                         // FSR_OtherFiles
+const char *pszRoots[] = {
+    RESOURCE_DIR "/Binary/",    // FSR_BinShaders
+    RESOURCE_DIR "/",           // FSR_SrcShaders
+    "Textures/",                // FSR_Textures
+    "Meshes/",                  // FSR_Meshes
+    "Fonts/",                   // FSR_Builtin_Fonts
+    "GPUCfg/",                  // FSR_GpuConfig
+    "Animation/",               // FSR_Animation
+    "",                         // FSR_OtherFiles
 };
 
-void get_sub_directories(const char* dir, tinystl::vector<tinystl::string>& subDirectoriesOut)
-{
-	tinystl::string path = FileSystem::GetNativePath(FileSystem::AddTrailingSlash(dir));
-	DIR* pDir = opendir(dir);
-	if(!pDir)
-	{
-		LOGWARNINGF("Could not open directory: %s", dir);
-		return;
-	}
+void get_sub_directories(const char *dir, tinystl::vector<tinystl::string>& subDirectoriesOut) {
+  tinystl::string path = FileSystem::GetPlatformPath(dir);
+  DIR *pDir = opendir(dir);
+  if (!pDir) {
+    LOGWARNINGF("Could not open directory: %s", dir);
+    return;
+  }
 
-	// recursively search the directory for files with given extension
-	dirent* entry = NULL;
-	while((entry = readdir(pDir)) != NULL)
-	{
-		if(entry->d_type & DT_DIR)
-		{
-			if(entry->d_name[0] != '.')
-			{
-				tinystl::string subDirectory = path + entry->d_name;
-				subDirectoriesOut.push_back(subDirectory);
-			}
-		}
-	}
+  // recursively search the directory for files with given extension
+  dirent *entry = NULL;
+  while ((entry = readdir(pDir)) != NULL) {
+    if (entry->d_type & DT_DIR) {
+      if (entry->d_name[0] != '.') {
+        tinystl::string subDirectory = path + entry->d_name;
+        subDirectoriesOut.push_back(subDirectory);
+      }
+    }
+  }
 
-	closedir(pDir);
+  closedir(pDir);
 }
 
-bool absolute_path(const char* fileFullPath)
-{
-	return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
+bool absolute_path(const char *fileFullPath) {
+  return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
 }
 
-bool copy_file(const char* src, const char* dst)
-{
-	NSError* error = nil;
-	if(NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
-													 toPath:[NSString stringWithUTF8String:dst]
-													  error:&error])
-	{
-		LOGINFOF("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
-		return false;
-	}
+bool copy_file(const char *src, const char *dst) {
+  NSError *error = nil;
+  if (NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
+                                                    toPath:[NSString stringWithUTF8String:dst]
+                                                     error:&error]) {
+    LOGINFOF("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 static void FormatFileExtensionsFilter(
-		tinystl::string const& fileDesc, tinystl::vector<tinystl::string> const& extFiltersIn,
-		tinystl::string& extFiltersOut)
-{
-	extFiltersOut = "";
-	for(size_t i = 0; i < extFiltersIn.size(); ++i)
-	{
-		extFiltersOut += extFiltersIn[i];
-		if(i != extFiltersIn.size() - 1)
-			extFiltersOut += ";";
-	}
+    tinystl::string const& fileDesc, tinystl::vector<tinystl::string> const& extFiltersIn,
+    tinystl::string& extFiltersOut) {
+  extFiltersOut = "";
+  for (size_t i = 0; i < extFiltersIn.size(); ++i) {
+    extFiltersOut += extFiltersIn[i];
+    if (i != extFiltersIn.size() - 1)
+      extFiltersOut += ";";
+  }
 }
 
 void open_file_dialog(
-		const char* title, const char* dir, FileDialogCallbackFn callback, void* userData, const char* fileDesc,
-		const tinystl::vector<tinystl::string>& fileExtensions)
-{
-	tinystl::string extFilter;
-	FormatFileExtensionsFilter(fileDesc, fileExtensions, extFilter);
+    const char *title, const char *dir, FileDialogCallbackFn callback, void *userData, const char *fileDesc,
+    const tinystl::vector<tinystl::string>& fileExtensions) {
+  tinystl::string extFilter;
+  FormatFileExtensionsFilter(fileDesc, fileExtensions, extFilter);
 
-	// Create array of filtered extentions
-	NSString* extString = [NSString stringWithCString:extFilter encoding:[NSString defaultCStringEncoding]];
-	NSArray* extList = [extString componentsSeparatedByString:@";"];
+  // Create array of filtered extentions
+  NSString *extString = [NSString stringWithCString:extFilter.c_str() encoding:[NSString defaultCStringEncoding]];
+  NSArray *extList = [extString componentsSeparatedByString:@";"];
 
-	NSString* objcString = [NSString stringWithCString:title encoding:[NSString defaultCStringEncoding]];
-	NSString* objcURL = [NSString stringWithCString:dir encoding:[NSString defaultCStringEncoding]];
-	NSURL* nsURL = [NSURL URLWithString:objcURL];
+  NSString *objcString = [NSString stringWithCString:title encoding:[NSString defaultCStringEncoding]];
+  NSString *objcURL = [NSString stringWithCString:dir encoding:[NSString defaultCStringEncoding]];
+  NSURL *nsURL = [NSURL URLWithString:objcURL];
 
-	// Create the File Open Dialog class.
-	NSOpenPanel* openDlg = [NSOpenPanel openPanel];
+  // Create the File Open Dialog class.
+  NSOpenPanel *openDlg = [NSOpenPanel openPanel];
 
-	// Enable the selection of files in the dialog.
-	[openDlg setCanChooseFiles:YES];
+  // Enable the selection of files in the dialog.
+  [openDlg setCanChooseFiles:YES];
 
-	// Multiple files not allowed
-	[openDlg setAllowsMultipleSelection:NO];
+  // Multiple files not allowed
+  [openDlg setAllowsMultipleSelection:NO];
 
-	// Can't select a directory
-	[openDlg setCanChooseDirectories:NO];
-	[openDlg setMessage:objcString];
-	[openDlg setDirectoryURL:nsURL];
+  // Can't select a directory
+  [openDlg setCanChooseDirectories:NO];
+  [openDlg setMessage:objcString];
+  [openDlg setDirectoryURL:nsURL];
 
-	// Extention filtering
-	[openDlg setAllowedFileTypes:extList];
+  // Extention filtering
+  [openDlg setAllowedFileTypes:extList];
 
-	[openDlg beginSheetModalForWindow:[[NSApplication sharedApplication].windows objectAtIndex:0]
-					completionHandler:^(NSInteger result)
-					{
-						if(result == NSModalResponseOK)
-						{
-							NSArray* urls = [openDlg URLs];
-							NSString* url = [urls objectAtIndex:0];
-							callback(url.fileSystemRepresentation, userData);
-						}
-					}];
+  [openDlg beginSheetModalForWindow:[[NSApplication sharedApplication].windows objectAtIndex:0]
+                  completionHandler:^(NSInteger result) {
+                    if (result == NSModalResponseOK) {
+                      NSArray *urls = [openDlg URLs];
+                      NSString *url = [urls objectAtIndex:0];
+                      callback(url.fileSystemRepresentation, userData);
+                    }
+                  }];
 }
 
 void save_file_dialog(
-		const char* title, const char* dir, FileDialogCallbackFn callback, void* userData, const char* fileDesc,
-		const tinystl::vector<tinystl::string>& fileExtensions)
-{
-	tinystl::string extFilter;
-	FormatFileExtensionsFilter(fileDesc, fileExtensions, extFilter);
+    const char *title, const char *dir, FileDialogCallbackFn callback, void *userData, const char *fileDesc,
+    const tinystl::vector<tinystl::string>& fileExtensions) {
+  tinystl::string extFilter;
+  FormatFileExtensionsFilter(fileDesc, fileExtensions, extFilter);
 
-	// Create array of filtered extentions
-	NSString* extString = [NSString stringWithCString:extFilter encoding:[NSString defaultCStringEncoding]];
-	NSArray* extList = [extString componentsSeparatedByString:@";"];
+  // Create array of filtered extentions
+  NSString *extString = [NSString stringWithCString:extFilter.c_str() encoding:[NSString defaultCStringEncoding]];
+  NSArray *extList = [extString componentsSeparatedByString:@";"];
 
-	NSString* objcString = [NSString stringWithCString:title encoding:[NSString defaultCStringEncoding]];
-	NSString* objcURL = [NSString stringWithCString:dir encoding:[NSString defaultCStringEncoding]];
-	NSURL* nsURL = [NSURL URLWithString:objcURL];
+  NSString *objcString = [NSString stringWithCString:title encoding:[NSString defaultCStringEncoding]];
+  NSString *objcURL = [NSString stringWithCString:dir encoding:[NSString defaultCStringEncoding]];
+  NSURL *nsURL = [NSURL URLWithString:objcURL];
 
-	// Create the File Open Dialog class.
-	NSSavePanel* saveDlg = [NSSavePanel savePanel];
+  // Create the File Open Dialog class.
+  NSSavePanel *saveDlg = [NSSavePanel savePanel];
 
-	// Can't select a directory
-	[saveDlg setMessage:objcString];
-	[saveDlg setDirectoryURL:nsURL];
+  // Can't select a directory
+  [saveDlg setMessage:objcString];
+  [saveDlg setDirectoryURL:nsURL];
 
-	// Extention filtering
-	[saveDlg setAllowedFileTypes:extList];
+  // Extention filtering
+  [saveDlg setAllowedFileTypes:extList];
 
-	[saveDlg beginSheetModalForWindow:[[NSApplication sharedApplication].windows objectAtIndex:0]
-					completionHandler:^(NSInteger result)
-					{
-						if(result == NSModalResponseOK)
-						{
-							NSURL* url = [saveDlg URL];
-							callback(url.fileSystemRepresentation, userData);
-						}
-					}];
-}
-
+  [saveDlg beginSheetModalForWindow:[[NSApplication sharedApplication].windows objectAtIndex:0]
+                  completionHandler:^(NSInteger result) {
+                    if (result == NSModalResponseOK) {
+                      NSURL *url = [saveDlg URL];
+                      callback(url.fileSystemRepresentation, userData);
+                    }
+                  }];
+}*/
+} // end namespace FileSystem
 
 /*
  * Copyright (c) 2018-2019 Confetti Interactive Inc.

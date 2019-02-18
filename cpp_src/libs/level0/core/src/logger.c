@@ -5,7 +5,7 @@
 #include <stdio.h> // for sprintf family
 #include <stdarg.h> // for va_xxx functions
 
-#if PLATFORM != WINDOWS
+#if PLATFORM != PLATFORM_WINDOWS
 void OutputDebugString(char const* msg)
 {
 	printf("%s", msg);

@@ -18,4 +18,4 @@ set( CPPInterface
 set( Src
 		)
 
-ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "" )
+ADD_LIB(${Name} "${CInterface}" "${CPPInterface}" "${Src}" "" "")

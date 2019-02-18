@@ -12,4 +12,7 @@ set( Src
 set( Deps
 		level0/core)
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "")
+if (APPLE)
+    target_link_libraries(${LibName} stdc++ "-framework Foundation" "-framework Cocoa" objc)
+endif ()

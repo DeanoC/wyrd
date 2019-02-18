@@ -4,7 +4,7 @@
 
 #include "core/core.h"
 
-#if PLATFORM_OS == OSX
+#if PLATFORM_OS == OS_OSX
 #include "core/macos/any"
 #else
 #include <any>

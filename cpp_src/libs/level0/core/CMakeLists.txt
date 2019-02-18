@@ -22,4 +22,4 @@ set(Src
 		logger.c
 		)
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "" "")

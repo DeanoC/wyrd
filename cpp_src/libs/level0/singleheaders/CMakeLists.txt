@@ -10,4 +10,4 @@ set( CPPInterface
 		)
 set( Src stb_impl.c )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "" "")

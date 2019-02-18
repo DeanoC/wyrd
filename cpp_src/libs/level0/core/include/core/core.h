@@ -6,11 +6,11 @@
 #include "core/platform.h"
 #if COMPILER == CUDA_COMPILER
 #include "platform_cuda.h"
-#elif PLATFORM_OS == MS_WINDOWS
+#elif PLATFORM_OS == OS_WINDOWS
 #include "platform_win.h"
-#elif PLATFORM_OS == OSX
+#elif PLATFORM_OS == OS_OSX
 #include "core/platform_osx.h"
-#elif PLATFORM_OS == GNULINUX
+#elif PLATFORM_OS == OS_GNULINUX
 #include "platform_linux.h"
 #elif PLATFORM_OS == FREEBSD
 #include "platform_posix.h"
@@ -22,7 +22,7 @@
 #define EXTERN_C
 #endif
 
-#if PLATFORM == WINDOWS && !defined(USING_STATIC_LIBS)
+#if PLATFORM == PLATFORM_WINDOWS && !defined(USING_STATIC_LIBS)
 #define EXPORT EXTERN_C __declspec(dllexport)
 #define IMPORT EXTERN_C __declspec(dllimport)
 #define CAPI __declspec(cdecl)
