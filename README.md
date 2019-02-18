@@ -58,3 +58,15 @@ openal-soft = https://github.com/kcat/openal-soft
 
 Sony ATF - https://github.com/SonyWWS/ATF
 Box2D/Bullet physics, Recast/Detour pathfinding, TurboBadger UI, CEF3, duktape VM, SDL2
+
+cute single header libs - https://github.com/RandyGaul/cute_headers
+
+rjm - https://github.com/rmitton/rjm
+
+stb - https://github.com/nothings/stb
+
+mathiasgustavsson - https://github.com/mattiasgustavsson/libs
+
+final game tech - https://github.com/f1nalspace/final_game_tech
+
+ioqueue - https://github.com/esoma/io-queue
