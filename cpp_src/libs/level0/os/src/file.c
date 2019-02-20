@@ -85,3 +85,11 @@ EXTERN_C size_t File_Write(File_Handle handle, void const * buffer, size_t byteC
                   byteCount,
                   (FILE *) handle);
 }
+
+EXTERN_C size_t File_Size(File_Handle handle) {
+  int64_t curPos = File_Tell(handle);
+  File_Seek(handle, 0, FSD_END);
+  int64_t length = File_Tell(handle);
+  File_Seek(handle, curPos, FSD_BEGIN);
+  return (size_t) length;
+}

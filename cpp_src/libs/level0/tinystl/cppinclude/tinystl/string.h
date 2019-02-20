@@ -33,6 +33,7 @@
 #include "hash.h"
 #include <tinystl/string_view.h>
 #include <cctype>
+#include <cstring>
 
 namespace tinystl {
 
@@ -56,7 +57,7 @@ class basic_string {
   basic_string(const string_view& other);
   ~basic_string();
 
-  static constexpr size_type npos = size_type(-1);
+  static const size_type npos;
 
   basic_string& operator=(const basic_string& other);
   basic_string& operator=(basic_string&& other);
@@ -101,6 +102,10 @@ class basic_string {
   static const size_t c_nbuffer = 12;
   char m_buffer[12];
 };
+
+template<typename allocator>
+const typename basic_string<allocator>::size_type
+    basic_string<allocator>::npos = basic_string<allocator>::size_type(-1);
 
 template<typename allocator>
 inline basic_string<allocator>::basic_string()

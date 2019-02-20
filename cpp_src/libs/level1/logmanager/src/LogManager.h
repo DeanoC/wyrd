@@ -25,10 +25,11 @@
 #pragma once
 
 #include "core/core.h"
+#include "os/thread.h"
+#include "os/os.h"
+#include "os/file.hpp"
 #include "tinystl/vector.h"
 #include "tinystl/string.h"
-
-#include "os/thread.h"
 
 enum LogLevel
 {
@@ -76,7 +77,7 @@ public:
 private:
 	/// Mutex for threaded operation.
 	Mutex mLogMutex;
-	File* pLogFile;
+  File::File *pLogFile;
 	tinystl::string mLastMessage;
 	LogLevel mLogLevel;
 	bool mRecordTimestamp;

@@ -22,9 +22,11 @@
  * under the License.
 */
 
-#include "LogManager.h"
+#include "core/core.h"
 #include "os/os.h"
-#include "tinystl/string.h"
+#include "os/file.hpp"
+#include "os/filesystem.hpp"
+#include "LogManager.h"
 
 //#include "../Interfaces/IFileSystem.h"
 //#include "../Interfaces/IMemoryManager.h"
@@ -59,7 +61,7 @@ LogManager::LogManager(LogLevel level /* = LogLevel::LL_Debug */) :
 {
 	pLogInstance = this;
 
-	Open(FileSystem::GetCurrentDir() + "Log.log");
+  pLogFile = File::Open(FileSystem::GetCurrentDir() + "Log.log", FM_Write);
 
 	Thread::SetMainThread();
 }

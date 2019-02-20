@@ -26,6 +26,7 @@ if(WINDOWS)
 endif()
 
 if(APPLE)
+	list(APPEND Src posix/filesystem.cpp)
 	list(APPEND Src apple/filesystem.mm)
 endif()
 

@@ -2,34 +2,11 @@
 #include <AppKit/NSOpenPanel.h>
 
 #include "core/core.h"
+#include "core/logger.h"
 #include "os/filesystem.hpp"
-#include "os/os.h"
 //#include "../Interfaces/IMemoryManager.h"
 
-#include <sys/stat.h>     // for mkdir
-
 #define RESOURCE_DIR "Shaders/Metal"
-
-EXTERN_C size_t FS_GetLastModifiedTime(const char* _fileName)
-{
-	struct stat fileInfo;
-
-	if(!stat(_fileName, &fileInfo))
-	{
-		return (size_t) fileInfo.st_mtime;
-	} else
-	{
-		// return an impossible large mod time as the file doesn't exist
-		return ~0;
-	}
-}
-
-EXTERN_C bool FS_GetCurrentDir(char* dirOut, int maxSize)
-{
-	if( getcwd(dirOut, maxSize) != NULL) return true;
-	else return false;
-}
-
 
 EXTERN_C bool FS_GetExePath(char* dirOut, int maxSize)
 {
@@ -41,25 +18,20 @@ EXTERN_C bool FS_GetExePath(char* dirOut, int maxSize)
 	return true;
 }
 
-// internal and platform path are the same on this platform
-EXTERN_C bool FS_IsInternalPath(char const *path) {
+EXTERN_C bool FS_IsAbsolutePath(char const *fileFullPath) {
+  return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
+}
+
+EXTERN_C bool FS_CopyFile(char const *src, char const *dst) {
+  NSError *error = nil;
+  if (NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
+                                                    toPath:[NSString stringWithUTF8String:dst]
+                                                     error:&error]) {
+    LOGINFOF("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
+    return false;
+  }
+
   return true;
-}
-
-EXTERN_C bool FS_GetInternalPath(char const* path, char* pathOut, int maxSize)
-{
-	// just copy
-	if(strlen(path) >= maxSize) return false;
-	strcpy(pathOut, path);
-	return true;
-}
-
-EXTERN_C bool FS_GetPlatformPath(char const* path, char* pathOut, int maxSize)
-{
-	// just copy
-	if(strlen(path) >= maxSize) return false;
-	strcpy(pathOut, path);
-	return true;
 }
 
 /*
@@ -79,9 +51,8 @@ tinystl::string get_user_documents_dir()
 	path = strstr(rawUserPath, "/Users/");
 	return tinystl::string(path);
 }
-
-void set_current_dir(const char* path) { chdir(path); }
 */
+
 namespace FileSystem {
 /*
 void get_files_with_extension(const char *dir, const char *ext, tinystl::vector<tinystl::string>& filesOut) {
@@ -134,22 +105,6 @@ void get_sub_directories(const char *dir, tinystl::vector<tinystl::string>& subD
   }
 
   closedir(pDir);
-}
-
-bool absolute_path(const char *fileFullPath) {
-  return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
-}
-
-bool copy_file(const char *src, const char *dst) {
-  NSError *error = nil;
-  if (NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
-                                                    toPath:[NSString stringWithUTF8String:dst]
-                                                     error:&error]) {
-    LOGINFOF("Failed to copy file with error : %s", [[error localizedDescription] UTF8String]);
-    return false;
-  }
-
-  return true;
 }
 
 static void FormatFileExtensionsFilter(

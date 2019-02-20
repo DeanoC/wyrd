@@ -11,7 +11,7 @@ typedef void (*FileDialogCallbackFn)(tinystl::string url, void *userData);
 bool SplitPath(tinystl::string const& fullPath, tinystl::string_view& fileName,
                tinystl::string_view& extension);
 
-tinystl::string GetInternalPath(tinystl::string const& path) {
+inline tinystl::string GetInternalPath(tinystl::string const& path) {
   char tmp[2048];
   if (FS_GetInternalPath(path.c_str(), tmp, 2048)) {
     return tinystl::string(tmp);
@@ -20,7 +20,7 @@ tinystl::string GetInternalPath(tinystl::string const& path) {
   }
 }
 
-tinystl::string GetPlatformPath(tinystl::string const& path) {
+inline tinystl::string GetPlatformPath(tinystl::string const& path) {
   char tmp[2048];
   if (FS_GetPlatformPath(path.c_str(), tmp, 2048)) {
     return tinystl::string(tmp);
@@ -29,7 +29,7 @@ tinystl::string GetPlatformPath(tinystl::string const& path) {
   }
 }
 
-tinystl::string GetCurrentDir() {
+inline tinystl::string GetCurrentDir() {
   char cwd[2048];
   if (FS_GetCurrentDir(cwd, 2048)) {
     return tinystl::string(cwd);
@@ -38,7 +38,7 @@ tinystl::string GetCurrentDir() {
   }
 }
 
-tinystl::string GetExtension(tinystl::string const& path) {
+inline tinystl::string GetExtension(tinystl::string const& path) {
   tinystl::string_view fileName;
   tinystl::string_view extension;
   bool splitOk = FileSystem::SplitPath(path, fileName, extension);

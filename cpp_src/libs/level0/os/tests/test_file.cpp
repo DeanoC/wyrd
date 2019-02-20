@@ -87,3 +87,15 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
   bool closeOk = File_Close(fh);
   REQUIRE(closeOk);
 }
+
+TEST_CASE("Size (C)", "[OS File]") {
+
+  File_Handle fh = File_Open("test_data/test.txt", FM_Read);
+  REQUIRE(fh != NULL);
+
+  size_t size = File_Size(fh);
+  REQUIRE(size == 15);
+
+  bool closeOk = File_Close(fh);
+  REQUIRE(closeOk);
+}

@@ -37,6 +37,7 @@ EXTERN_C size_t File_Read(File_Handle handle, void* buffer, size_t byteCount);
 EXTERN_C size_t File_Write(File_Handle handle, void const* buffer, size_t byteCount);
 EXTERN_C bool File_Seek(File_Handle handle, int64_t offset, File_SeekDir origin);
 EXTERN_C int64_t File_Tell(File_Handle handle);
+EXTERN_C size_t File_Size(File_Handle handle);
 
 #endif //WYRD_OS_FILE_H
 

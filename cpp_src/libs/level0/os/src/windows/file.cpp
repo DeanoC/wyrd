@@ -29,18 +29,6 @@ extern "C" FileHandle open_file(const char* filename, const char* flags)
 	return fp;
 }
 
-extern "C" bool close_file(FileHandle handle) { return (fclose((::FILE*)handle) == 0); }
-
-extern "C" void flush_file(FileHandle handle) { fflush((::FILE*)handle); }
-
-extern "C" size_t read_file(void* buffer, size_t byteCount, FileHandle handle) { return fread(buffer, 1, byteCount, (::FILE*)handle); }
-
-extern "C" bool seek_file(FileHandle handle, long offset, int origin) { return fseek((::FILE*)handle, offset, origin) == 0; }
-
-extern "C" long tell_file(FileHandle handle) { return ftell((::FILE*)handle); }
-
-extern "C" size_t write_file(const void* buffer, size_t byteCount, FileHandle handle) { return fwrite(buffer, 1, byteCount, (::FILE*)handle); }
-
 extern "C" size_t get_file_last_modified_time(const char* _fileName)
 {
 	struct stat fileInfo;
