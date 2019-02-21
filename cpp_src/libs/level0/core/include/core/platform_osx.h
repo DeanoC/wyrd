@@ -7,10 +7,4 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include "platform_posix.h"
-
-inline char* _strdup(char const* str)
-{
-	return strdup(str);
-}
-
+#include "core/platform_posix.h"

@@ -41,7 +41,7 @@ struct WindowsDesc : public WindowsDesc_t
 		false, false, false, false, true
 		} {}
 
-} WindowsDesc;
+};
 #endif
 
 // Window handling

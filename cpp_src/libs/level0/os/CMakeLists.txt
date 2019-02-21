@@ -1,7 +1,6 @@
 set( LibName os)
 
 set( CInterface
-		os.h
 		monitordesc.h
 		rectdesc.h
 		windowsdesc.h
@@ -16,7 +15,6 @@ set( CPPInterface
 		)
 
 set( Src
-		os.c
 		file.c
 		filesystem.cpp
 		)
@@ -28,6 +26,7 @@ endif()
 if(APPLE)
 	list(APPEND Src posix/filesystem.cpp)
 	list(APPEND Src apple/filesystem.mm)
+	list(APPEND Src posix/thread.cpp)
 endif()
 
 set( Deps
@@ -38,6 +37,7 @@ set( Deps
 set(Tests
 		test_os.cpp
 		test_file.cpp
-		test_filesystem.cpp)
+		test_filesystem.cpp
+		test_thread.cpp)
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")

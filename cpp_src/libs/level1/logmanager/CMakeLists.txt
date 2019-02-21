@@ -2,13 +2,15 @@ set( LibName logmanager)
 
 set( CInterface
 		)
+
 set( CPPInterface
+        logmanager.h
 		)
 
 set( Src
-		LogManager.cpp
-		LogManager.h
-		)
+        logmanager.cpp
+        )
+
 set( Deps
 		level0/core
 		level0/math
@@ -16,5 +18,8 @@ set( Deps
 		level0/tinystl
 		)
 
+set(Tests
+        test_logmanager.cpp
+        )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")

@@ -3,99 +3,99 @@
 #include "os/file.h"
 
 TEST_CASE("Open and close (C)", "[OS File]") {
-  File_Handle fh = File_Open("test_data/test.txt", FM_Read);
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
-  bool closeOk = File_Close(fh);
+  bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
 }
 
 TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
 
-  File_Handle fh = File_Open("test_data/test.txt", FM_Read);
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
 
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
-  size_t bytesRead = File_Read(fh, buffer, 1024);
+  size_t bytesRead = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead == strlen(expectedBytes));
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
-  bool closeOk = File_Close(fh);
+  bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
 }
 
 TEST_CASE("Write Testing 1, 2, 3 text file (C)", "[OS File]") {
 
-  File_Handle fh = File_Open("test_data/test.txt", FM_Write);
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Write);
   REQUIRE(fh != NULL);
 
   static char expectedBytes[] = "Testing 1, 2, 3";
 
-  size_t bytesWritten = File_Write(fh, expectedBytes, strlen(expectedBytes));
+  size_t bytesWritten = Os_FileWrite(fh, expectedBytes, strlen(expectedBytes));
   REQUIRE(bytesWritten == strlen(expectedBytes));
 
   // there not really an easy way of testing flush so we test it doesn't crash
-  File_Flush(fh);
+  Os_FileFlush(fh);
 
-  bool closeWriteOk = File_Close(fh);
+  bool closeWriteOk = Os_FileClose(fh);
   REQUIRE(closeWriteOk);
 
 
   // verify write
-  File_Handle fhr = File_Open("test_data/test.txt", FM_Read);
+  Os_FileHandle fhr = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fhr != NULL);
   char buffer[1024];
-  size_t bytesRead = File_Read(fhr, buffer, 1024);
+  size_t bytesRead = Os_FileRead(fhr, buffer, 1024);
   REQUIRE(bytesRead == strlen(expectedBytes));
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
-  bool closeReadOk = File_Close(fhr);
+  bool closeReadOk = Os_FileClose(fhr);
   REQUIRE(closeReadOk);
 }
 
 TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
 
-  File_Handle fh = File_Open("test_data/test.txt", FM_Read);
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
 
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
   char totalLen = strlen(expectedBytes);
 
-  bool seek0 = File_Seek(fh, 4, FSD_BEGIN);
+  bool seek0 = Os_FileSeek(fh, 4, Os_FSD_Begin);
   REQUIRE(seek0);
-  REQUIRE(File_Tell(fh) == 4);
-  size_t bytesRead0 = File_Read(fh, buffer, 1024);
+  REQUIRE(Os_FileTell(fh) == 4);
+  size_t bytesRead0 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead0 == strlen(&expectedBytes[4]));
-  REQUIRE(File_Tell(fh) == strlen(expectedBytes));
+  REQUIRE(Os_FileTell(fh) == strlen(expectedBytes));
 
-  File_Seek(fh, 4, FSD_BEGIN);
-  bool seek1 = File_Seek(fh, 4, FSD_CUR);
+  Os_FileSeek(fh, 4, Os_FSD_Begin);
+  bool seek1 = Os_FileSeek(fh, 4, Os_FSD_Current);
   REQUIRE(seek1);
-  REQUIRE(File_Tell(fh) == 8);
-  size_t bytesRead1 = File_Read(fh, buffer, 1024);
+  REQUIRE(Os_FileTell(fh) == 8);
+  size_t bytesRead1 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead1 == strlen(&expectedBytes[8]));
-  REQUIRE(File_Tell(fh) == strlen(expectedBytes));
+  REQUIRE(Os_FileTell(fh) == strlen(expectedBytes));
 
-  bool seek2 = File_Seek(fh, -4, FSD_END);
+  bool seek2 = Os_FileSeek(fh, -4, Os_FSD_End);
   REQUIRE(seek2);
-  REQUIRE(File_Tell(fh) == totalLen - 4);
-  size_t bytesRead2 = File_Read(fh, buffer, 1024);
+  REQUIRE(Os_FileTell(fh) == totalLen - 4);
+  size_t bytesRead2 = Os_FileRead(fh, buffer, 1024);
   REQUIRE(bytesRead2 == strlen(&expectedBytes[totalLen - 4]));
-  REQUIRE(File_Tell(fh) == strlen(expectedBytes));
+  REQUIRE(Os_FileTell(fh) == strlen(expectedBytes));
 
-  bool closeOk = File_Close(fh);
+  bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
 }
 
 TEST_CASE("Size (C)", "[OS File]") {
 
-  File_Handle fh = File_Open("test_data/test.txt", FM_Read);
+  Os_FileHandle fh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
   REQUIRE(fh != NULL);
 
-  size_t size = File_Size(fh);
+  size_t size = Os_FileSize(fh);
   REQUIRE(size == 15);
 
-  bool closeOk = File_Close(fh);
+  bool closeOk = Os_FileClose(fh);
   REQUIRE(closeOk);
 }

@@ -8,21 +8,11 @@
 
 #define RESOURCE_DIR "Shaders/Metal"
 
-EXTERN_C bool FS_GetExePath(char* dirOut, int maxSize)
-{
-	const char* exePath = [[[[NSBundle mainBundle] bundlePath] stringByStandardizingPath] cStringUsingEncoding:NSUTF8StringEncoding];
-	if(exePath == NULL) return false;
-	if(strlen(exePath) >= maxSize) return false;
-
-	strncpy(dirOut, exePath, maxSize);
-	return true;
-}
-
-EXTERN_C bool FS_IsAbsolutePath(char const *fileFullPath) {
+EXTERN_C bool Os_IsAbsolutePath(char const *fileFullPath) {
   return (([NSString stringWithUTF8String:fileFullPath].absolutePath == YES) ? true : false);
 }
 
-EXTERN_C bool FS_CopyFile(char const *src, char const *dst) {
+EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
   NSError *error = nil;
   if (NO == [[NSFileManager defaultManager] copyItemAtPath:[NSString stringWithUTF8String:src]
                                                     toPath:[NSString stringWithUTF8String:dst]
@@ -34,24 +24,44 @@ EXTERN_C bool FS_CopyFile(char const *src, char const *dst) {
   return true;
 }
 
-/*
-tinystl::string get_app_prefs_dir(const char* org, const char* app)
-{
-	const char* rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
-	const char* path;
-	path = strstr(rawUserPath, "/Users/");
-	return tinystl::string(path) + tinystl::string("Library/") + tinystl::string(org) + tinystl::string("/") +
-		   tinystl::string(app);
+EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
+  const char *exePath =
+      [[[[NSBundle mainBundle] bundlePath] stringByStandardizingPath] cStringUsingEncoding:NSUTF8StringEncoding];
+  if (exePath == NULL) { return false; }
+  if (strlen(exePath) >= maxSize) { return false; }
+
+  strncpy(dirOut, exePath, maxSize);
+  return true;
 }
 
-tinystl::string get_user_documents_dir()
-{
-	const char* rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
-	const char* path;
-	path = strstr(rawUserPath, "/Users/");
-	return tinystl::string(path);
+bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
+  const char *rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
+  if (rawUserPath == NULL) { return false; }
+
+  const char *path;
+  path = strstr(rawUserPath, "/Users/");
+  if (strlen(path) >= maxSize) { return false; }
+  strcpy(dirOut, path);
+  return true;
 }
-*/
+
+EXTERN_C bool Os_GetAppPrefsDir(char const *org, char const *app, char *dirOut, int maxSize) {
+  const char *rawUserPath = [[[[NSFileManager defaultManager] homeDirectoryForCurrentUser] absoluteString] UTF8String];
+  if (rawUserPath == NULL) { return false; }
+  const char *path;
+  path = strstr(rawUserPath, "/Users/");
+
+  tinystl::string out = tinystl::string(path) +
+      tinystl::string("Library/") +
+      tinystl::string(org) +
+      tinystl::string("/") +
+      tinystl::string(app);
+
+  if (out.size() >= maxSize) { return false; }
+
+  strcpy(dirOut, out.c_str());
+  return true;
+}
 
 namespace FileSystem {
 /*

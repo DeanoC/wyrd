@@ -5,30 +5,25 @@
 #ifndef WYRD_OS_THREAD_H
 #define WYRD_OS_THREAD_H
 
-#include "os/os.h"
+#include "core/core.h"
 
-#ifndef _WIN32
+#if PLATFORM == PLATFORM_WINDOWS
+
+typedef void* Mutex_t;
+typedef void* ConditionVariable_t;
+typedef unsigned int ThreadID;
+
+#else
+
 #include <pthread.h>
-#endif
 
 /// Operating system mutual exclusion primitive.
-typedef struct Mutex_t
-{
-#ifdef _WIN32
-	void* pHandle;
-#else
-	pthread_mutex_t pHandle;
-#endif
-} Mutex_t;
+typedef pthread_mutex_t Os_Mutex_t;
+typedef pthread_cond_t Os_ConditionVariable_t;
 
-typedef struct ConditionVariable_t
-{
-#ifdef _WIN32
-	void* pHandle;
-#else
-	pthread_cond_t pHandle;
+typedef pthread_t ThreadID;
+
 #endif
-} ConditionVariable_t;
 
 typedef void(*JobFunction)(void*);
 
@@ -41,10 +36,6 @@ typedef struct WorkItem_t
 	unsigned		mPriority;
 	volatile bool   mCompleted;
 } WorkItem_t;
-
-#ifdef __cplusplus
-#include "os/thread.hpp"
-#endif
 
 #endif //WYRD_OS_THREAD_H
 /*

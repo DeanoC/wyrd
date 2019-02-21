@@ -6,7 +6,7 @@
 
 #define USE_LOGGING
 
-typedef struct Logger_t {
+typedef struct Core_Logger_t {
 
 	// lowest level of logging, (file, line, message)
 	void (*errorMsg)(char const* file, int line, const char* function, char const* msg);
@@ -16,9 +16,13 @@ typedef struct Logger_t {
 
 	void (*failedAssert)(char const* file, int line, char const* msg);
 
-} Logger;
+} Core_Logger;
 
-EXTERN_C Logger Log;
+EXTERN_C Core_Logger Core_Log;
+
+#if PLATFORM != PLATFORM_WINDOWS
+EXTERN_C void OutputDebugString(char const *msg);
+#endif
 
 EXTERN_C void _ErrorMsg(const char* file, int line, const char* function, const char* string, ...);
 EXTERN_C void _WarningMsg(const char* file, int line, const char* function, const char* string, ...);

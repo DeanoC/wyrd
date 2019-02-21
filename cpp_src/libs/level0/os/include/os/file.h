@@ -7,38 +7,37 @@
 
 #include "core/core.h"
 
-typedef void* File_Handle;
+typedef void *Os_FileHandle;
 
-typedef enum File_Mode
-{
-	FM_Read = 1,
-	FM_Write = FM_Read << 1,
-	FM_Append = FM_Write << 1,
-	FM_Binary = FM_Append << 1,
-	FM_ReadWrite = FM_Read | FM_Write,
-	FM_ReadAppend = FM_Read | FM_Append,
-	FM_WriteBinary = FM_Write | FM_Binary,
-	FM_ReadBinary = FM_Read | FM_Binary
-} File_Mode;
+typedef enum Os_FileMode {
+  Os_FM_Read = 1,
+  Os_FM_Write = Os_FM_Read << 1,
+  Os_FM_Append = Os_FM_Write << 1,
+  Os_FM_Binary = Os_FM_Append << 1,
+  Os_FM_ReadWrite = Os_FM_Read | Os_FM_Write,
+  Os_FM_ReadAppend = Os_FM_Read | Os_FM_Append,
+  Os_FM_WriteBinary = Os_FM_Write | Os_FM_Binary,
+  Os_FM_ReadBinary = Os_FM_Read | Os_FM_Binary
+} Os_FileMode;
 
-typedef enum File_SeekDir
-{
-	FSD_BEGIN = 0,
-	FSD_CUR,
-	FSD_END,
-} File_SeekDir;
+typedef enum Os_FileSeekDir {
+  Os_FSD_Begin = 0,
+  Os_FSD_Current,
+  Os_FSD_End,
+} Os_FileSeekDir;
 
 /// Low level file system interface providing basic file I/O operations
 /// Implementations platform dependent
-EXTERN_C File_Handle File_Open(char const* filename, const File_Mode mode);
-EXTERN_C bool File_Close(File_Handle handle);
-EXTERN_C void File_Flush(File_Handle handle);
-EXTERN_C size_t File_Read(File_Handle handle, void* buffer, size_t byteCount);
-EXTERN_C size_t File_Write(File_Handle handle, void const* buffer, size_t byteCount);
-EXTERN_C bool File_Seek(File_Handle handle, int64_t offset, File_SeekDir origin);
-EXTERN_C int64_t File_Tell(File_Handle handle);
-EXTERN_C size_t File_Size(File_Handle handle);
+EXTERN_C Os_FileHandle Os_FileOpen(char const *filename, const Os_FileMode mode);
+EXTERN_C bool Os_FileClose(Os_FileHandle handle);
+EXTERN_C bool Os_FileIsOpen(Os_FileHandle handle);
 
+EXTERN_C void Os_FileFlush(Os_FileHandle handle);
+EXTERN_C size_t Os_FileRead(Os_FileHandle handle, void *buffer, size_t byteCount);
+EXTERN_C size_t Os_FileWrite(Os_FileHandle handle, void const *buffer, size_t byteCount);
+EXTERN_C bool Os_FileSeek(Os_FileHandle handle, int64_t offset, Os_FileSeekDir origin);
+EXTERN_C int64_t Os_FileTell(Os_FileHandle handle);
+EXTERN_C size_t Os_FileSize(Os_FileHandle handle);
 #endif //WYRD_OS_FILE_H
 
 /*

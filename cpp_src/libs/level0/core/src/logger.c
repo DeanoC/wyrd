@@ -58,7 +58,7 @@ EXTERN_C void _ErrorMsg(const char* file, int line, const char* function, const 
 	vsprintf(out, string, arglist);
 	va_end(arglist);
 
-	Log.errorMsg(file, line, function, out);
+  Core_Log.errorMsg(file, line, function, out);
 }
 
 EXTERN_C void _WarningMsg(const char* file, int line, const char* function, const char* string, ...)
@@ -70,7 +70,7 @@ EXTERN_C void _WarningMsg(const char* file, int line, const char* function, cons
 	vsprintf(out, string, arglist);
 	va_end(arglist);
 
-	Log.warningMsg(file, line, function, out);
+  Core_Log.warningMsg(file, line, function, out);
 
 }
 
@@ -83,7 +83,7 @@ EXTERN_C void _InfoMsg(const char* file, int line, const char* function, const c
 	vsprintf(out, string, arglist);
 	va_end(arglist);
 
-	Log.infoMsg(file, line, function, out);
+  Core_Log.infoMsg(file, line, function, out);
 
 }
 
@@ -99,16 +99,16 @@ EXTERN_C void _DebugMsg(const char* file, int line, const char* function, const 
 	vsprintf(out, string, arglist);
 	va_end(arglist);
 
-	Log.debugMsg(file, line, function, out);
+  Core_Log.debugMsg(file, line, function, out);
 #endif
 }
 
 EXTERN_C void _FailedAssert(const char* file, int line, const char* statement)
 {
-	Log.failedAssert(file, line, statement);
+  Core_Log.failedAssert(file, line, statement);
 }
 
-EXTERN_C Logger Log = {
+EXTERN_C Core_Logger Core_Log = {
 	&errorMsg,
 	&warningMsg,
 	&infoMsg,

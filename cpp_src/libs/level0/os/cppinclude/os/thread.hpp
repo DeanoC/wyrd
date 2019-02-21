@@ -9,13 +9,25 @@
 #include "os/thread.h"
 #include "tinystl/vector.h"
 
-struct Mutex : public Mutex_t
+struct Mutex
 {
 	Mutex();
 	~Mutex();
 
 	void Acquire();
 	void Release();
+
+  Os_Mutex_t handle;
+};
+
+struct ConditionVariable {
+  ConditionVariable();
+  ~ConditionVariable();
+
+  void Wait(const Mutex& mutex, unsigned md);
+  void Set();
+
+  Os_ConditionVariable_t handle;
 };
 
 struct MutexLock
@@ -31,14 +43,7 @@ struct MutexLock
 	Mutex& mMutex;
 };
 
-struct ConditionVariable : public ConditionVariable_t
-{
-	ConditionVariable();
-	~ConditionVariable();
 
-	void Wait(const Mutex& mutex, unsigned md);
-	void Set();
-};
 
 /// Work queue item.
 struct WorkItem : public WorkItem_t

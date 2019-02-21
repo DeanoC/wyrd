@@ -4,37 +4,37 @@
 #include "os/file.h"
 #include <stdio.h>
 
-static void TranslateFileAccessFlags(File_Mode modeFlags, char *fileAccessString, int strLength)
+static void TranslateFileAccessFlags(Os_FileMode modeFlags, char *fileAccessString, int strLength)
 {
 	ASSERT(fileAccesString != NULL && strLength >= 4);
   memset(fileAccessString, '\0', strLength);
 	int index = 0;
 
 	// Read + Write uses w+ then filemode (b or t)
-	if(modeFlags & FM_Read && modeFlags & FM_Write)
+  if (modeFlags & Os_FM_Read && modeFlags & Os_FM_Write)
 	{
       fileAccessString[index++] = 'w';
       fileAccessString[index++] = '+';
 	}
 		// Read + Append uses a+ then filemode (b or t)
-	else if(modeFlags & FM_Read && modeFlags & FM_Append)
+  else if (modeFlags & Os_FM_Read && modeFlags & Os_FM_Append)
 	{
       fileAccessString[index++] = 'a';
       fileAccessString[index++] = '+';
 	} else
 	{
-		if(modeFlags & FM_Read) {
+      if (modeFlags & Os_FM_Read) {
           fileAccessString[index++] = 'r';
         }
-      if(modeFlags & FM_Write) {
+      if (modeFlags & Os_FM_Write) {
         fileAccessString[index++] = 'w';
       }
-      if(modeFlags & FM_Append) {
+      if (modeFlags & Os_FM_Append) {
         fileAccessString[index++] = 'a';
       }
     }
 
-	if(modeFlags & FM_Binary) {
+  if (modeFlags & Os_FM_Binary) {
       fileAccessString[index++] = 'b';
     } else {
 fileAccessString[index++] = 't';
@@ -43,7 +43,7 @@ fileAccessString[index++] = 't';
   fileAccessString[index++] = '\0';
 }
 
-EXTERN_C File_Handle File_Open(const char* filename, const File_Mode mode)
+EXTERN_C Os_FileHandle Os_FileOpen(const char *filename, const Os_FileMode mode)
 {
 	char flags[4];
 	TranslateFileAccessFlags(mode, flags, 4);
@@ -51,16 +51,16 @@ EXTERN_C File_Handle File_Open(const char* filename, const File_Mode mode)
 	return fp;
 }
 
-EXTERN_C bool File_Close(File_Handle handle) {
+EXTERN_C bool Os_FileClose(Os_FileHandle handle) {
   return (fclose((FILE *) handle) == 0);
 }
 
-EXTERN_C void File_Flush(File_Handle handle)
+EXTERN_C void Os_FileFlush(Os_FileHandle handle)
 {
   fflush((FILE *) handle);
 }
 
-EXTERN_C size_t File_Read(File_Handle handle, void* buffer, size_t byteCount)
+EXTERN_C size_t Os_FileRead(Os_FileHandle handle, void *buffer, size_t byteCount)
 {
 	return fread(buffer,
                  1,
@@ -68,17 +68,17 @@ EXTERN_C size_t File_Read(File_Handle handle, void* buffer, size_t byteCount)
                  (FILE *) handle);
 }
 
-EXTERN_C bool File_Seek(File_Handle handle, int64_t offset, File_SeekDir origin)
+EXTERN_C bool Os_FileSeek(Os_FileHandle handle, int64_t offset, Os_FileSeekDir origin)
 {
   return fseek((FILE *) handle, offset, origin) == 0;
 }
 
-EXTERN_C int64_t File_Tell(File_Handle handle)
+EXTERN_C int64_t Os_FileTell(Os_FileHandle handle)
 {
   return ftell((FILE *) handle);
 }
 
-EXTERN_C size_t File_Write(File_Handle handle, void const * buffer, size_t byteCount)
+EXTERN_C size_t Os_FileWrite(Os_FileHandle handle, void const *buffer, size_t byteCount)
 {
 	return fwrite(buffer,
                   1,
@@ -86,10 +86,10 @@ EXTERN_C size_t File_Write(File_Handle handle, void const * buffer, size_t byteC
                   (FILE *) handle);
 }
 
-EXTERN_C size_t File_Size(File_Handle handle) {
-  int64_t curPos = File_Tell(handle);
-  File_Seek(handle, 0, FSD_END);
-  int64_t length = File_Tell(handle);
-  File_Seek(handle, curPos, FSD_BEGIN);
+EXTERN_C size_t Os_FileSize(Os_FileHandle handle) {
+  int64_t curPos = Os_FileTell(handle);
+  Os_FileSeek(handle, 0, Os_FSD_End);
+  int64_t length = Os_FileTell(handle);
+  Os_FileSeek(handle, curPos, Os_FSD_Begin);
   return (size_t) length;
 }

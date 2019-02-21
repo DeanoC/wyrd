@@ -4,11 +4,11 @@
 #include "os/filesystem.h"
 #include "tinystl/string.h"
 
-EXTERN_C bool FS_SplitPath(char const *internalPath, size_t *fileName, size_t *extension) {
-  ASSERT(FS_IsInternalPath(internalPath));
-  ASSERT(internalPath != nullptr);
+EXTERN_C bool Os_SplitPath(char const *p, size_t *fileName, size_t *extension) {
+  ASSERT(Os_IsInternalPath(path));
+  ASSERT(path != nullptr);
 
-  tinystl::string path(internalPath);
+  tinystl::string path(p);
   if (path.empty()) { return false; }
 
   if (fileName != nullptr) {
@@ -23,7 +23,7 @@ EXTERN_C bool FS_SplitPath(char const *internalPath, size_t *fileName, size_t *e
   return true;
 }
 
-EXTERN_C bool FS_ReplaceExtension(char const *path, char const *newExtension, char *dirOut, int maxSize) {
+EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, char *dirOut, int maxSize) {
   tinystl::string_view fileNameView;
   tinystl::string_view extView;
   ASSERT(path);
@@ -55,9 +55,9 @@ EXTERN_C bool FS_ReplaceExtension(char const *path, char const *newExtension, ch
   return true;
 }
 
-EXTERN_C bool FS_GetParentPath(char const *pathc, char *dirOut, int maxSize) {
+EXTERN_C bool Os_GetParentPath(char const *pathc, char *dirOut, int maxSize) {
 
-  tinystl::string path(pathc);
+  tinystl::string path(path);
 
   if (path.back() == '/') {
     path.resize(path.size() - 1);
@@ -82,7 +82,7 @@ bool SplitPath(tinystl::string const& fullPath,
   size_t filePos = tinystl::string::npos;
   size_t extPos = tinystl::string::npos;
 
-  bool splitOk = FS_SplitPath(fullPath.c_str(), &filePos, &extPos);
+  bool splitOk = Os_SplitPath(fullPath.c_str(), &filePos, &extPos);
   if (splitOk == false) {
     fileName = {};
     extension = {};

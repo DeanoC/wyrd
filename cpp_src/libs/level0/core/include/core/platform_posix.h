@@ -1,6 +1,6 @@
-#	include <stdint.h>
-#	include <stdlib.h>
-#	include <memory.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <memory.h>
 
 #if __cplusplus >= 201103
 #define DEFINE_ALIGNED(def, a) alignas(a) def
@@ -9,3 +9,13 @@
 #else
 #define DEFINE_ALIGNED(def, a) def __align__(x)
 #endif
+
+#define EXPORT EXTERN_C
+#define IMPORT EXTERN_C
+#define CAPI
+#define EXPORT_CPP
+
+#define stricmp(a, b) strcasecmp(a, b)
+#define vsprintf_s vsnprintf
+#define strncpy_s strncpy
+#define _strdup strdup

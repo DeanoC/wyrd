@@ -4,29 +4,32 @@
 #define CORE_PLATFORM_H
 
 // platform options
-#define PLATFORM_WINDOWS                  (0x0)
-#define PLATFORM_APPLE_MAC                (0x1)
-#define PLATFORM_IPHONE                   (0x2)
-#define PLATFORM_UNIX                     (0x3)
+#define PLATFORM_WINDOWS    (0)
+#define PLATFORM_APPLE_MAC  (1)
+#define PLATFORM_IPHONE     (2)
+#define PLATFORM_UNIX       (3)
+#define PLATFORM_ANDROID    (4)
 
 // OS options
-#define OS_CUSTOM                         (0x0)
-#define OS_WINDOWS                        (0x1)
-#define OS_OSX                            (0x2)
-#define OS_GNULINUX                       (0x3)
+#define OS_CUSTOM         (0)
+#define OS_WINDOWS        (1)
+#define OS_OSX            (2)
+#define OS_GNULINUX       (3)
+#define OS_FREEBSD        (4)
+#define OS_ANDROID        (5)
 
 // compiler family
-#define COMPILER_MSVC                     (0x0)
-#define COMPILER_GCC                      (0x1)
-#define COMPILER_CLANG                    (0x2)
+#define COMPILER_MSVC     (0)
+#define COMPILER_GCC      (1)
+#define COMPILER_CLANG    (2)
 
 // endianess
-#define CPU_LITTLE_ENDIAN         (0x0)
-#define CPU_BIG_ENDIAN            (0x1)
+#define CPU_LITTLE_ENDIAN (0)
+#define CPU_BIG_ENDIAN    (1)
 
-#define CPU_X86                   (0x0)
-#define CPU_X64                   (0x1)
-#define CPU_ARM                   (0x2)
+#define CPU_X86           (0)
+#define CPU_X64           (1)
+#define CPU_ARM           (2)
 
 //--------------------------------------------------------
 // Identification and classification from Compiler Defines
@@ -37,98 +40,107 @@
 #if defined( i386 ) || defined( __i386__ ) || defined( __i386 ) || \
     defined( _M_IX86 ) || defined( __X86__ ) || defined( _X86_ ) || \
     defined( __THW_INTEL__ ) || defined( __I86__ ) || defined( __INTEL__ )
-#	define CPU_FAMILY						CPU_X86
-#	define CPU_ENDIANESS		 			CPU_LITTLE_ENDIAN
-#	define CPU_BIT_SIZE						32
+#define CPU_FAMILY    CPU_X86
+#define CPU_ENDIANESS CPU_LITTLE_ENDIAN
+#define CPU_BIT_SIZE  32
 #elif defined( _M_X64 ) || defined( __amd64__ ) || defined( __amd64 ) || \
     defined( __x86_64__ ) || defined( __x86_64 )
-#	define CPU_FAMILY                        CPU_X64
-#	define CPU_ENDIANESS                    CPU_LITTLE_ENDIAN
-#	define CPU_BIT_SIZE                        64
-#elif defined(__aarch64__)
-#	define CPU_FAMILY		 				CPU_ARM
-#	if defined(__AARCH64EB__)
-#		define CPU_ENDIANESS		 			CPU_BIG_ENDIAN
-#	else
-#		define CPU_ENDIANESS		 			CPU_LITTLE_ENDIAN
-#	endif
+#define CPU_FAMILY    CPU_X64
+#define CPU_ENDIANESS CPU_LITTLE_ENDIAN
+#define CPU_BIT_SIZE  64
 
-#	define CPU_BIT_SIZE						64
-#elif defined( __arm__ ) || defined( __thumb__ ) || defined( __TARGET_ARCH_ARM ) || defined( __TARGET_ARCH_THUMB ) || defined( _ARM )
-#	define CPU_FAMILY		 				CPU_ARM
-#	if defined(__ARMEB__) || defined(__THUMBEB__)
-#		define CPU_ENDIANESS		 			CPU_BIG_ENDIAN
-#	else
-#		define CPU_ENDIANESS		 			CPU_LITTLE_ENDIAN
-#	endif
-#	define CPU_BIT_SIZE						32
+#elif defined(__aarch64__)
+
+#define CPU_FAMILY		CPU_ARM
+#if defined(__AARCH64EB__)
+#define CPU_ENDIANESS	CPU_BIG_ENDIAN
+#else
+#define CPU_ENDIANESS	CPU_LITTLE_ENDIAN
 #endif
+#define CPU_BIT_SIZE	64
+
+#elif defined( __arm__ ) || defined( __thumb__ ) || defined( __TARGET_ARCH_ARM ) || defined( __TARGET_ARCH_THUMB ) || defined( _ARM )
+
+#define CPU_FAMILY      CPU_ARM
+#if defined(__ARMEB__) || defined(__THUMBEB__)
+#define CPU_ENDIANESS	CPU_BIG_ENDIAN
+#else
+#define CPU_ENDIANESS	CPU_LITTLE_ENDIAN
+#endif
+#define CPU_BIT_SIZE	32
+
+#endif // end CPU Id
 
 
 // compiler identifcation
 #if defined( _MSC_VER ) && !defined(__clang__)
 
 // compiler version used with above
-#define MS_VS2005                 (0x0)
-#define MS_VS2008                 (0x1)
-#define MS_VS2010                 (0x2)
-#define MS_VS2012                 (0x3)
-#define MS_VS2013                 (0x4)
-#define MS_VS2015                 (0x5)
-#define MS_VS2017                 (0x6)
+#define MS_VS2012                 (12)
+#define MS_VS2013                 (13)
+#define MS_VS2015                 (15)
+#define MS_VS2017                 (17)
 
-// Minimum we support is VS 2005 (VS8 AKA 1400)
-#	if _MSC_VER < 1400
-#		error Not supported
-#	endif // end _MSCVER < 1400
+// Minimum we support is VS 2012
+#if _MSC_VER < 1800
+#error Not supported
+#endif // end _MSCVER < 1800
 
-#	define COMPILER							COMPILER_MSVC
-#	if _MSC_VER < 1500
-#error Unsupported MSVC Compiler
-#	elif _MSC_VER < 1600
-#		define COMPILER_VERSION				MS_VS2008
-#	elif _MSC_VER < 1700
-#		define COMPILER_VERSION				MS_VS2010
-#	elif _MSC_VER < 1800
-#		define COMPILER_VERSION				MS_VS2012
-#	elif _MSC_VER < 1900
-#		define COMPILER_VERSION				MS_VS2013
-#	elif _MSC_VER < 1910
-#		define COMPILER_VERSION				MS_VS2015
-#	else
-#		define COMPILER_VERSION				MS_VS2017
-#	endif
+#define COMPILER				COMPILER_MSVC
+
+#if _MSC_VER < 1800
+#define COMPILER_VERSION		MS_VS2012
+#elif _MSC_VER < 1900
+#define COMPILER_VERSION		MS_VS2013
+#elif _MSC_VER < 1910
+#define COMPILER_VERSION		MS_VS2015
+#else
+#define COMPILER_VERSION		MS_VS2017
+#endif
 
 #elif defined( __GNUC__ ) && !defined(__clang__)
-#	define COMPILER							COMPILER_GCC
-#define GCC_V2                    (0x0)
-#define GCC_V3                    (0x1)
-#define GCC_V4                    (0x2)
-#define GCC_V4_3                  (0x3)
+#define COMPILER				  COMPILER_GCC
+#define GCC_V2                    (0)
+#define GCC_V3                    (1)
+#define GCC_V4                    (2)
+#define GCC_V4_3                  (3)
 
 #elif defined( __clang__ )
-#	define COMPILER                            COMPILER_CLANG
+#define COMPILER                  COMPILER_CLANG
 #else
-#	error Not supported
+#error Not supported
 #endif
 
 // OS
 #if defined( WIN32 )
-#	define PLATFORM 					PLATFORM_WINDOWS
-#	define PLATFORM_OS					OS_WINDOWS
+
+#	define PLATFORM 				PLATFORM_WINDOWS
+#	define PLATFORM_OS				OS_WINDOWS
+
+#include "core/platform_win.h"
+
 #elif defined(__APPLE__) && defined( __MACH__ )
 
-#	include "TargetConditionals.h"
-#	if TARGET_OS_IPHONE
-#		define PLATFORM 				PLATFORM_IPHONE
-#	else
-#		define PLATFORM                    PLATFORM_APPLE_MAC
-#	endif
-#	define PLATFORM_OS                    OS_OSX
+#include "TargetConditionals.h"
+#if TARGET_OS_IPHONE
+#define PLATFORM    PLATFORM_IPHONE
+#else
+#define PLATFORM    PLATFORM_APPLE_MAC
+#endif
+#define PLATFORM_OS OS_OSX
 
 // override endianness with the OS_OSX one, hopefully right...
-#	undef CPU_ENDIANESS
-#	define CPU_ENDIANESS                (TARGET_RT_LITTLE_ENDIAN == 1)
+#undef CPU_ENDIANESS
+#define CPU_ENDIANESS (TARGET_RT_LITTLE_ENDIAN == 1)
+
+#include "core/platform_osx.h"
+
+#elif defined(__ANDROID__)
+
+#define PLATFORM        PLATFORM_ANDROID
+#define PLATFORM_OS		OS_ANDROID
+
+#include "core/platform_android.h"
 
 #elif    defined( __unix__ ) || defined( __unix ) || \
         defined( __sysv__ ) || defined( __SVR4 ) || defined( __svr4__ ) || defined( _SYSTYPE_SVR4 ) || \
@@ -139,22 +151,26 @@
         defined( linux ) || defined( __linux ) || \
         defined( sgi ) || defined( __sgi ) || defined( __BEOS__ ) || defined (_AIX )
 
-#	define PLATFORM						PLATFORM_UNIX
+#define PLATFORM PLATFORM_UNIX
 
-#	if defined( linux ) || defined( __linux )
-#		define PLATFORM_OS					OS_GNULINUX
-#	elif defined( __FreeBSD__ ) || defined( __NetBSD__ ) || defined( __OpenBSD__ ) || defined( __bsdi__ ) || defined ( __DragonFly__ ) || defined( _SYSTYPE_BSD )
-#		define PLATFORM_OS					FREEBSD
-#	else
-#		error Not supported
-#	endif
+#if defined( linux ) || defined( __linux )
 
-#elif defined( __clang__ )
-// TODO pretend we are linux for now, as use clang on multi-os sa code checker
-#define PLATFORM					PLATFORM_UNIX
-#define PLATFORM_OS					OS_GNULINUX
-#undef _MSC_VER
-#else
-#	error Not supported
-#endif // endif COMPILER
+#define PLATFORM_OS		OS_GNULINUX
+#include "core/platform_linux.h"
+
+#elif defined( __FreeBSD__ ) || defined( __NetBSD__ ) || defined( __OpenBSD__ ) || defined( __bsdi__ ) || defined ( __DragonFly__ ) || defined( _SYSTYPE_BSD )
+
+#define PLATFORM_OS		OS_FREEBSD
+#include "core/platform_posix.h"
+
+#else // unknown unix
+#error Not supported
+#endif
+
+#else // unknown PLATFORM
+
+#error unknown platform
+
+#endif // endif OS
+
 #endif
