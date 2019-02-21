@@ -12,40 +12,40 @@ void OutputDebugString(char const* msg)
 }
 #endif
 
-#define MSG_MAX 1024
+#define MSG_MAX 2048
 
 static void errorMsg(char const* file, int line, const char* function, char const* msg)
 {
 	char out[MSG_MAX];
-	sprintf(out, "%s(%i): ERR (%s) - %s", file, line, function, msg);
+  sprintf(out, "%s(%i): ERR (%s) - %s\n", file, line, function, msg);
 	OutputDebugString(out);
 }
 
 static void warningMsg(char const* file, int line, const char* function, char const* msg)
 {
 	char out[MSG_MAX];
-	sprintf(out, "%s(%i): WARN (%s) - %s", file, line, function, msg);
+  sprintf(out, "%s(%i): WARN (%s) - %s\n", file, line, function, msg);
 	OutputDebugString(out);
 }
 
 static void infoMsg(char const* file, int line, const char* function, char const* msg)
 {
 	char out[MSG_MAX];
-	sprintf(out, "%s(%i): INFO (%s) - %s", file, line, function, msg);
+  sprintf(out, "%s(%i): INFO (%s) - %s\n", file, line, function, msg);
 	OutputDebugString(out);
 }
 
 static void debugMsg(char const* file, int line, const char* function, char const* msg)
 {
 	char out[MSG_MAX];
-	sprintf(out, "%s(%i): DBG (%s) - %s", file, line, function, msg);
+  sprintf(out, "%s(%i): DBG (%s) - %s\n", file, line, function, msg);
 	OutputDebugString(out);
 }
 
 static void failedAssert(char const* file, int line, char const* msg)
 {
 	char out[MSG_MAX];
-	sprintf(out, "%s(%i): Assert Failed - %s", file, line, msg);
+  sprintf(out, "%s(%i): Assert Failed - %s\n", file, line, msg);
 	OutputDebugString(out);
 }
 

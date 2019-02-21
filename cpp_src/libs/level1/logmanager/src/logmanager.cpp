@@ -28,7 +28,7 @@ tinystl::string GetTimeStamp() {
 static LogManager *pLogInstance = nullptr;
 
 LogManager::LogManager() :
-    mRecordTimestamp(true),
+    mRecordTimestamp(false),
     mInWrite(false),
     mQuietMode(false) {
   pLogInstance = this;
@@ -85,7 +85,12 @@ void LogManager::msg(char const *level, char const *file, int line, const char *
   if (mInWrite) { return; }
 
   char buffer[2048];
-  sprintf(buffer, "%s: %s(%i) - %s: %s\n", level, file, line, function, msg);
+  if (file != nullptr) {
+    sprintf(buffer, "%s: %s(%i) - %s: %s\n", level, file, line, function, msg);
+  } else {
+    sprintf(buffer, "%s: %s\n", level, msg);
+  }
+
   tinystl::string formattedMessage(buffer);
 
   if (!Thread::IsMainThread()) {
@@ -130,7 +135,7 @@ void LogManager::warningMsg(char const *file, int line, const char *function, ch
 void LogManager::infoMsg(char const *file, int line, const char *function, char const *msg) {
   if (!pLogInstance) { return; }
 
-  pLogInstance->msg("INFO", file, line, function, msg);
+  pLogInstance->msg("INFO", nullptr, 0, nullptr, msg);
 }
 
 void LogManager::debugMsg(char const *file, int line, const char *function, char const *msg) {

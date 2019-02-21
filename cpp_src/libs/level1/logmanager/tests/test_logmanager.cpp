@@ -15,8 +15,11 @@ TEST_CASE("LogManager create/destroy", "[LogManager]") {
   LogManager *test = new LogManager;
   REQUIRE(test != nullptr);
   LOGINFO("test");
+  LOGWARNING("test2");
+
   delete test;
   test = nullptr;
   LOGINFO("test");
+  LOGWARNING("test2");
 
 }
