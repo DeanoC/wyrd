@@ -9,9 +9,10 @@
 
 #if PLATFORM == PLATFORM_WINDOWS
 
-typedef void* Mutex_t;
-typedef void* ConditionVariable_t;
-typedef unsigned int ThreadID;
+typedef void* Os_Mutex_t;
+typedef void* Os_ConditionalVariable_t;
+typedef unsigned int Os_ThreadID_t;
+typedef void* Os_Thread_t;
 
 #else
 
@@ -19,19 +20,37 @@ typedef unsigned int ThreadID;
 
 /// Operating system mutual exclusion primitive.
 typedef pthread_mutex_t Os_Mutex_t;
-typedef pthread_cond_t Os_ConditionVariable_t;
+typedef pthread_cond_t Os_ConditionalVariable_t;
 
-typedef pthread_t ThreadID;
+typedef pthread_t Os_ThreadID_t;
+typedef pthread_t Os_Thread_t;
 
 #endif
 
-typedef void(*JobFunction)(void*);
+EXTERN_C bool Os_MutexCreate(Os_Mutex_t *mutex);
+EXTERN_C void Os_MutexDestroy(Os_Mutex_t *mutex);
+EXTERN_C void Os_MutexAcquire(Os_Mutex_t *mutex);
+EXTERN_C void Os_MutexRelease(Os_Mutex_t *mutex);
+EXTERN_C bool Os_ConditionalVariableCreate(Os_ConditionalVariable_t *cd);
+EXTERN_C void Os_ConditionalVariableDestroy(Os_ConditionalVariable_t *cd);
+EXTERN_C void Os_ConditionalVariableWait(Os_ConditionalVariable_t *cd, Os_Mutex_t *mutex, uint64_t waitms);
+EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cd);
+
+typedef void *(*JobFunction_t)(void *);
+
+EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, JobFunction_t func, void *data);
+EXTERN_C void Os_ThreadDestroy(Os_Thread_t *thread);
+EXTERN_C void Os_ThreadJoin(Os_Thread_t *thread);
+
+EXTERN_C void Os_Sleep(uint64_t waitms);
+// Note in theory this can change at runtime on some platforms
+EXTERN_C uint32_t Os_CPUCoreCount(void);
 
 /// Work queue item.
 typedef struct WorkItem_t
 {
 	/// Work item description and thread index (Main thread => 0)
-	JobFunction	 pFunc;
+//	JobFunction	 pFunc;
 	void*		   pData;
 	unsigned		mPriority;
 	volatile bool   mCompleted;

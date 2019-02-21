@@ -9,47 +9,44 @@
 #include "os/thread.h"
 #include "tinystl/vector.h"
 
-struct Mutex
-{
-	Mutex();
-	~Mutex();
+struct Mutex {
+  Mutex() { Os_MutexCreate(&handle); };
+  ~Mutex() { Os_MutexDestroy(&handle); };
 
-	void Acquire();
-	void Release();
+  void Acquire() { Os_MutexAcquire(&handle); };
+  void Release() { Os_MutexRelease(&handle); };
 
   Os_Mutex_t handle;
 };
 
-struct ConditionVariable {
-  ConditionVariable();
-  ~ConditionVariable();
+struct ConditionalVariable {
+  ConditionalVariable() { Os_ConditionalVariableCreate(&handle); };
+  ~ConditionalVariable() { Os_ConditionalVariableDestroy(&handle); };
 
-  void Wait(const Mutex& mutex, unsigned md);
-  void Set();
+  void Wait(Mutex& mutex, uint64_t waitms) {
+    Os_ConditionalVariableWait(&handle, &mutex.handle, waitms);
+  }
+  void Set() { Os_ConditionalVariableSet(&handle); };
 
-  Os_ConditionVariable_t handle;
+  Os_ConditionalVariable_t handle;
 };
 
-struct MutexLock
-{
-	MutexLock(Mutex& mutex);
-	~MutexLock();
+struct MutexLock {
+  MutexLock(Mutex& mutex);
+  ~MutexLock();
 
-	/// Prevent copy construction.
-	MutexLock(const MutexLock& rhs) = delete;
-	/// Prevent assignment.
-	MutexLock& operator=(const MutexLock& rhs) = delete;
+  /// Prevent copy construction.
+  MutexLock(const MutexLock& rhs) = delete;
+  /// Prevent assignment.
+  MutexLock& operator=(const MutexLock& rhs) = delete;
 
-	Mutex& mMutex;
+  Mutex& mMutex;
 };
-
-
 
 /// Work queue item.
-struct WorkItem : public WorkItem_t
-{
-	// Construct
-	WorkItem() : WorkItem_t{nullptr, nullptr, 0, false} {}
+struct WorkItem : public WorkItem_t {
+  // Construct
+  WorkItem() : WorkItem_t{nullptr, 0, false} {}
 };
 
 #ifndef _WIN32
@@ -58,74 +55,62 @@ struct Thread;
 #endif
 
 /// Work queue subsystem for multithreading.
-class ThreadPool
-{
-public:
-	/// Construct.
-	ThreadPool();
-	/// Destruct.
-	~ThreadPool();
+class ThreadPool {
+ public:
+  /// Construct.
+  ThreadPool();
+  /// Destruct.
+  ~ThreadPool();
 
-	/// Can only be called once during lifetime of program
-	void CreateThreads(unsigned numThreads);
-	void AddWorkItem(WorkItem* item);
-	bool RemoveWorkItem(WorkItem*& item);
-	unsigned RemoveWorkItems(const tinystl::vector<WorkItem*>& items);
-	void Pause();
-	void Resume();
+  /// Can only be called once during lifetime of program
+  void CreateThreads(unsigned numThreads);
+  void AddWorkItem(WorkItem *item);
+  bool RemoveWorkItem(WorkItem *& item);
+  unsigned RemoveWorkItems(const tinystl::vector<WorkItem *>& items);
+  void Pause();
+  void Resume();
 
-	void Shutdown() { mShutDown = true; }
+  void Shutdown() { mShutDown = true; }
 
-	void Complete(unsigned priority);
+  void Complete(unsigned priority);
 
-	unsigned GetNumThreads() const { return (uint32_t) mThreads.size(); }
+  unsigned GetNumThreads() const { return (uint32_t) mThreads.size(); }
 
-	bool IsCompleted(unsigned priority) const;
+  bool IsCompleted(unsigned priority) const;
 
-	bool IsCompleting() const { return mCompleting; }
+  bool IsCompleting() const { return mCompleting; }
 
-	static void ProcessItems(void* pThreadSystem);
+  static void ProcessItems(void *pThreadSystem);
 
-private:
-	void Cleanup(unsigned priority);
+ private:
+  void Cleanup(unsigned priority);
 
-	tinystl::vector<struct Thread*> mThreads;
-	tinystl::vector<WorkItem*> mWorkItems;
-	tinystl::vector<WorkItem*> mWorkQueue;
-	Mutex mQueueMutex;
-	ConditionVariable mWaitConditionVar;
-	Mutex mWaitMutex;
-	volatile bool mShutDown;
-	volatile bool mPausing;
-	bool mPaused;
-	bool mCompleting;
+  tinystl::vector<struct Thread *> mThreads;
+  tinystl::vector<WorkItem *> mWorkItems;
+  tinystl::vector<WorkItem *> mWorkQueue;
+  Mutex mQueueMutex;
+  ConditionalVariable mWaitConditionVar;
+  Mutex mWaitMutex;
+  volatile bool mShutDown;
+  volatile bool mPausing;
+  bool mPaused;
+  bool mCompleting;
 };
 
-#ifdef _WIN32
-typedef void* ThreadHandle;
-#else
-typedef pthread_t ThreadHandle;
-#endif
+struct Thread {
+  Thread(ThreadPool *threadSystem);
+  ~Thread();
 
-ThreadHandle create_thread(WorkItem* pItem);
-void destroy_thread(ThreadHandle handle);
-void join_thread(ThreadHandle handle);
-
-struct Thread
-{
-	Thread(ThreadPool* threadSystem);
-	~Thread();
-
-	ThreadHandle pHandle;
+/*	Os_ThreadHandle_t pHandle;
 	WorkItem* pItem;
+*/
+  static Os_ThreadID_t mainThreadID;
 
-	static ThreadID mainThreadID;
-
-	static void SetMainThread();
-	static ThreadID GetCurrentThreadID();
-	static bool IsMainThread();
-	static void Sleep(unsigned mSec);
-	static unsigned int GetNumCPUCores(void);
+  static void SetMainThread();
+  static Os_ThreadID_t GetCurrentThreadID();
+  static bool IsMainThread();
+  static void Sleep(unsigned mSec);
+  static unsigned int GetNumCPUCores(void);
 };
 
 #endif

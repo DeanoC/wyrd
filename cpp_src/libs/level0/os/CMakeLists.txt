@@ -26,6 +26,7 @@ endif()
 if(APPLE)
 	list(APPEND Src posix/filesystem.cpp)
 	list(APPEND Src apple/filesystem.mm)
+	list(APPEND Src posix/thread.c)
 	list(APPEND Src posix/thread.cpp)
 endif()
 
