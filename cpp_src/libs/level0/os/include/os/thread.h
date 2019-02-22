@@ -36,25 +36,19 @@ EXTERN_C void Os_ConditionalVariableDestroy(Os_ConditionalVariable_t *cd);
 EXTERN_C void Os_ConditionalVariableWait(Os_ConditionalVariable_t *cd, Os_Mutex_t *mutex, uint64_t waitms);
 EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cd);
 
-typedef void *(*JobFunction_t)(void *);
+typedef void *(*Os_JobFunction_t)(void *);
 
-EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, JobFunction_t func, void *data);
+EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data);
 EXTERN_C void Os_ThreadDestroy(Os_Thread_t *thread);
 EXTERN_C void Os_ThreadJoin(Os_Thread_t *thread);
+
+EXTERN_C Os_ThreadID_t Os_GetCurrentThreadID(void);
+EXTERN_C void Os_SetMainThread(void);
+EXTERN_C bool Os_IsMainThread(void);
 
 EXTERN_C void Os_Sleep(uint64_t waitms);
 // Note in theory this can change at runtime on some platforms
 EXTERN_C uint32_t Os_CPUCoreCount(void);
-
-/// Work queue item.
-typedef struct WorkItem_t
-{
-	/// Work item description and thread index (Main thread => 0)
-//	JobFunction	 pFunc;
-	void*		   pData;
-	unsigned		mPriority;
-	volatile bool   mCompleted;
-} WorkItem_t;
 
 #endif //WYRD_OS_THREAD_H
 /*

@@ -56,7 +56,7 @@ EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cd) {
   pthread_cond_signal(cd);
 }
 
-EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, JobFunction_t func, void *data) {
+EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data) {
   ASSERT(thread);
 
   return pthread_create(thread, NULL, func, data) == 0;
@@ -84,4 +84,22 @@ EXTERN_C uint32_t Os_CPUCoreCount(void) {
   len = sizeof(ncpu);
   sysctlbyname("hw.ncpu", &ncpu, &len, NULL, 0);
   return (uint32_t) ncpu;
+}
+
+static bool s_isMainThreadIDSet = false;
+static Os_ThreadID_t s_mainThreadID;
+
+EXTERN_C void Os_SetMainThread(void) {
+  ASSERT(s_isMainThreadIDSet == false);
+  s_mainThreadID = Os_GetCurrentThreadID();
+  s_isMainThreadIDSet = true;
+}
+
+EXTERN_C Os_ThreadID_t Os_GetCurrentThreadID(void) {
+  return (Os_ThreadID_t) pthread_self();
+}
+
+EXTERN_C bool Os_IsMainThread(void) {
+  ASSERT(s_isMainThreadIDSet);
+  return Os_GetCurrentThreadID() == s_mainThreadID;
 }

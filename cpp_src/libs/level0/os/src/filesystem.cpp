@@ -57,7 +57,7 @@ EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, ch
 
 EXTERN_C bool Os_GetParentPath(char const *pathc, char *dirOut, int maxSize) {
 
-  tinystl::string path(path);
+  tinystl::string path(pathc);
 
   if (path.back() == '/') {
     path.resize(path.size() - 1);

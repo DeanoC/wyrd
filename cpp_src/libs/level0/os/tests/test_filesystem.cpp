@@ -1,7 +1,7 @@
-#include <tinystl/string.h>
 #include "core/core.h"
 #include "catch/catch.hpp"
 #include "os/filesystem.h"
+#include "tinystl/string.h"
 
 TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
   char const testFileInternalPath[] = "test_data/test.txt";

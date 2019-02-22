@@ -7,7 +7,6 @@
 
 #include "core/core.h"
 #include "os/thread.h"
-#include "tinystl/vector.h"
 
 struct Mutex {
   Mutex() { Os_MutexCreate(&handle); };
@@ -43,74 +42,19 @@ struct MutexLock {
   Mutex& mMutex;
 };
 
-/// Work queue item.
-struct WorkItem : public WorkItem_t {
-  // Construct
-  WorkItem() : WorkItem_t{nullptr, 0, false} {}
-};
-
-#ifndef _WIN32
-/// Forward declaration
-struct Thread;
-#endif
-
-/// Work queue subsystem for multithreading.
-class ThreadPool {
- public:
-  /// Construct.
-  ThreadPool();
-  /// Destruct.
-  ~ThreadPool();
-
-  /// Can only be called once during lifetime of program
-  void CreateThreads(unsigned numThreads);
-  void AddWorkItem(WorkItem *item);
-  bool RemoveWorkItem(WorkItem *& item);
-  unsigned RemoveWorkItems(const tinystl::vector<WorkItem *>& items);
-  void Pause();
-  void Resume();
-
-  void Shutdown() { mShutDown = true; }
-
-  void Complete(unsigned priority);
-
-  unsigned GetNumThreads() const { return (uint32_t) mThreads.size(); }
-
-  bool IsCompleted(unsigned priority) const;
-
-  bool IsCompleting() const { return mCompleting; }
-
-  static void ProcessItems(void *pThreadSystem);
-
- private:
-  void Cleanup(unsigned priority);
-
-  tinystl::vector<struct Thread *> mThreads;
-  tinystl::vector<WorkItem *> mWorkItems;
-  tinystl::vector<WorkItem *> mWorkQueue;
-  Mutex mQueueMutex;
-  ConditionalVariable mWaitConditionVar;
-  Mutex mWaitMutex;
-  volatile bool mShutDown;
-  volatile bool mPausing;
-  bool mPaused;
-  bool mCompleting;
-};
-
 struct Thread {
-  Thread(ThreadPool *threadSystem);
-  ~Thread();
+  Thread(Os_JobFunction_t function, void *data) { Os_ThreadCreate(&handle, function, data); }
+  ~Thread() { Os_ThreadDestroy(&handle); }
 
-/*	Os_ThreadHandle_t pHandle;
-	WorkItem* pItem;
-*/
-  static Os_ThreadID_t mainThreadID;
+  void Join() { Os_ThreadJoin(&handle); }
 
-  static void SetMainThread();
-  static Os_ThreadID_t GetCurrentThreadID();
-  static bool IsMainThread();
-  static void Sleep(unsigned mSec);
-  static unsigned int GetNumCPUCores(void);
+  static void SetMainThread() { Os_SetMainThread(); };
+  static Os_ThreadID_t GetCurrentThreadID() { return Os_GetCurrentThreadID(); };
+  static bool IsMainThread() { return Os_IsMainThread(); }
+  static void Sleep(uint64_t waitms) { Os_Sleep(waitms); }
+  static uint32_t GetNumCPUCores(void) { return Os_CPUCoreCount(); };
+
+  Os_Thread_t handle;
 };
 
 #endif
