@@ -56,7 +56,7 @@ class LogManager {
   static void failedAssert(char const *file, int line, char const *msg);
 
   /// Mutex for threaded operation.
-  Mutex logMutex;
+  Os::Mutex logMutex;
   Os::File logFile;
   tinystl::string mLastMessage;
   bool mRecordTimestamp;

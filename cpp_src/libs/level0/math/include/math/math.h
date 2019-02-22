@@ -5,48 +5,47 @@
 #ifndef WYRD_MATH_MATH_H
 #define WYRD_MATH_MATH_H
 
-#ifndef __cplusplus
+typedef struct vec2_t { float x; float y; } Math_vec2_t;
+typedef struct ivec2_t { int32_t x; int32_t y; } Math_ivec2_t;
+typedef struct uvec2_t { uint32_t x; uint32_t y; } Math_uvec2_t;
 
-#include <stdint.h>
+typedef struct vec3_t { float x; float y; float z; } Math_vec3_t;
+typedef struct ivec3_t { int32_t x; int32_t y; int32_t z; } Math_ivec3_t;
+typedef struct uvec3_t { uint32_t x; uint32_t y; uint32_t z; } Math_uvec3_t;
 
-typedef struct vec2_t { float mX; float mY; } vec2;
-typedef struct ivec2_t { int32_t mX; int32_t mY; } ivec2;
-typedef struct uvec2_t { uint32_t mX; uint32_t mY; } uvec2;
+typedef struct vec4_t { float x; float y; float z; float w; } Math_vec4_t;
+typedef struct ivec4_t { int32_t x; int32_t y; int32_t z; int32_t w; } Math_ivec4_t;
+typedef struct uvec4_t { uint32_t x; uint32_t y; uint32_t z; uint32_t w; } Math_uvec4_t;
 
-typedef struct vec3_t { float mX; float mY; float mZ; } vec3;
-typedef struct ivec3_t { int32_t mX; int32_t mY; int32_t mZ; } ivec3;
-typedef struct uvec3_t { uint32_t mX; uint32_t mY; uint32_t mZ; } uvec3;
+typedef struct mat2_t { Math_vec2_t col0; Math_vec2_t col1; } Math_mat2_t;
+typedef struct mat3_t { Math_vec3_t col0; Math_vec3_t col1; Math_vec3_t col2; } Math_mat3_t;
+typedef struct mat4_t { Math_vec4_t col0; Math_vec4_t col1; Math_vec4_t col2; Math_vec4_t col3; } Math_mat4_t;
 
-typedef struct vec4_t { float mX; float mY; float mZ; float mW; } vec4;
-typedef struct ivec4_t { int32_t mX; int32_t mY; int32_t mZ; int32_t mW; } ivec4;
-typedef struct uvec4_t { uint32_t mX; uint32_t mY; uint32_t mZ; uint32_t mW; } uvec4;
+EXTERN_C inline double Math_MinF(float const v, float const a) {
+  return (v < a) ? a : v;
+}
 
-typedef struct mat2_t { vec2 mCol0; vec2 mCol1; } mat2;
-typedef struct mat3_t { vec3 mCol0; vec3 mCol1; vec3 mCol2; } mat3;
-typedef struct mat4_t { vec4 mCol0; vec4 mCol1; vec4 mCol2; vec4 mCol3; } mat4;
+EXTERN_C inline double Math_MaxF(float const v, float const a) {
+  return (v > a) ? a : v;
+}
 
-#else
-// ModifiedSonyMath ReadMe:
-// - All you need to do is include the public header file vectormath.hpp. It will expose the relevant parts of
-//   the library for you and try to select the SSE implementation if supported.
-#include "../../src/vectormath.hpp"
-typedef Vector2 vec2;
-typedef Vector3 vec3;
-typedef Vector4 vec4;
+EXTERN_C inline double Math_ClampF(float const v, float const a, float const b) {
+  // note max occurs before min
+  return Math_MaxF(Math_MinF(v, a), b);
+}
 
-typedef IVector2 ivec2;
-typedef IVector3 ivec3;
-typedef IVector4 ivec4;
+EXTERN_C inline double Math_MinD(double const v, double const a) {
+  return (v < a) ? a : v;
+}
 
-typedef UVector2 uvec2;
-typedef UVector3 uvec3;
-typedef UVector4 uvec4;
+EXTERN_C inline double Math_MaxD(double const v, double const a) {
+  return (v > a) ? a : v;
+}
 
-typedef Matrix2 mat2;
-typedef Matrix3 mat3;
-typedef Matrix4 mat4;
-
-#endif
+EXTERN_C inline double Math_ClampD(double const v, double const a, double const b) {
+  // note max occurs before min
+  return Math_MaxD(Math_MinD(v, a), b);
+}
 
 #endif //WYRD_MATH_MATH_H
 

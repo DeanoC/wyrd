@@ -35,7 +35,7 @@ LogManager::LogManager() :
 
   logFile = Os::File::Open(FileSystem::GetCurrentDir() + "log.log", Os_FM_Write);
 
-  Thread::SetMainThread();
+  Os::Thread::SetMainThread();
   oldLog = Core_Log;
   Core_Log = log;
 }
@@ -93,7 +93,7 @@ void LogManager::msg(char const *level, char const *file, int line, const char *
 
   tinystl::string formattedMessage(buffer);
 
-  if (!Thread::IsMainThread()) {
+  if (!Os::Thread::IsMainThread()) {
     logMutex.Acquire();
   }
 
@@ -115,7 +115,7 @@ void LogManager::msg(char const *level, char const *file, int line, const char *
   // TODO: Send Log Write Event
 
   mInWrite = false;
-  if (!Thread::IsMainThread()) {
+  if (!Os::Thread::IsMainThread()) {
     logMutex.Release();
   }
 }

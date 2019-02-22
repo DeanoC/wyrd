@@ -8,6 +8,8 @@
 #include "core/core.h"
 #include "os/thread.h"
 
+namespace Os {
+
 struct Mutex {
   Mutex() { Os_MutexCreate(&handle); };
   ~Mutex() { Os_MutexDestroy(&handle); };
@@ -57,6 +59,7 @@ struct Thread {
   Os_Thread_t handle;
 };
 
+}; // end Os namesapce
 #endif
 /*
  * Copyright (c) 2018-2019 Confetti Interactive Inc.
