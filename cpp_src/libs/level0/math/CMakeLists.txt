@@ -7,9 +7,12 @@ set( CPPInterface
 		)
 
 set( Src
+		math.cpp
 		)
 
-set( Deps )
+set(Deps
+		level0/core
+		)
 
 set(Tests
 		test_math_c.cpp

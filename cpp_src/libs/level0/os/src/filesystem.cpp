@@ -5,8 +5,8 @@
 #include "tinystl/string.h"
 
 EXTERN_C bool Os_SplitPath(char const *p, size_t *fileName, size_t *extension) {
-  ASSERT(Os_IsInternalPath(path));
-  ASSERT(path != nullptr);
+  ASSERT(p != nullptr);
+  ASSERT(Os_IsInternalPath(p));
 
   tinystl::string path(p);
   if (path.empty()) { return false; }

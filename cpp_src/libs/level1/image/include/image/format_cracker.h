@@ -221,7 +221,7 @@ EXTERN_C inline bool Image_Format_IsCompressed(enum Image_Format_t const fmt) {
 }
 
 //! returns the number of channels per gl format
-EXTERN_C inline bool Image_Format_ChannelCount(enum Image_Format_t const fmt) {
+EXTERN_C inline uint32_t Image_Format_ChannelCount(enum Image_Format_t const fmt) {
   switch (fmt) {
     case Image_Format_R4G4B4A4_UNORM_PACK16:
     case Image_Format_B4G4R4A4_UNORM_PACK16:
@@ -1063,6 +1063,163 @@ EXTERN_C inline double Image_Format_Min(enum Image_Format_t const fmt, int chann
 
     default:LOGWARNINGF("min %s not handled", Image_Format_Name(fmt));
       return 0.0;
+  }
+}
+
+typedef uint8_t *Image_Swizzle_t;
+EXTERN_C Image_Swizzle_t Image_Format_Swizzle_RGBA;
+EXTERN_C Image_Swizzle_t Image_Format_Swizzle_ARGB;
+EXTERN_C Image_Swizzle_t Image_Format_Swizzle_BGRA;
+EXTERN_C Image_Swizzle_t Image_Format_Swizzle_ABGR;
+
+EXTERN_C inline Image_Swizzle_t Image_Format_Swizzle(enum Image_Format_t fmt_) {
+  switch (fmt_) {
+    case Image_Format_UNDEFINED:
+    case Image_Format_R64G64B64A64_UINT:
+    case Image_Format_R64G64B64_UINT:
+    case Image_Format_R64G64_UINT:
+    case Image_Format_R64_UINT:
+    case Image_Format_R64G64B64A64_SINT:
+    case Image_Format_R64G64B64_SINT:
+    case Image_Format_R64G64_SINT:
+    case Image_Format_R64_SINT:
+    case Image_Format_R64G64B64_SFLOAT:
+    case Image_Format_R64G64B64A64_SFLOAT:
+    case Image_Format_R64G64_SFLOAT:
+    case Image_Format_R64_SFLOAT:
+    case Image_Format_R32G32B32A32_UINT:
+    case Image_Format_R32G32B32_UINT:
+    case Image_Format_R32G32_UINT:
+    case Image_Format_R32_UINT:
+    case Image_Format_R32G32B32A32_SINT:
+    case Image_Format_R32G32B32_SINT:
+    case Image_Format_R32G32_SINT:
+    case Image_Format_R32_SINT:
+    case Image_Format_R32G32B32A32_SFLOAT:
+    case Image_Format_R32G32B32_SFLOAT:
+    case Image_Format_R32G32_SFLOAT:
+    case Image_Format_R32_SFLOAT:
+    case Image_Format_D32_SFLOAT:
+    case Image_Format_R16G16B16A16_UNORM:
+    case Image_Format_R16G16B16_UNORM:
+    case Image_Format_R16G16_UNORM:
+    case Image_Format_R16_UNORM:
+    case Image_Format_D16_UNORM:
+    case Image_Format_R16G16B16A16_USCALED:
+    case Image_Format_R16G16B16_USCALED:
+    case Image_Format_R16G16_USCALED:
+    case Image_Format_R16_USCALED:
+    case Image_Format_R16G16B16A16_UINT:
+    case Image_Format_R16G16B16_UINT:
+    case Image_Format_R16G16_UINT:
+    case Image_Format_R16_UINT:
+    case Image_Format_R16G16B16A16_SNORM:
+    case Image_Format_R16G16B16_SNORM:
+    case Image_Format_R16G16_SNORM:
+    case Image_Format_R16_SNORM:
+    case Image_Format_R16G16B16A16_SSCALED:
+    case Image_Format_R16G16B16_SSCALED:
+    case Image_Format_R16G16_SSCALED:
+    case Image_Format_R16_SSCALED:
+    case Image_Format_R16G16B16A16_SINT:
+    case Image_Format_R16G16B16_SINT:
+    case Image_Format_R16G16_SINT:
+    case Image_Format_R16_SINT:
+    case Image_Format_R16G16B16A16_SFLOAT:
+    case Image_Format_R16G16B16_SFLOAT:
+    case Image_Format_R16G16_SFLOAT:
+    case Image_Format_R16_SFLOAT:
+    case Image_Format_D32_SFLOAT_S8_UINT:
+    case Image_Format_R8G8B8A8_UNORM:
+    case Image_Format_R8G8B8A8_USCALED:
+    case Image_Format_R8G8B8A8_UINT:
+    case Image_Format_R8G8B8_USCALED:
+    case Image_Format_R8G8B8_UNORM:
+    case Image_Format_R8G8B8_UINT:
+    case Image_Format_R8G8B8A8_SRGB:
+    case Image_Format_R8G8_UNORM:
+    case Image_Format_R8G8_USCALED:
+    case Image_Format_R8_USCALED:
+    case Image_Format_R8_UNORM:
+    case Image_Format_R8G8_UINT:
+    case Image_Format_R8_UINT:
+    case Image_Format_S8_UINT:
+    case Image_Format_R8G8B8_SRGB:
+    case Image_Format_R8G8_SRGB:
+    case Image_Format_R8_SRGB:
+    case Image_Format_R8G8B8A8_SNORM:
+    case Image_Format_R8G8B8_SNORM:
+    case Image_Format_R8G8_SNORM:
+    case Image_Format_R8_SNORM:
+    case Image_Format_R8G8B8A8_SSCALED:
+    case Image_Format_R8G8_SSCALED:
+    case Image_Format_R8_SSCALED:
+    case Image_Format_R8G8B8A8_SINT:
+    case Image_Format_R8G8B8_SINT:
+    case Image_Format_R8G8_SINT:
+    case Image_Format_R8_SINT:
+    case Image_Format_R8G8B8_SSCALED:
+    case Image_Format_R4G4B4A4_UNORM_PACK16:
+    case Image_Format_X8_D24_UNORM_PACK32:
+    case Image_Format_D24_UNORM_S8_UINT:
+    case Image_Format_D16_UNORM_S8_UINT:
+    case Image_Format_R4G4_UNORM_PACK8:
+    case Image_Format_R5G6B5_UNORM_PACK16:
+    case Image_Format_R5G5B5A1_UNORM_PACK16:return Image_Format_Swizzle_RGBA;
+
+    case Image_Format_A2R10G10B10_UNORM_PACK32:
+    case Image_Format_A2R10G10B10_USCALED_PACK32:
+    case Image_Format_A2R10G10B10_UINT_PACK32:
+    case Image_Format_A1R5G5B5_UNORM_PACK16:return Image_Format_Swizzle_ARGB;
+
+    case Image_Format_A2B10G10R10_UNORM_PACK32:
+    case Image_Format_A2B10G10R10_USCALED_PACK32:
+    case Image_Format_A2B10G10R10_UINT_PACK32:
+    case Image_Format_A8B8G8R8_SRGB_PACK32:
+    case Image_Format_A8B8G8R8_USCALED_PACK32:
+    case Image_Format_A8B8G8R8_UNORM_PACK32:
+    case Image_Format_A8B8G8R8_UINT_PACK32:
+    case Image_Format_A8B8G8R8_SNORM_PACK32:
+    case Image_Format_A8B8G8R8_SSCALED_PACK32:
+    case Image_Format_A8B8G8R8_SINT_PACK32:return Image_Format_Swizzle_ABGR;
+
+    case Image_Format_B8G8R8A8_UNORM:
+    case Image_Format_B8G8R8A8_USCALED:
+    case Image_Format_B8G8R8A8_UINT:
+    case Image_Format_B8G8R8A8_SRGB:
+    case Image_Format_B8G8R8A8_SNORM:
+    case Image_Format_B8G8R8A8_SSCALED:
+    case Image_Format_B8G8R8A8_SINT:
+    case Image_Format_B4G4R4A4_UNORM_PACK16:
+    case Image_Format_B5G5R5A1_UNORM_PACK16:return Image_Format_Swizzle_BGRA;
+
+    case Image_Format_B8G8R8_SNORM:
+    case Image_Format_B8G8R8_UNORM:
+    case Image_Format_B8G8R8_USCALED:
+    case Image_Format_B8G8R8_UINT:
+    case Image_Format_B8G8R8_SSCALED:
+    case Image_Format_B8G8R8_SINT:
+    case Image_Format_B5G6R5_UNORM_PACK16:
+    case Image_Format_B8G8R8_SRGB:return Image_Format_Swizzle_BGRA;
+
+    case Image_Format_BC2_UNORM_BLOCK:
+    case Image_Format_BC2_SRGB_BLOCK:
+    case Image_Format_BC3_UNORM_BLOCK:
+    case Image_Format_BC3_SRGB_BLOCK:
+    case Image_Format_BC5_UNORM_BLOCK:
+    case Image_Format_BC5_SNORM_BLOCK:
+    case Image_Format_BC6H_UFLOAT_BLOCK:
+    case Image_Format_BC6H_SFLOAT_BLOCK:
+    case Image_Format_BC7_UNORM_BLOCK:
+    case Image_Format_BC7_SRGB_BLOCK:
+    case Image_Format_BC1_RGB_UNORM_BLOCK:
+    case Image_Format_BC1_RGB_SRGB_BLOCK:
+    case Image_Format_BC1_RGBA_UNORM_BLOCK:
+    case Image_Format_BC1_RGBA_SRGB_BLOCK:
+    case Image_Format_BC4_UNORM_BLOCK:
+    case Image_Format_BC4_SNORM_BLOCK:return Image_Format_Swizzle_RGBA;
+    default:LOGERRORF("swizzleFormat %s not handled", Image_Format_Name(fmt_));
+      return Image_Format_Swizzle_RGBA;
   }
 }
 

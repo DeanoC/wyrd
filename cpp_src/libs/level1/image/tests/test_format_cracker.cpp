@@ -366,4 +366,16 @@ TEST_CASE("Format Cracker Max (C)", "[Image]") {
 
 }
 
+TEST_CASE("Format Cracker Swizzle (C)", "[Image]") {
 
+  // random sample a few to check
+  REQUIRE(Image_Format_Swizzle(Image_Format_R32G32B32A32_SFLOAT) == Image_Format_Swizzle_RGBA);
+  REQUIRE(Image_Format_Swizzle(Image_Format_R4G4_UNORM_PACK8) == Image_Format_Swizzle_RGBA);
+  REQUIRE(Image_Format_Swizzle(Image_Format_R5G5B5A1_UNORM_PACK16) == Image_Format_Swizzle_RGBA);
+  REQUIRE(Image_Format_Swizzle(Image_Format_A1R5G5B5_UNORM_PACK16) == Image_Format_Swizzle_ARGB);
+  REQUIRE(Image_Format_Swizzle(Image_Format_A2R10G10B10_USCALED_PACK32) == Image_Format_Swizzle_ARGB);
+  REQUIRE(Image_Format_Swizzle(Image_Format_B4G4R4A4_UNORM_PACK16) == Image_Format_Swizzle_BGRA);
+  REQUIRE(Image_Format_Swizzle(Image_Format_B8G8R8_SRGB) == Image_Format_Swizzle_BGRA);
+  REQUIRE(Image_Format_Swizzle(Image_Format_B8G8R8A8_USCALED) == Image_Format_Swizzle_BGRA);
+  REQUIRE(Image_Format_Swizzle(Image_Format_A8B8G8R8_SINT_PACK32) == Image_Format_Swizzle_ABGR);
+}

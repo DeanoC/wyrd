@@ -4,6 +4,7 @@ set(CInterface
         image.h
         format.h
         format_cracker.h
+        pixel.h
         )
 
 set(CPPInterface
@@ -11,6 +12,8 @@ set(CPPInterface
 
 set(Src
         format_cracker.c
+        image.cpp
+        image_fetch.hpp
         )
 
 set(Deps

@@ -35,7 +35,7 @@ EXTERN_C void _FailedAssert(const char* file, int line, const char* statement);
 #define WarningMsg(str, ...) _WarningMsg(__LINE__, __FILE__, __FUNCTION__, str, ##__VA_ARGS__)
 #define InfoMsg(str, ...) _InfoMsg(__LINE__, __FILE__, __FUNCTION__, str, ##__VA_ARGS__)
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define DebugMsg(str, ...) _DebugMsg(__LINE__, __FILE__, __FUNCTION__, str, ##__VA_ARGS__)
 
 #define IFASSERT(x) x
