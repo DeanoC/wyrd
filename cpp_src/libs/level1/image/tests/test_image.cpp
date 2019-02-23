@@ -20,6 +20,8 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image0->depth == 1);
   REQUIRE(image0->slices == 1);
   REQUIRE(image0->dataSize == (256 * Image_Format_BitWidth(image0->format)) / 8);
+  REQUIRE(image0->nextImage == nullptr);
+  REQUIRE(image0->nextType == Image_IT_None);
   Image_Destroy(image0);
 
   Image_Header_t *image1 = Image_Create1DNoClear(64, Image_Format_R5G5B5A1_UNORM_PACK16);
@@ -30,6 +32,8 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image1->depth == 1);
   REQUIRE(image1->slices == 1);
   REQUIRE(image1->dataSize == (64 * Image_Format_BitWidth(image1->format)) / 8);
+  REQUIRE(image1->nextImage == nullptr);
+  REQUIRE(image1->nextType == Image_IT_None);
   Image_Destroy(image1);
 
   Image_Header_t *image2 = Image_Create1DArray(256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
@@ -40,6 +44,8 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image2->depth == 1);
   REQUIRE(image2->slices == 20);
   REQUIRE(image2->dataSize == (256 * 20 * Image_Format_BitWidth(image2->format)) / 8);
+  REQUIRE(image2->nextImage == nullptr);
+  REQUIRE(image2->nextType == Image_IT_None);
   Image_Destroy(image2);
 
   Image_Header_t *image3 = Image_Create1DArrayNoClear(64, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
@@ -50,6 +56,8 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image3->depth == 1);
   REQUIRE(image3->slices == 100);
   REQUIRE(image3->dataSize == (64 * 100 * Image_Format_BitWidth(image3->format)) / 8);
+  REQUIRE(image3->nextImage == nullptr);
+  REQUIRE(image3->nextType == Image_IT_None);
   Image_Destroy(image3);
 
 }
@@ -63,6 +71,8 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image0->depth == 1);
   REQUIRE(image0->slices == 1);
   REQUIRE(image0->dataSize == (256 * 256 * Image_Format_BitWidth(image0->format)) / 8);
+  REQUIRE(image0->nextImage == nullptr);
+  REQUIRE(image0->nextType == Image_IT_None);
   Image_Destroy(image0);
 
   Image_Header_t *image1 = Image_Create2DNoClear(64, 128, Image_Format_R5G5B5A1_UNORM_PACK16);
@@ -73,6 +83,9 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image1->depth == 1);
   REQUIRE(image1->slices == 1);
   REQUIRE(image1->dataSize == (64 * 128 * Image_Format_BitWidth(image1->format)) / 8);
+  REQUIRE(image1->nextImage == nullptr);
+  REQUIRE(image1->nextType == Image_IT_None);
+  Image_Destroy(image1);
 
   Image_Header_t *image2 = Image_Create2DArray(256, 256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2);
@@ -82,6 +95,8 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image2->depth == 1);
   REQUIRE(image2->slices == 20);
   REQUIRE(image2->dataSize == (256 * 256 * 20 * Image_Format_BitWidth(image2->format)) / 8);
+  REQUIRE(image2->nextImage == nullptr);
+  REQUIRE(image2->nextType == Image_IT_None);
   Image_Destroy(image2);
 
   Image_Header_t *image3 = Image_Create2DArrayNoClear(64, 32, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
@@ -94,6 +109,7 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image3->dataSize == (64 * 32 * 100 * Image_Format_BitWidth(image3->format)) / 8);
   Image_Destroy(image3);
 }
+
 TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   Image_Header_t *image0 = Image_Create3D(256, 256, 16, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0);
@@ -103,6 +119,8 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image0->depth == 16);
   REQUIRE(image0->slices == 1);
   REQUIRE(image0->dataSize == (256 * 256 * 16 * Image_Format_BitWidth(image0->format)) / 8);
+  REQUIRE(image0->nextImage == nullptr);
+  REQUIRE(image0->nextType == Image_IT_None);
   Image_Destroy(image0);
 
   Image_Header_t *image1 = Image_Create3DNoClear(64, 128, 256, Image_Format_R5G5B5A1_UNORM_PACK16);
@@ -113,6 +131,9 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image1->depth == 256);
   REQUIRE(image1->slices == 1);
   REQUIRE(image1->dataSize == (64 * 128 * 256 * Image_Format_BitWidth(image1->format)) / 8);
+  REQUIRE(image1->nextImage == nullptr);
+  REQUIRE(image1->nextType == Image_IT_None);
+  Image_Destroy(image1);
 
   Image_Header_t *image2 = Image_Create3DArray(256, 256, 256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2);
@@ -122,6 +143,8 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image2->depth == 256);
   REQUIRE(image2->slices == 20);
   REQUIRE(image2->dataSize == (256 * 256 * 256 * 20 * Image_Format_BitWidth(image2->format)) / 8);
+  REQUIRE(image2->nextImage == nullptr);
+  REQUIRE(image2->nextType == Image_IT_None);
   Image_Destroy(image2);
 
   Image_Header_t *image3 = Image_Create3DArrayNoClear(64, 32, 16, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
@@ -132,6 +155,8 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image3->depth == 16);
   REQUIRE(image3->slices == 100);
   REQUIRE(image3->dataSize == (64 * 32 * 16 * 100 * Image_Format_BitWidth(image3->format)) / 8);
+  REQUIRE(image3->nextImage == nullptr);
+  REQUIRE(image3->nextType == Image_IT_None);
   Image_Destroy(image3);
 
   // HUGE test
@@ -143,6 +168,8 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image4->depth == 16);
   REQUIRE(image4->slices == 10);
   REQUIRE(image4->dataSize == (1024 * 1024 * 16 * 100 * Image_Format_BitWidth(image4->format)) / 8);
+  REQUIRE(image4->nextImage == nullptr);
+  REQUIRE(image4->nextType == Image_IT_None);
   Image_Destroy(image4);
 }
 
@@ -255,11 +282,8 @@ void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_
     }
   }
   for (auto s = 0u; s < img->slices; ++s) {
-
     for (auto z = 0u; z < img->depth; ++z) {
-
       for (auto y = 0u; y < img->height; ++y) {
-
         for (auto x = 0u; x < img->width; ++x) {
           Image_Pixel_t pixel;
 

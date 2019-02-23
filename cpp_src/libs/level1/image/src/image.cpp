@@ -39,12 +39,26 @@ EXTERN_C Image_Header_t *Image_CreateNoClear(uint32_t width,
   image->depth = depth;
   image->slices = slices;
   image->format = format;
+  image->nextType = Image_IT_None;
+  image->nextImage = nullptr;
 
   return image;
 
 }
 
 EXTERN_C void Image_Destroy(Image_Header_t *image) {
+  // recursively free next chain
+  switch (image->nextType) {
+    case Image_IT_MipMaps:
+    case IMAGE_IT_Layers:
+      if (image->nextImage != nullptr) {
+        Image_Destroy(image->nextImage);
+      }
+      break;
+    default:
+    case Image_IT_None:break;
+  }
+
   free(image);
 }
 

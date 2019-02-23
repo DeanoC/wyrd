@@ -16,12 +16,23 @@ enum Image_Channel_t {
   Image_Alpha,
 };
 
+// give a format and a channel you want, returns the actually channel its stored in
 EXTERN_C enum Image_Channel_t Image_Channel_Swizzle(enum Image_Format_t format, enum Image_Channel_t channel);
 
-// Upto 3D image data, stored as packed formats but accessed as double
-// upto 4 channels per pixel always RGBA (R = channel 0, A = channel 3)
+// Images can have a chain of related images, this type declares what if any
+// the next pointer are. Image_IT_None means no next images
+// The user is responsible to setting the next type and alloc the next
+// chains. Destroy will free the entire chain.
+// MipMaps + Layers in the same image is not supported
+enum Image_NextType_t {
+  Image_IT_None,
+  Image_IT_MipMaps,
+  IMAGE_IT_Layers
+};
+
+// Upto 4D (3D Arrays_ image data, stored as packed formats but
+// accessed as double upto 4 channels per pixel in RGBA
 // Support image arrays/slices
-// the default is the generic texture format image (GIMG) but can be subclassed
 // Image always requires to the first channel as R etc.
 // this means that you ask for R and it will retrieve it from wherever
 // it really is in the format (i.e. you don't worry about how its encoded)
@@ -38,6 +49,10 @@ typedef struct Image_Header_t {
   uint32_t slices;
 
   enum Image_Format_t format;
+
+  enum Image_NextType_t nextType;
+  Image_Header_t *nextImage;
+
 } Image_Header_t;
 
 // Image are fundementally 4D arrays however 'helper' function let you
