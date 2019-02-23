@@ -4,6 +4,7 @@ set( CInterface
 		math.h
 		)
 set( CPPInterface
+		math.hpp
 		)
 
 set( Src

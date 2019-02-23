@@ -14,6 +14,7 @@ set(Src
         format_cracker.c
         image.cpp
         image_fetch.hpp
+        image_put.hpp
         )
 
 set(Deps

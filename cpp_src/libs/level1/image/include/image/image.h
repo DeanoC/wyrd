@@ -40,9 +40,64 @@ typedef struct Image_Header_t {
   enum Image_Format_t format;
 } Image_Header_t;
 
+// Image are fundementally 4D arrays however 'helper' function let you
+// create and use them in more familar texture terms
+EXTERN_C Image_Header_t *Image_Create(uint32_t width,
+                                      uint32_t height,
+                                      uint32_t depth,
+                                      uint32_t slices,
+                                      enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_CreateNoClear(uint32_t width,
+                                             uint32_t height,
+                                             uint32_t depth,
+                                             uint32_t slices,
+                                             enum Image_Format_t format);
+
+// helpers
+EXTERN_C Image_Header_t *Image_Create1D(uint32_t width, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create1DNoClear(uint32_t width, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create1DArray(uint32_t width, uint32_t slices, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create1DArrayNoClear(uint32_t width, uint32_t slices, enum Image_Format_t format);
 EXTERN_C Image_Header_t *Image_Create2D(uint32_t width, uint32_t height, enum Image_Format_t format);
 EXTERN_C Image_Header_t *Image_Create2DNoClear(uint32_t width, uint32_t height, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create2DArray(uint32_t width,
+                                             uint32_t height,
+                                             uint32_t slices,
+                                             enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create2DArrayNoClear(uint32_t width,
+                                                    uint32_t height,
+                                                    uint32_t slices,
+                                                    enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create3D(uint32_t width, uint32_t height, uint32_t depth, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create3DNoClear(uint32_t width,
+                                               uint32_t height,
+                                               uint32_t depth,
+                                               enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create3DArray(uint32_t width,
+                                             uint32_t height,
+                                             uint32_t depth,
+                                             uint32_t slices,
+                                             enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_Create3DArrayNoClear(uint32_t width,
+                                                    uint32_t height,
+                                                    uint32_t depth,
+                                                    uint32_t slices,
+                                                    enum Image_Format_t format);
+
+EXTERN_C Image_Header_t *Image_CreateCubemap(uint32_t width, uint32_t height, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_CreateCubemapNoClear(uint32_t width, uint32_t height, enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_CreateCubemapArray(uint32_t width,
+                                                  uint32_t height,
+                                                  uint32_t slices,
+                                                  enum Image_Format_t format);
+EXTERN_C Image_Header_t *Image_CreateCubemapArrayNoClear(uint32_t width,
+                                                         uint32_t height,
+                                                         uint32_t slices,
+                                                         enum Image_Format_t format);
+
 EXTERN_C void Image_Destroy(Image_Header_t *image);
+
+
 EXTERN_C inline void *Image_RawDataPtr(Image_Header_t const *image) {
   ASSERT(image != NULL);
   return (void *) (image + 1);

@@ -372,7 +372,7 @@ EXTERN_C inline uint32_t Image_Format_ChannelCount(enum Image_Format_t const fmt
 }
 
 //! Returns the number of channel bits
-EXTERN_C inline bool Image_Format_ChannelBitWidth(enum Image_Format_t const fmt, int const channel_) {
+EXTERN_C inline uint32_t Image_Format_ChannelBitWidth(enum Image_Format_t const fmt, int const channel_) {
   switch (fmt) {
     case Image_Format_R64_UINT:
     case Image_Format_R64_SINT:
