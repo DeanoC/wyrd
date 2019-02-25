@@ -1,6 +1,15 @@
-#include <stdint.h>
+#ifdef HAS_C99
 #include <stdlib.h>
 #include <memory.h>
+#endif
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#if defined(_RUST_BINDGEN_)
+typedef unsigned long size_t;
+#endif
+
 
 #if __cplusplus >= 201103
 #define DEFINE_ALIGNED(def, a) alignas(a) def

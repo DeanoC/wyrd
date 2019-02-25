@@ -5,6 +5,4 @@
 #	define __STDC_CONSTANT_MACROS
 #endif
 
-#include <inttypes.h>
-#include <stdbool.h>
 #include "core/platform_posix.h"

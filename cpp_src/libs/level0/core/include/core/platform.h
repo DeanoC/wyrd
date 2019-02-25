@@ -121,7 +121,10 @@
 
 #elif defined(__APPLE__) && defined( __MACH__ )
 
-#include "TargetConditionals.h"
+#if !defined(_RUST_BINDGEN_)
+
+#include <TargetConditionals.h>
+
 #if TARGET_OS_IPHONE
 #define PLATFORM    PLATFORM_IPHONE
 #else
@@ -132,6 +135,14 @@
 // override endianness with the OS_OSX one, hopefully right...
 #undef CPU_ENDIANESS
 #define CPU_ENDIANESS (TARGET_RT_LITTLE_ENDIAN == 1)
+
+#else
+
+// for rust gen this wrong but bindgen can't find TargetConditionals.h
+#define PLATFORM    PLATFORM_APPLE_MAC
+#define PLATFORM_OS OS_OSX
+
+#endif
 
 #include "core/platform_osx.h"
 

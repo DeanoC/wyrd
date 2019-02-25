@@ -1,10 +1,11 @@
 set( LibName logmanager)
 
 set( CInterface
+		logmanager.h
 		)
 
-set( CPPInterface
-        logmanager.h
+set(CPPInterface
+		logmanager.hpp
 		)
 
 set( Src

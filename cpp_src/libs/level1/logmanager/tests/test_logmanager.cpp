@@ -9,7 +9,7 @@ int Main(int argc, char *argv[]) {
   return Catch::Session().run(argc, argv);
 }
 
-#include "logmanager/logmanager.h"
+#include "logmanager/logmanager.hpp"
 
 TEST_CASE("LogManager create/destroy", "[LogManager]") {
   LogManager *test = new LogManager;

@@ -1,0 +1,17 @@
+[package]
+name = "os"
+version = "0.1.0"
+authors = ["Dean Calver <me@deanoc.com>"]
+edition = "2018"
+build = "build.rs"
+
+links = "os"
+
+[features]
+static = []
+
+[dependencies]
+libc = {}
+
+[build-dependencies]
+bindgen = "0.47.2"

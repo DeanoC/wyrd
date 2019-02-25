@@ -2,7 +2,7 @@
 #include "core/logger.h"
 #include "os/file.hpp"
 #include "os/filesystem.hpp"
-#include "logmanager/logmanager.h"
+#include "logmanager/logmanager.hpp"
 
 #include <cstdio> // sprintf
 

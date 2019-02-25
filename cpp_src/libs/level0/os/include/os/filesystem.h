@@ -7,7 +7,7 @@
 
 #include "core/core.h"
 
-static const size_t FS_npos = size_t(-1);
+static const size_t FS_npos = (size_t) (-1);
 
 // is the provided path an internal path or a platform (they can be the same)
 // internal paths are normalized to use forward slash '/' as directory seperator

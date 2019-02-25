@@ -1,0 +1,16 @@
+[package]
+name = "lz4"
+version = "0.1.0"
+authors = ["Dean Calver <me@deanoc.com>"]
+edition = "2018"
+build = "build.rs"
+
+links = "lz4"
+
+[features]
+static = []
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.47.2"
