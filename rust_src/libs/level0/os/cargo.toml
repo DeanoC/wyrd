@@ -11,7 +11,7 @@ links = "os"
 static = []
 
 [dependencies]
-libc = {}
+core = { path = "../../level0/core" }
 
 [build-dependencies]
 bindgen = "0.47.2"

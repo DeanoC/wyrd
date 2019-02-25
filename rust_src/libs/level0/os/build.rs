@@ -5,21 +5,40 @@ use std::path::PathBuf;
 
 fn main() {
     let basepath = r"../../../../cpp_src/libs/";
-    let level0 = String::new() + basepath + r"level0/";
+    let levels = [
+        "level0",
+        "level1",
+    ];
+
+    let levelpaths = [
+        format!("{}{}", basepath, levels[0]),
+        format!("{}{}", basepath, levels[1])
+    ];
 
     let libname = "os";
-    let libinc = String::new() + &level0 + &libname + "/include/";
+    let libinc = format!("{}/{}{}", levelpaths[0], libname, "/include/");
 
-    let deps = [
-        String::new() + &level0 + "core/include"
-    ];
+    let deps = [["core"]];
+
+    let mut deppath = Vec::<String>::new();
+
+    let mut depth = 0;
+    for level in deps.iter() {
+        for dep in level {
+            deppath.push(format!("{}/{}{}", levelpaths[depth], dep, "/include"));
+        }
+        depth = depth + 1;
+    }
 
     println!(r"cargo:rustc-link-search=../../../../lib");
     print!("{}", r"cargo:include=[");
-    for dep in deps.iter() {
-        print!("{}", dep);
+    for level in deps.iter() {
+        for dep in level {
+            print!("{}", dep);
+        }
     }
     println!("]");
+    println!("{}{}", "cargo:rustc-link-lib=", "core");
     println!("{}{}", "cargo:rustc-link-lib=", libname);
 
     // The bindgen::Builder is the main entry point
@@ -31,7 +50,7 @@ fn main() {
         .clang_arg(String::new() + "-I" + &libinc)
         .clang_arg("-D_RUST_BINDGEN_");
 
-    for dep in deps.iter() {
+    for dep in deppath.iter() {
         bindings = bindings.clang_arg("-I".to_owned() + dep);
     }
 
