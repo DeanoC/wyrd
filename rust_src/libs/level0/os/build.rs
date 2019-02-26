@@ -47,6 +47,17 @@ fn main() {
     let mut bindings = bindgen::Builder::default()
         .header(String::new() + &libinc + &libname + "/" + "file.h")
         .header(String::new() + &libinc + &libname + "/" + "filesystem.h")
+        .blacklist_type(r"u??int\d?\d_t")
+        .blacklist_type(r"u??int_least\d?\d_t")
+        .blacklist_type(r"u??int_fast\d?\d_t")
+        .blacklist_type(r"u??intmax_t")
+        .blacklist_item(r"PLATFORM_??\D*")
+        .blacklist_item(r"OS_??\D*")
+        .blacklist_item(r"COMPILER_??\D*")
+        .blacklist_item(r"CPU_??.*")
+        .blacklist_item(r"true_")
+        .blacklist_item(r"false_")
+        .blacklist_item(r"__bool_true_false_are_defined")
         .clang_arg(String::new() + "-I" + &libinc)
         .clang_arg("-D_RUST_BINDGEN_");
 
