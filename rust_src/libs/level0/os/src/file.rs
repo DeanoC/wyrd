@@ -40,14 +40,14 @@ pub fn size(handle: &Handle) -> usize {
 }
 
 pub fn read(handle: &Handle, mem: &mut Vec<u8>) -> usize {
-    stream(handle, mem, 0, mem.len())
+    read_into(handle, mem, 0, mem.len())
 }
 
 pub fn read_all(handle: &Handle) -> Vec<u8> {
     let size = size(handle);
     let mut mem : Vec<u8> = Vec::new();
     mem.resize(size, 0);
-    stream(handle, &mut mem, 0, size);
+    read_into(handle, &mut mem, 0, size);
     return mem;
 }
 

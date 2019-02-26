@@ -1,8 +1,6 @@
-use os::file;
-
 #[cfg(test)]
 mod tests {
-    use super::file;
+    use os::file;
 
     #[test]
     fn test_file_open() {
@@ -67,12 +65,12 @@ mod tests {
             let ok1 = file::open("test_data/test.txt");
             assert_ne!(ok1.is_err(), true);
             let handle = ok1.unwrap();
-            let mut v: Vec<u8> = Vec::new();
-            v.resize(15, 0);
+            let mut mem: Vec<u8> = Vec::new();
+            mem.resize(15, 0);
 
-            let amount = file::read(&handle, &mut v);
+            let amount = file::read(&handle, &mut mem);
             assert_eq!(amount, 15);
-            assert_eq!(v, "Testing 1, 2, 3".as_bytes());
+            assert_eq!(mem, "Testing 1, 2, 3".as_bytes());
         }
         {
             let ok1 = file::open("test_data/test.txt");
@@ -84,8 +82,8 @@ mod tests {
             let amount0 = file::read_into(&handle, &mut mem, 0, 7);
             let amount1 = file::read_into(&handle, &mut mem, 7, 8);
             assert_eq!(amount0 + amount1, 15);
-            v.resize(15, 0);
-            assert_eq!(v, "Testing 1, 2, 3".as_bytes());
+            mem.resize(15, 0);
+            assert_eq!(mem, "Testing 1, 2, 3".as_bytes());
         }
         {
             let ok0 = file::open("test_data/test.txt");
