@@ -12,3 +12,4 @@ core = { path = "rust_src/libs/level0/core" }
 os = { path = "rust_src/libs/level0/os" }
 lz4 = { path = "rust_src/libs/level0/lz4" }
 logmanager = { path = "rust_src/libs/level1/logmanager" }
+theforge = { path = "rust_src/libs/level2/theforge" }

@@ -14,6 +14,9 @@ struct Mutex {
   Mutex() { Os_MutexCreate(&handle); };
   ~Mutex() { Os_MutexDestroy(&handle); };
 
+  // take ownership of a C level mutex
+  explicit Mutex(Os_Mutex_t mutie) : handle(mutie) {};
+
   void Acquire() { Os_MutexAcquire(&handle); };
   void Release() { Os_MutexRelease(&handle); };
 
@@ -33,15 +36,16 @@ struct ConditionalVariable {
 };
 
 struct MutexLock {
-  MutexLock(Mutex& mutex);
-  ~MutexLock();
+  MutexLock(Mutex& mutex) : mMutex(&mutex.handle) { Os_MutexAcquire(mMutex); };
+  MutexLock(Os_Mutex_t *mutex) : mMutex(mutex) { Os_MutexAcquire(mMutex); };
+  ~MutexLock() { Os_MutexRelease(mMutex); };
 
   /// Prevent copy construction.
   MutexLock(const MutexLock& rhs) = delete;
   /// Prevent assignment.
   MutexLock& operator=(const MutexLock& rhs) = delete;
 
-  Mutex& mMutex;
+  Os_Mutex_t *mMutex;
 };
 
 struct Thread {

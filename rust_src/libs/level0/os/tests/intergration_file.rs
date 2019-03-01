@@ -105,18 +105,18 @@ mod tests {
         assert_ne!(ok0.is_err(), true);
         let handle = ok0.unwrap();
         assert_eq!(file::tell(&handle), 0);
-        file::seek_begin(&handle, 0);
+        file::seek_from_begin(&handle, 0);
         assert_eq!(file::tell(&handle), 0);
-        file::seek_current(&handle, 0);
+        file::seek_from_current(&handle, 0);
         assert_eq!(file::tell(&handle), 0);
 
         let mut v: Vec<u8> = Vec::new();
         v.resize(100, 0);
         file::read(&handle, &mut v);
         assert_eq!(file::tell(&handle), 15);
-        file::seek_begin(&handle, 0);
+        file::seek_from_begin(&handle, 0);
         assert_eq!(file::tell(&handle), 0);
-        file::seek_end(&handle, -1);
+        file::seek_from_end(&handle, -1);
         assert_eq!(file::tell(&handle), 14);
         let amt = file::read(&handle, &mut v);
         v.resize(amt, 0);

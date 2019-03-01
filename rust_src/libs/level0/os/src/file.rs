@@ -64,19 +64,19 @@ pub fn read_into(handle: &Handle, mem: &mut Vec<u8>, offset: usize, amount: usiz
     }
 }
 
-pub fn seek_begin(handle: &Handle, offset: isize) {
+pub fn seek_from_begin(handle: &Handle, offset: isize) {
     unsafe {
         Os_FileSeek(handle.0, offset as i64, Os_FileSeekDir_Os_FSD_Begin);
     }
 }
 
-pub fn seek_current(handle: &Handle, offset: isize) {
+pub fn seek_from_current(handle: &Handle, offset: isize) {
     unsafe {
         Os_FileSeek(handle.0, offset as i64, Os_FileSeekDir_Os_FSD_Current);
     }
 }
 
-pub fn seek_end(handle: &Handle, offset: isize) {
+pub fn seek_from_end(handle: &Handle, offset: isize) {
     unsafe {
         Os_FileSeek(handle.0, offset as i64, Os_FileSeekDir_Os_FSD_End);
     }

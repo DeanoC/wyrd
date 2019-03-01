@@ -1,4 +1,4 @@
-#ifdef HAS_C99
+#ifndef _RUST_BINDGEN_
 #include <stdlib.h>
 #include <memory.h>
 #endif
