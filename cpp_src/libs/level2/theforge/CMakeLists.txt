@@ -12,16 +12,6 @@ set(CPPInterface
         )
 
 set(Src
-        allocator/memory_allocator.cpp
-        allocator/memory_allocator.hpp
-        allocator/resource_allocator.cpp
-        allocator/resource_allocator.hpp
-        allocator/allocator_list.hpp
-        allocator/allocator_pool.hpp
-        allocator/config.hpp
-        allocator/allocator.hpp
-        allocator/stats.cpp
-        allocator/stats.hpp
         )
 
 if (APPLE)

@@ -28,18 +28,18 @@ EXTERN_C void Os_MutexRelease(Os_Mutex_t *mutex) {
   pthread_mutex_unlock(mutex);
 }
 
-EXTERN_C bool Os_ConditionalVariableCreate(Os_ConditionalVariable_t *cd) {
-  ASSERT(cd);
-  return pthread_cond_init(cd, NULL) == 0;
+EXTERN_C bool Os_ConditionalVariableCreate(Os_ConditionalVariable_t *cv) {
+  ASSERT(cv);
+  return pthread_cond_init(cv, NULL) == 0;
 }
 
-EXTERN_C void Os_ConditionalVariableDestroy(Os_ConditionalVariable_t *cd) {
-  ASSERT(cd);
-  pthread_cond_destroy(cd);
+EXTERN_C void Os_ConditionalVariableDestroy(Os_ConditionalVariable_t *cv) {
+  ASSERT(cv);
+  pthread_cond_destroy(cv);
 }
 
-EXTERN_C void Os_ConditionalVariableWait(Os_ConditionalVariable_t *cd, Os_Mutex_t *mutex, uint64_t waitms) {
-  ASSERT(cd);
+EXTERN_C void Os_ConditionalVariableWait(Os_ConditionalVariable_t *cv, Os_Mutex_t *mutex, uint64_t waitms) {
+  ASSERT(cv);
   ASSERT(mutex);
 
   struct timespec ts;
@@ -47,19 +47,31 @@ EXTERN_C void Os_ConditionalVariableWait(Os_ConditionalVariable_t *cd, Os_Mutex_
   ts.tv_nsec = (long) waitms * 1000;
 
   pthread_mutex_t *mutexHandle = mutex;
-  pthread_cond_timedwait(cd, mutexHandle, &ts);
+  pthread_cond_timedwait(cv, mutexHandle, &ts);
 
 }
 
-EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cd) {
-  ASSERT(cd);
-  pthread_cond_signal(cd);
+EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cv) {
+  ASSERT(cv);
+  pthread_cond_signal(cv);
+}
+
+static struct TrampParam {
+  Os_JobFunction_t func;
+  void *param;
+};
+
+static void *FuncTrampoline(void *param) {
+  struct TrampParam *tp = (struct TrampParam *) param;
+  tp->func(param);
+  return nullptr;
 }
 
 EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data) {
   ASSERT(thread);
+  struct TrampParam tp = {func, data};
 
-  return pthread_create(thread, NULL, func, data) == 0;
+  return pthread_create(thread, NULL, &FuncTrampoline, &tp) == 0;
 }
 
 EXTERN_C void Os_ThreadDestroy(Os_Thread_t *thread) {

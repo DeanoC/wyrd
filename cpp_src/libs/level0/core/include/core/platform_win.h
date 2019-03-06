@@ -1,7 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdint.h>
+#include <stdbool.h>
 
 //#	define _CRTDBG_MAP_ALLOC
 //#	cppinclude <crtdbg.h>
+
 
 #define READONLY_MEM
 #define LOCAL_MEM

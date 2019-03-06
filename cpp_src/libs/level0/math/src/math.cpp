@@ -1,6 +1,7 @@
 #include "core/core.h"
 #include "core/logger.h"
 #include "math/math.h"
+#include <limits>
 
 EXTERN_C uint8_t Math_LogTable256[] =
     {0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -65,10 +66,6 @@ EXTERN_C uint32_t Math_Floats2E5b9g9r9(float const in_[3]) {
   const float maxColor = (max_xyz > minf9) ? max_xyz : minf9;
 
   union {
-    float f;
-    int32_t i;
-  } fi;
-  union {
     struct {
       uint32_t xm : 9;
       uint32_t ym : 9;
@@ -78,7 +75,10 @@ EXTERN_C uint32_t Math_Floats2E5b9g9r9(float const in_[3]) {
     uint32_t v;
   } ei;
 
-  fi.f = maxColor;
+  union {
+    float f;
+    int32_t i;
+  } fi = {maxColor};
   fi.i += 0x00004000; // round up leaving 9 bits in fraction (including assumed 1)
 
   // Fix applied from DirectXMath 3.10

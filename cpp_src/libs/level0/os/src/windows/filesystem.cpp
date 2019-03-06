@@ -1,128 +1,185 @@
 #include "core/core.h"
+#include "core/logger.h"
 #include "os/file.h"
-#include "os/os.h"
+#include "tinystl/string.h"
+#include "core/windows.h"
+#include <shlobj_core.h>
+#include <io.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include "Os/thread.h"
 //#include "../Interfaces/IMemoryManager.h"
 
-#if defined(DIRECT3D12)
-#define RESOURCE_DIR "Shaders/D3D12"
-#elif defined(DIRECT3D11)
-#define RESOURCE_DIR "Shaders/D3D11"
-#elif defined(VULKAN)
-#define RESOURCE_DIR "Shaders/Vulkan"
+EXTERN_C bool Os_IsInternalPath(char const *p) {
+  tinystl::string path(p);
+  unsigned int slash = path.find_last('/');
+  if (slash == tinystl::string::npos) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+EXTERN_C bool Os_GetInternalPath(char const *path, char *pathOut, size_t maxSize) {
+  ASSERT(path);
+  ASSERT(pathOut);
+
+  // copy and replace \ with /
+  if (strlen(path) >= maxSize) { return false; }
+  unsigned int i = 0;
+  do {
+    if (path[i] == '\\') {
+      pathOut[i] = '/';
+    } else {
+      pathOut[i] = path[i];
+    }
+    ++i;
+  } while (path[i] != 0);
+
+  pathOut[i] = 0;
+  return true;
+}
+
+EXTERN_C bool Os_GetPlatformPath(char const *path, char *pathOut, size_t maxSize) {
+  ASSERT(path);
+  ASSERT(pathOut);
+
+  // copy and replace \ with /
+  if (strlen(path) >= maxSize) { return false; }
+  unsigned int i = 0;
+  do {
+    if (path[i] == '/') {
+      pathOut[i] = '\\';
+    } else {
+      pathOut[i] = path[i];
+    }
+    ++i;
+  } while (path[i] != 0);
+
+  pathOut[i] = 0;
+  return true;
+}
+
+EXTERN_C void Os_GetCurrentDir(char *pathOut, size_t maxSize) {
+  ASSERT(MAX_PATH <= maxSize);
+  GetCurrentDirectoryA(MAX_PATH, pathOut);
+}
+
+EXTERN_C void Os_SetCurrentDir(const char *path) {
+  char tmp[2048];
+  if (!Os_GetPlatformPath(path, tmp, sizeof(tmp))) { return; }
+
+  SetCurrentDirectoryA(tmp);
+}
+
+EXTERN_C bool Os_FileExists(const char *fileName) {
+  char tmp[2048];
+  if (!Os_GetPlatformPath(fileName, tmp, sizeof(tmp))) { return false; }
+
+#ifdef _DURANGO
+  return (fopen(tmp, "rb") != NULL);
+#else
+  return ((_access(tmp, 0)) != -1);
 #endif
-
-const char* pszRoots[FSR_Count] = {
-	RESOURCE_DIR "/Binary/",    // FSR_BinShaders
-	RESOURCE_DIR "/",           // FSR_SrcShaders
-	"Textures/",                // FSR_Textures
-	"Meshes/",                  // FSR_Meshes
-	"Fonts/",                   // FSR_Builtin_Fonts
-	"GPUCfg/",                  // FSR_GpuConfig
-	"Animation/",               // FSR_Animation
-	"",                         // FSR_OtherFiles
-};
-
-extern "C" FileHandle open_file(const char* filename, const char* flags)
-{
-	FILE* fp;
-	fopen_s(&fp, filename, flags);
-	return fp;
 }
 
-extern "C" size_t get_file_last_modified_time(const char* _fileName)
-{
-	struct stat fileInfo;
+EXTERN_C bool Os_DirExists(char const *pathName) {
+  char tmp[2048];
+  if (!Os_GetPlatformPath(pathName, tmp, sizeof(tmp))) { return false; }
 
-	if (!stat(_fileName, &fileInfo))
-	{
-		return (size_t)fileInfo.st_mtime;
-	}
-	else
-	{
-		// return an impossible large mod time as the file doesn't exist
-		return ~0;
-	}
+  DWORD attributes = GetFileAttributesA(tmp);
+  if (attributes == INVALID_FILE_ATTRIBUTES ||
+      !(attributes & FILE_ATTRIBUTE_DIRECTORY)) {
+    return false;
+  } else { return true; }
 }
 
-tinystl::string get_current_dir()
-{
-	char curDir[MAX_PATH];
-	GetCurrentDirectoryA(MAX_PATH, curDir);
-	return tinystl::string(curDir);
+EXTERN_C bool Os_FileCopy(char const *src, char const *dst) {
+  char srctmp[2048];
+  char dsttmp[2048];
+  if (!Os_GetPlatformPath(src, srctmp, sizeof(srctmp))) { return false; }
+  if (!Os_GetPlatformPath(dst, dsttmp, sizeof(dsttmp))) { return false; }
+
+  return CopyFileA(srctmp, dsttmp, FALSE) ? true : false;
+
 }
 
-tinystl::string get_exe_path()
-{
-	char exeName[MAX_PATH];
-	exeName[0] = 0;
-	GetModuleFileNameA(0, exeName, MAX_PATH);
-	return tinystl::string(exeName);
+EXTERN_C bool Os_FileDelete(char const *fileName) {
+  char tmp[2048];
+  if (!Os_GetPlatformPath(fileName, tmp, sizeof(tmp))) { return false; }
+  return DeleteFileA(tmp) != 0;
 }
 
-tinystl::string get_user_documents_dir()
-{
-	char pathName[MAX_PATH];
-	pathName[0] = 0;
-	SHGetSpecialFolderPathA(0, pathName, CSIDL_PERSONAL, 0);
-	return tinystl::string(pathName);
+EXTERN_C bool Os_GetExePath(char *dirOut, int maxSize) {
+  dirOut[0] = 0;
+  GetModuleFileNameA(nullptr, dirOut, maxSize);
+  return true;
 }
 
-void set_current_dir(const char* path) { SetCurrentDirectoryA(path); }
-
-tinystl::string get_app_prefs_dir(const char* org, const char* app)
-{
-	/*
-	* Vista and later has a new API for this, but SHGetFolderPath works there,
-	*  and apparently just wraps the new API. This is the new way to do it:
-	*
-	*	SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_CREATE,
-	*						 NULL, &wszPath);
-	*/
-
-	char   path[MAX_PATH];
-	size_t new_wpath_len = 0;
-	BOOL   api_result = FALSE;
-
-	if (!SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, path)))
-	{
-		return NULL;
-	}
-
-	new_wpath_len = strlen(org) + strlen(app) + strlen(path) + 3;
-
-	if ((new_wpath_len + 1) > MAX_PATH)
-	{
-		return NULL;
-	}
-
-	strcat(path, "\\");
-	strcat(path, org);
-
-	api_result = CreateDirectoryA(path, NULL);
-	if (api_result == FALSE)
-	{
-		if (GetLastError() != ERROR_ALREADY_EXISTS)
-		{
-			return NULL;
-		}
-	}
-
-	strcat(path, "\\");
-	strcat(path, app);
-
-	api_result = CreateDirectoryA(path, NULL);
-	if (api_result == FALSE)
-	{
-		if (GetLastError() != ERROR_ALREADY_EXISTS)
-		{
-			return NULL;
-		}
-	}
-
-	strcat(path, "\\");
-	return tinystl::string(path);
+EXTERN_C bool Os_GetUserDocumentsDir(char *dirOut, int maxSize) {
+  ASSERT(maxSize >= MAX_PATH);
+  dirOut[0] = 0;
+  SHGetSpecialFolderPathA(nullptr, dirOut, CSIDL_PERSONAL, 0);
+  return true;
 }
 
+EXTERN_C bool Os_GetAppPrefsDir(const char *org, const char *app, char *dirOut, int maxSize) {
+  /*
+  * Vista and later has a new API for this, but SHGetFolderPath works there,
+  *  and apparently just wraps the new API. This is the new way to do it:
+  *
+  *	SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_CREATE,
+  *						 NULL, &wszPath);
+  */
+
+  ASSERT(maxSize >= MAX_PATH);
+  size_t new_wpath_len = 0;
+
+  if (!SUCCEEDED(SHGetFolderPathA(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, 0, dirOut))) {
+    return false;
+  }
+
+  new_wpath_len = strlen(org) + strlen(app) + strlen(dirOut) + 3;
+
+  if ((new_wpath_len + 1) > MAX_PATH) {
+    return false;
+  }
+
+  strcat(dirOut, "\\");
+  strcat(dirOut, org);
+
+  if (CreateDirectoryA(dirOut, nullptr) == FALSE) {
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
+      return NULL;
+    }
+  }
+
+  strcat(dirOut, "\\");
+  strcat(dirOut, app);
+
+  if (CreateDirectoryA(dirOut, nullptr) == FALSE) {
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
+      return false;
+    }
+  }
+
+  strcat(dirOut, "\\");
+  return true;
+}
+
+EXTERN_C size_t Os_GetLastModifiedTime(const char *_fileName) {
+  struct stat fileInfo{};
+
+  if (!stat(_fileName, &fileInfo)) {
+    return (size_t) fileInfo.st_mtime;
+  } else {
+    // return an impossible large mod time as the file doesn't exist
+    return ~0;
+  }
+}
+
+/*
 void get_files_with_extension(const char* dir, const char* ext, tinystl::vector<tinystl::string>& filesOut)
 {
 	tinystl::string  path = FileSystem::GetNativePath(FileSystem::AddTrailingSlash(dir));
@@ -165,7 +222,6 @@ void get_sub_directories(const char* dir, tinystl::vector<tinystl::string>& subD
 	}
 }
 
-bool copy_file(const char* src, const char* dst) { return CopyFileA(src, dst, FALSE) ? true : false; }
 
 static void
 	FormatFileExtensionsFilter(const char* fileDesc, const tinystl::vector<tinystl::string>& extFiltersIn, tinystl::string& extFiltersOut)
@@ -248,6 +304,8 @@ void save_file_dialog(
 		callback(szFile, userData);
 	}
 }
+
+ */
 
 /*
  * Copyright (c) 2018-2019 Confetti Interactive Inc.

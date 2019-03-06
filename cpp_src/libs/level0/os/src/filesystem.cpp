@@ -23,13 +23,12 @@ EXTERN_C bool Os_SplitPath(char const *p, size_t *fileName, size_t *extension) {
   return true;
 }
 
-EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, char *dirOut, int maxSize) {
-  tinystl::string_view fileNameView;
-  tinystl::string_view extView;
+EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, char *dirOut, size_t maxSize) {
   ASSERT(path);
   ASSERT(newExtension);
   ASSERT(dirOut);
 
+  tinystl::string_view extView;
   tinystl::string const p(path);
   tinystl::string const e(newExtension);
   tinystl::string::size_type const extPos = p.find_last('.');
@@ -55,7 +54,7 @@ EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, ch
   return true;
 }
 
-EXTERN_C bool Os_GetParentPath(char const *pathc, char *dirOut, int maxSize) {
+EXTERN_C bool Os_GetParentPath(char const *pathc, char *dirOut, size_t maxSize) {
 
   tinystl::string path(pathc);
 
@@ -83,7 +82,7 @@ bool SplitPath(tinystl::string const& fullPath,
   size_t extPos = tinystl::string::npos;
 
   bool splitOk = Os_SplitPath(fullPath.c_str(), &filePos, &extPos);
-  if (splitOk == false) {
+  if (!splitOk) {
     fileName = {};
     extension = {};
     return false;

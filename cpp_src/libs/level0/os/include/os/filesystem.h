@@ -13,15 +13,15 @@ static const size_t FS_npos = (size_t) (-1);
 // internal paths are normalized to use forward slash '/' as directory seperator
 // platform paths are slashes in the platform preferred direction
 EXTERN_C bool Os_IsInternalPath(char const *pathName);
-EXTERN_C bool Os_GetInternalPath(char const *pathName, char *dirOut, int maxSize);
-EXTERN_C bool Os_GetPlatformPath(char const *pathName, char *dirOut, int maxSize);
+EXTERN_C bool Os_GetInternalPath(char const *pathName, char *dirOut, size_t maxSize);
+EXTERN_C bool Os_GetPlatformPath(char const *pathName, char *dirOut, size_t maxSize);
 
 EXTERN_C bool Os_IsAbsolutePath(char const *path);
 EXTERN_C bool Os_SplitPath(char const *path, size_t *fileName, size_t *extension);
-EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, char *dirOut, int maxSize);
-EXTERN_C bool Os_GetParentPath(char const *path, char *dirOut, int maxSize);
+EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, char *dirOut, size_t maxSize);
+EXTERN_C bool Os_GetParentPath(char const *path, char *dirOut, size_t maxSize);
 
-EXTERN_C bool Os_GetCurrentDir(char *dirOut, int maxSize);
+EXTERN_C bool Os_GetCurrentDir(char *dirOut, size_t maxSize);
 EXTERN_C bool Os_SetCurrentDir(char const *dir);
 
 EXTERN_C bool Os_FileExists(char const *fileName);

@@ -19,8 +19,9 @@ set( Src
 		filesystem.cpp
 		)
 
-if(WINDOWS)
-	list(APPEND Src windows/file.cpp)
+if (WIN32)
+    list(APPEND Src windows/filesystem.cpp)
+    list(APPEND Src windows/thread.c)
 endif()
 
 if(APPLE)

@@ -2,12 +2,10 @@
 #include "catch/catch.hpp"
 #include "os/thread.h"
 
-void *SetVarTo42(void *data) {
+void SetVarTo42(void *data) {
   REQUIRE(data);
   REQUIRE(*(int *) data == 0);
   *(int *) data = 42;
-
-  return data;
 }
 
 TEST_CASE("Thread Create and Destroy (C)", "[OS File]") {

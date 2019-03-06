@@ -14,11 +14,11 @@ TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
   REQUIRE(Os_IsInternalPath(testFileInternalPath));
 
 #if PLATFORM == PLATFORM_WINDOWS
-  bool platPathOk = FS_GetPlatformPath(testFileInternalPath, pathOut, 2048);
+  bool platPathOk = Os_GetPlatformPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) != 0);
 
-  REQUIRE( FS_IsInternalPath(testFileInternalPath) == false);
+  REQUIRE(Os_IsInternalPath(testFileInternalPath) == false);
 #else
   bool platPathOk = Os_GetPlatformPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);

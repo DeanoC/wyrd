@@ -9,8 +9,14 @@
 
 #if PLATFORM == PLATFORM_WINDOWS
 
-typedef void* Os_Mutex_t;
-typedef void* Os_ConditionalVariable_t;
+typedef struct { char dummy[24]; } Os_Mutex_t;
+#if CPU_BIT_SIZE == 32
+typedef struct { char dummy[4]; } Os_ConditionalVariable_t;
+#elif CPU_BIT_SIZE == 64
+typedef struct { char dummy[8]; } Os_ConditionalVariable_t;
+#else
+#error What bit size if this CPU?!
+#endif
 typedef unsigned int Os_ThreadID_t;
 typedef void* Os_Thread_t;
 
@@ -27,6 +33,9 @@ typedef pthread_t Os_Thread_t;
 
 #endif
 
+typedef void (*Os_JobFunction_t)(void *);
+
+
 EXTERN_C bool Os_MutexCreate(Os_Mutex_t *mutex);
 EXTERN_C void Os_MutexDestroy(Os_Mutex_t *mutex);
 EXTERN_C void Os_MutexAcquire(Os_Mutex_t *mutex);
@@ -35,8 +44,6 @@ EXTERN_C bool Os_ConditionalVariableCreate(Os_ConditionalVariable_t *cd);
 EXTERN_C void Os_ConditionalVariableDestroy(Os_ConditionalVariable_t *cd);
 EXTERN_C void Os_ConditionalVariableWait(Os_ConditionalVariable_t *cd, Os_Mutex_t *mutex, uint64_t waitms);
 EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cd);
-
-typedef void *(*Os_JobFunction_t)(void *);
 
 EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data);
 EXTERN_C void Os_ThreadDestroy(Os_Thread_t *thread);

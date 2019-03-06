@@ -8,6 +8,7 @@
 #include "core/core.h"
 #include "core/logger.h"
 #include <math.h>
+#include <string.h>
 
 typedef struct vec2_t { float x; float y; } Math_vec2_t;
 typedef struct ivec2_t { int32_t x; int32_t y; } Math_ivec2_t;

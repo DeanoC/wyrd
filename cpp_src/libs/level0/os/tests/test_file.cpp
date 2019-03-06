@@ -60,7 +60,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file (C)", "[OS File]") {
 
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
-  char totalLen = strlen(expectedBytes);
+  size_t totalLen = strlen(expectedBytes);
 
   bool seek0 = Os_FileSeek(fh, 4, Os_FSD_Begin);
   REQUIRE(seek0);

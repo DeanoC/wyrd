@@ -1,10 +1,10 @@
-
 #include "core/core.h"
 #include "core/logger.h"
 #include "os/file.h"
 #include <stdio.h>
+#include <string.h>
 
-static void TranslateFileAccessFlags(Os_FileMode modeFlags, char *fileAccessString, int strLength) {
+static void TranslateFileAccessFlags(enum Os_FileMode modeFlags, char *fileAccessString, int strLength) {
   ASSERT(fileAccessString != NULL && strLength >= 4);
   memset(fileAccessString, '\0', strLength);
   int index = 0;
@@ -36,10 +36,10 @@ static void TranslateFileAccessFlags(Os_FileMode modeFlags, char *fileAccessStri
     fileAccessString[index++] = 't';
   }
 
-  fileAccessString[index++] = '\0';
+  fileAccessString[index] = '\0';
 }
 
-EXTERN_C Os_FileHandle Os_FileOpen(const char *filename, const Os_FileMode mode) {
+EXTERN_C Os_FileHandle Os_FileOpen(char const *filename, enum Os_FileMode mode) {
   char flags[4];
   TranslateFileAccessFlags(mode, flags, 4);
   FILE *fp = fopen(filename, flags);
@@ -61,8 +61,8 @@ EXTERN_C size_t Os_FileRead(Os_FileHandle handle, void *buffer, size_t byteCount
                (FILE *) handle);
 }
 
-EXTERN_C bool Os_FileSeek(Os_FileHandle handle, int64_t offset, Os_FileSeekDir origin) {
-  return fseek((FILE *) handle, offset, origin) == 0;
+EXTERN_C bool Os_FileSeek(Os_FileHandle handle, int64_t offset, enum Os_FileSeekDir origin) {
+  return fseek((FILE *) handle, (long) offset, origin) == 0;
 }
 
 EXTERN_C int64_t Os_FileTell(Os_FileHandle handle) {
