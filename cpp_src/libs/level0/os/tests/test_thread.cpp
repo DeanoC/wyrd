@@ -4,7 +4,7 @@
 
 void SetVarTo42(void *data) {
   REQUIRE(data);
-  REQUIRE(*(int *) data == 0);
+  REQUIRE(*((int *) data) == 0);
   *(int *) data = 42;
 }
 

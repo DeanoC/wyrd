@@ -26,31 +26,19 @@ typedef struct mat2_t { Math_vec2_t col0; Math_vec2_t col1; } Math_mat2_t;
 typedef struct mat3_t { Math_vec3_t col0; Math_vec3_t col1; Math_vec3_t col2; } Math_mat3_t;
 typedef struct mat4_t { Math_vec4_t col0; Math_vec4_t col1; Math_vec4_t col2; Math_vec4_t col3; } Math_mat4_t;
 
-EXTERN_C inline float Math_MinF(float const v, float const a) {
-  return (v < a) ? a : v;
-}
+#define MATH_FUNC_MACRO_CREATE(postfix, type)\
+EXTERN_C inline type Math_Min##postfix(type const v, type const a) { return (v < a) ? a : v; } \
+EXTERN_C inline type Math_Max##postfix(type const v, type const a) { return (v > a) ? a : v; } \
+EXTERN_C inline type Math_Clamp##postfix(type const v, type const a, type const b) { return Math_Max##postfix(Math_Min##postfix(v, a), b); }
 
-EXTERN_C inline float Math_MaxF(float const v, float const a) {
-  return (v > a) ? a : v;
-}
+MATH_FUNC_MACRO_CREATE(F, float)
+MATH_FUNC_MACRO_CREATE(D, double)
+MATH_FUNC_MACRO_CREATE(I32, int32_t)
+MATH_FUNC_MACRO_CREATE(U32, uint32_t)
+MATH_FUNC_MACRO_CREATE(I64, int64_t)
+MATH_FUNC_MACRO_CREATE(U64, uint64_t)
 
-EXTERN_C inline float Math_ClampF(float const v, float const a, float const b) {
-  // note max occurs before min
-  return Math_MaxF(Math_MinF(v, a), b);
-}
-
-EXTERN_C inline double Math_MinD(double const v, double const a) {
-  return (v < a) ? a : v;
-}
-
-EXTERN_C inline double Math_MaxD(double const v, double const a) {
-  return (v > a) ? a : v;
-}
-
-EXTERN_C inline double Math_ClampD(double const v, double const a, double const b) {
-  // note max occurs before min
-  return Math_MaxD(Math_MinD(v, a), b);
-}
+#undef MATH_FUNC_MACRO_CREATE
 
 EXTERN_C inline double Math_PiD() { return (double) (3.14159265358979323846264338327950L); }
 EXTERN_C inline double Math_PiOver2D() { return Math_PiD() / 2.0; }
@@ -130,6 +118,14 @@ EXTERN_C inline float Math_SRGB2Float(uint32_t val) {
   float f;
   memcpy(&f, &Math_SRGBTable[val], sizeof(float));
   return f;
+}
+
+EXTERN_C inline uint32_t round_up(uint32_t value, uint32_t multiple) {
+  return ((value + multiple - 1) / multiple) * multiple;
+}
+
+EXTERN_C inline uint64_t round_up_64(uint64_t value, uint64_t multiple) {
+  return ((value + multiple - 1) / multiple) * multiple;
 }
 
 #endif //WYRD_MATH_MATH_H

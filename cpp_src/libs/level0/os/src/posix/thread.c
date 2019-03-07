@@ -56,22 +56,26 @@ EXTERN_C void Os_ConditionalVariableSet(Os_ConditionalVariable_t *cv) {
   pthread_cond_signal(cv);
 }
 
-static struct TrampParam {
+struct TrampParam {
   Os_JobFunction_t func;
   void *param;
 };
 
 static void *FuncTrampoline(void *param) {
   struct TrampParam *tp = (struct TrampParam *) param;
-  tp->func(param);
-  return nullptr;
+  tp->func(tp->param);
+  free(tp);
+
+  return NULL;
 }
 
 EXTERN_C bool Os_ThreadCreate(Os_Thread_t *thread, Os_JobFunction_t func, void *data) {
   ASSERT(thread);
-  struct TrampParam tp = {func, data};
+  struct TrampParam *tp = (struct TrampParam *) malloc(sizeof(struct TrampParam));
+  tp->func = func;
+  tp->param = data;
 
-  return pthread_create(thread, NULL, &FuncTrampoline, &tp) == 0;
+  return pthread_create(thread, NULL, &FuncTrampoline, tp) == 0;
 }
 
 EXTERN_C void Os_ThreadDestroy(Os_Thread_t *thread) {

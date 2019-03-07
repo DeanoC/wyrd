@@ -6,12 +6,14 @@ set( CInterface
 		windowsdesc.h
 		file.h
 		filesystem.h
+        atomics.h
 		)
 
 set( CPPInterface
 		platformevents.hpp
 		thread.hpp
 		file.hpp
+        atomics.hpp
 		)
 
 set( Src

@@ -4,6 +4,7 @@
 
 #include "os/filesystem.h"
 #include "tinystl/string.h"
+namespace Os {
 namespace FileSystem {
 
 typedef void (*FileDialogCallbackFn)(tinystl::string url, void *userData);
@@ -53,9 +54,9 @@ inline tinystl::string GetParentPath(tinystl::string const& path) {
 }
 
 inline tinystl::string GetCurrentDir() {
-  char cwd[2048];
-  if (Os_GetCurrentDir(cwd, 2048)) {
-    return tinystl::string(cwd);
+  char tmp[2048];
+  if (Os_GetCurrentDir(tmp, sizeof(tmp))) {
+    return tinystl::string(tmp);
   } else {
     return tinystl::string();
   }
@@ -93,6 +94,32 @@ inline tinystl::string GetExtension(tinystl::string const& path) {
   else { return {}; }
 }
 
-} // namespace FileSystem
+inline tinystl::string GetExePath() {
+  char tmp[2048];
+  if (Os_GetExePath(tmp, sizeof(tmp))) {
+    return tinystl::string(tmp);
+  } else { return {}; }
+}
 
-#endif // WYRD_FILESYSTEM_HPP
+inline tinystl::string GetUserDocumentsDir() {
+  char tmp[2048];
+  if (Os_GetUserDocumentsDir(tmp, sizeof(tmp))) {
+    return tinystl::string(tmp);
+  } else { return {}; }
+}
+
+inline tinystl::string GetAppPrefsDir(tinystl::string const& org, tinystl::string const& app) {
+  char tmp[2048];
+  if (Os_GetAppPrefsDir(org.c_str(), app.c_str(), tmp, sizeof(tmp))) {
+    return tinystl::string(tmp);
+  } else { return {}; }
+}
+
+inline size_t GetLastModifiedTime(tinystl::string const& fileName) {
+  return Os_GetLastModifiedTime(fileName.c_str());
+}
+
+} // namespace FileSystem
+} // end namespace Os
+
+#endif // WYRD_OS_FILESYSTEM_HPP

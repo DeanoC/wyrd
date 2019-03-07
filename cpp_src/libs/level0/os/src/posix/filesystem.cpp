@@ -12,14 +12,14 @@ EXTERN_C bool Os_IsInternalPath(char const *path) {
   return true;
 }
 
-EXTERN_C bool Os_GetInternalPath(char const *path, char *pathOut, int maxSize) {
+EXTERN_C bool Os_GetInternalPath(char const *path, char *pathOut, size_t maxSize) {
   // just copy
   if (strlen(path) >= maxSize) { return false; }
   strcpy(pathOut, path);
   return true;
 }
 
-EXTERN_C bool Os_GetPlatformPath(char const *path, char *pathOut, int maxSize) {
+EXTERN_C bool Os_GetPlatformPath(char const *path, char *pathOut, size_t maxSize) {
   // just copy
   if (strlen(path) >= maxSize) { return false; }
   strcpy(pathOut, path);
@@ -37,7 +37,7 @@ EXTERN_C size_t Os_GetLastModifiedTime(const char *fileName) {
   }
 }
 
-EXTERN_C bool Os_GetCurrentDir(char *dirOut, int maxSize) {
+EXTERN_C bool Os_GetCurrentDir(char *dirOut, size_t maxSize) {
   char buffer[maxSize];
   if (getcwd(buffer, maxSize) == NULL) { return false; }
   if (Os_GetInternalPath(buffer, dirOut, maxSize) == false) { return false; }
@@ -90,7 +90,7 @@ bool Os_FileDelete(char const *fileName) {
 }
 
 bool Os_CreateDir(char const *pathName) {
-  using namespace FileSystem;
+  using namespace Os::FileSystem;
 
   // Create each of the parents if necessary
   tinystl::string parentPath = GetParentPath(pathName);
@@ -110,7 +110,7 @@ bool Os_CreateDir(char const *pathName) {
 }
 
 int Os_SystemRun(char const *fileName, int argc, const char **argv) {
-  tinystl::string fixedFileName = FileSystem::GetPlatformPath(fileName);
+  tinystl::string fixedFileName = Os::FileSystem::GetPlatformPath(fileName);
 
 #ifdef _DURANGO
   ASSERT(!"UNIMPLEMENTED");
