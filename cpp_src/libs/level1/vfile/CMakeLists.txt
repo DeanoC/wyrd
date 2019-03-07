@@ -6,7 +6,7 @@ set(CInterface
         )
 
 set(CPPInterface
-        )
+        vfile.hpp)
 
 set(Src
         vfile.c

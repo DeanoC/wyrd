@@ -11,6 +11,7 @@ typedef size_t (*VFile_WriteFunc)(struct VFile_Interface_t *, void const *buffer
 typedef bool (*VFile_SeekFunc)(struct VFile_Interface_t *, int64_t offset, enum VFile_SeekDir origin);
 typedef int64_t (*VFile_TellFunc)(struct VFile_Interface_t *);
 typedef size_t (*VFile_SizeFunc)(struct VFile_Interface_t *);
+typedef char const *(*VFile_GetNameFunc)(struct VFile_Interface_t *);
 
 static const uint32_t InterfaceMagic = 0xDEA0DEA0;
 
@@ -28,6 +29,7 @@ typedef struct VFile_Interface_t {
   VFile_SeekFunc seekFunc;
   VFile_TellFunc tellFunc;
   VFile_SizeFunc sizeFunc;
+  VFile_GetNameFunc nameFunc;
 
 } VFile_Interface_t;
 

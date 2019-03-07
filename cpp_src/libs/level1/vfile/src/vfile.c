@@ -41,4 +41,10 @@ EXTERN_C size_t VFile_Size(VFile_Handle handle) {
   return interface->sizeFunc(interface);
 }
 
+EXTERN_C char const *VFile_GetName(VFile_Handle handle) {
+  VFILE_FUNC_HEADER
+
+  return interface->nameFunc(interface);
+}
+
 #undef VFILE_FUNC_HEADER

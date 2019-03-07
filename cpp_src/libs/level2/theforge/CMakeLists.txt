@@ -29,6 +29,7 @@ set(Deps
         level0/core
         level0/os
         level0/tinystl
+        level1/vfile
         )
 
 set(Tests

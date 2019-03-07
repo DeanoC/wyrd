@@ -40,16 +40,23 @@ static size_t VFile_OsFile_Size(VFile_Interface_t *vif) {
   return Os_FileSize(vof->fileHandle);
 }
 
-EXTERN_C VFile_Handle VFile_FromOsFile(Os_FileHandle handle) {
+static char const *VFile_OsFile_GetName(VFile_Interface_t *vif) {
+  VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
+  char const *name = (char const *) (vof + 1);
+  return name;
+}
 
-  static const uint32_t mallocSize =
+EXTERN_C VFile_Handle VFile_FromFile(char const *filename, enum Os_FileMode mode) {
+  Os_FileHandle handle = Os_FileOpen(filename, mode);
+  if (handle == NULL) { return NULL; }
+
+  const uint64_t mallocSize =
       sizeof(VFile_Interface_t) +
-          sizeof(VFile_OsFile_t);
+          sizeof(VFile_OsFile_t) +
+          strlen(filename) + 1;
 
   VFile_Interface_t *vif = (VFile_Interface_t *) malloc(mallocSize);
-  VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
   vif->magic = InterfaceMagic;
-  vof->fileHandle = handle;
   vif->closeFunc = &VFile_OsFile_Close;
   vif->flushFunc = &VFile_OsFile_Flush;
   vif->readFunc = &VFile_OsFile_Read;
@@ -57,6 +64,11 @@ EXTERN_C VFile_Handle VFile_FromOsFile(Os_FileHandle handle) {
   vif->seekFunc = &VFile_OsFile_Seek;
   vif->tellFunc = &VFile_OsFile_Tell;
   vif->sizeFunc = &VFile_OsFile_Size;
+  vif->nameFunc = &VFile_OsFile_GetName;
+  VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
+  vof->fileHandle = handle;
+  char *dstname = (char *) (vof + 1);
+  strcpy(dstname, filename);
 
   return (VFile_Handle) vif;
 }

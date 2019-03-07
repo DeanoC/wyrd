@@ -11,18 +11,14 @@ int Main(int argc, char *argv[]) {
 #include "vfile/vfile.h"
 
 TEST_CASE("Open and close (C)", "[VFile OsFile]") {
-  Os_FileHandle ofh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
-  REQUIRE(ofh != NULL);
-  VFile_Handle vfh = VFile_FromOsFile(ofh);
+  VFile_Handle vfh = VFile_FromFile("test_data/test.txt", Os_FM_Read);
   REQUIRE(vfh);
+  REQUIRE(stricmp(VFile_GetName(vfh), "test_data/test.txt") == 0);
   VFile_Close(vfh);
 }
 
 TEST_CASE("Read Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
-
-  Os_FileHandle ofh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
-  REQUIRE(ofh != NULL);
-  VFile_Handle vfh = VFile_FromOsFile(ofh);
+  VFile_Handle vfh = VFile_FromFile("test_data/test.txt", Os_FM_Read);
   REQUIRE(vfh);
 
   static char expectedBytes[] = "Testing 1, 2, 3";
@@ -35,11 +31,8 @@ TEST_CASE("Read Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
 }
 
 TEST_CASE("Write Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
-  Os_FileHandle ofh = Os_FileOpen("test_data/test.txt", Os_FM_Write);
-  REQUIRE(ofh != NULL);
-  VFile_Handle vfh = VFile_FromOsFile(ofh);
+  VFile_Handle vfh = VFile_FromFile("test_data/test.txt", Os_FM_Write);
   REQUIRE(vfh);
-
   static char expectedBytes[] = "Testing 1, 2, 3";
 
   size_t bytesWritten = VFile_Write(vfh, expectedBytes, strlen(expectedBytes));
@@ -50,9 +43,7 @@ TEST_CASE("Write Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
   VFile_Close(vfh);
 
   // verify write
-  Os_FileHandle fhr = Os_FileOpen("test_data/test.txt", Os_FM_Read);
-  REQUIRE(fhr != NULL);
-  VFile_Handle vfhr = VFile_FromOsFile(fhr);
+  VFile_Handle vfhr = VFile_FromFile("test_data/test.txt", Os_FM_Read);
   REQUIRE(vfhr);
   char buffer[1024];
   size_t bytesRead = VFile_Read(vfhr, buffer, 1024);
@@ -63,10 +54,7 @@ TEST_CASE("Write Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
 }
 
 TEST_CASE("Seek & Tell Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
-
-  Os_FileHandle ofh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
-  REQUIRE(ofh != NULL);
-  VFile_Handle vfh = VFile_FromOsFile(ofh);
+  VFile_Handle vfh = VFile_FromFile("test_data/test.txt", Os_FM_Read);
   REQUIRE(vfh);
 
   static char expectedBytes[] = "Testing 1, 2, 3";
@@ -99,10 +87,7 @@ TEST_CASE("Seek & Tell Testing 1, 2, 3 text file OsFile (C)", "[VFile]") {
 }
 
 TEST_CASE("Size OsFile (C)", "[VFile]") {
-
-  Os_FileHandle ofh = Os_FileOpen("test_data/test.txt", Os_FM_Read);
-  REQUIRE(ofh != NULL);
-  VFile_Handle vfh = VFile_FromOsFile(ofh);
+  VFile_Handle vfh = VFile_FromFile("test_data/test.txt", Os_FM_Read);
   REQUIRE(vfh);
 
   size_t size = VFile_Size(vfh);
@@ -117,10 +102,11 @@ TEST_CASE("Open and close MemFile (C)", "[VFile]") {
 
   VFile_Handle vfh = VFile_FromMemory(testData, sizeof(testData), false);
   REQUIRE(vfh);
+  REQUIRE(stricmp(VFile_GetName(vfh), "*NO_NAME*") == 0);
   VFile_Close(vfh);
 }
 
-TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[VFile MemFile]") {
+TEST_CASE("Read Testing 1, 2, 3 text file MemFile (C)", "[VFile]") {
 
   static char testData[] = "Testing 1, 2, 3";
 
@@ -207,4 +193,26 @@ TEST_CASE("Size MemFile (C)", "[VFile]") {
   REQUIRE(size == 15);
 
   VFile_Close(vfh);
+}
+
+#include "vfile/vfile.hpp"
+
+TEST_CASE("Open and close MemFile (CPP)", "[VFile]") {
+
+  static char testData[] = "Testing 1, 2, 3";
+
+  VFile::VFile *vfh = VFile::VFile::FromMemory(testData, sizeof(testData), false);
+  REQUIRE(vfh);
+  REQUIRE(stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
+  vfh->Close();
+
+}
+
+TEST_CASE("Scoped Open and close MemFile (CPP)", "[VFile]") {
+
+  static char testData[] = "Testing 1, 2, 3";
+
+  VFile::ScopedVFile vfh = VFile::VFile::FromMemory(testData, sizeof(testData), false);
+  REQUIRE(vfh);
+  REQUIRE(stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
 }
