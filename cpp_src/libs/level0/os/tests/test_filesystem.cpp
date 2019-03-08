@@ -1,4 +1,5 @@
 #include "core/core.h"
+#include "core/logger.h"
 #include "catch/catch.hpp"
 #include "os/filesystem.h"
 #include "tinystl/string.h"
@@ -11,14 +12,14 @@ TEST_CASE("Path (platform/internal) (C)", "[OS FileSystem]") {
   REQUIRE(intPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) == 0);
 
-  REQUIRE(Os_IsInternalPath(testFileInternalPath));
+  REQUIRE(Os_IsInternalPath(pathOut));
 
 #if PLATFORM == PLATFORM_WINDOWS
   bool platPathOk = Os_GetPlatformPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
   REQUIRE(strcmp(testFileInternalPath, pathOut) != 0);
 
-  REQUIRE(Os_IsInternalPath(testFileInternalPath) == false);
+  REQUIRE(!Os_IsInternalPath(pathOut));
 #else
   bool platPathOk = Os_GetPlatformPath(testFileInternalPath, pathOut, 2048);
   REQUIRE(platPathOk);
@@ -109,6 +110,7 @@ TEST_CASE("Os_GetCurrentDir (C)", "[OS FileSystem]") {
 
   size_t const curdirPos = path.find_last('/');
   REQUIRE(curdirPos != tinystl::string::npos);
+  LOGWARNING(buffer);
   REQUIRE(strcmp("live/", buffer + curdirPos + 1) == 0);
 
 }

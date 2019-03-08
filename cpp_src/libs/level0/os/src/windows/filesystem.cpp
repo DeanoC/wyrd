@@ -8,12 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "Os/thread.h"
+#include "os/thread.h"
 //#include "../Interfaces/IMemoryManager.h"
 
 EXTERN_C bool Os_IsInternalPath(char const *p) {
   tinystl::string path(p);
-  unsigned int slash = path.find_last('/');
+  size_t slash = path.find_last('/');
   if (slash == tinystl::string::npos) {
     return false;
   } else {
@@ -63,7 +63,11 @@ EXTERN_C bool Os_GetPlatformPath(char const *path, char *pathOut, size_t maxSize
 
 EXTERN_C void Os_GetCurrentDir(char *pathOut, size_t maxSize) {
   ASSERT(MAX_PATH <= maxSize);
-  GetCurrentDirectoryA(MAX_PATH, pathOut);
+  char tmp[MAX_PATH];
+  size_t s = GetCurrentDirectoryA(MAX_PATH, tmp);
+  tmp[s] = '\\';
+  tmp[s + 1] = 0;
+  Os_GetInternalPath(tmp, pathOut, maxSize);
 }
 
 EXTERN_C void Os_SetCurrentDir(const char *path) {

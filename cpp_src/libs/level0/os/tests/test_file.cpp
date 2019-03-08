@@ -1,4 +1,5 @@
 #include "core/core.h"
+#include "core/logger.h"
 #include "catch/catch.hpp"
 #include "os/file.h"
 
@@ -17,6 +18,7 @@ TEST_CASE("Read Testing 1, 2, 3 text file (C)", "[OS File]") {
   static char expectedBytes[] = "Testing 1, 2, 3";
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fh, buffer, 1024);
+  buffer[bytesRead] = 0;
   REQUIRE(bytesRead == strlen(expectedBytes));
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
@@ -46,6 +48,7 @@ TEST_CASE("Write Testing 1, 2, 3 text file (C)", "[OS File]") {
   REQUIRE(fhr != NULL);
   char buffer[1024];
   size_t bytesRead = Os_FileRead(fhr, buffer, 1024);
+  buffer[bytesRead] = 0;
   REQUIRE(bytesRead == strlen(expectedBytes));
   REQUIRE(strcmp(expectedBytes, buffer) == 0);
 
