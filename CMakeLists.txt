@@ -9,5 +9,5 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/live)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/live)
 
-add_subdirectory(cpp_src/libs)
-add_subdirectory(cpp_src/apps)
+add_subdirectory(src/libs)
+add_subdirectory(src/apps)
