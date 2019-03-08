@@ -83,3 +83,7 @@ EXTERN_C size_t Os_FileSize(Os_FileHandle handle) {
   Os_FileSeek(handle, curPos, Os_FSD_Begin);
   return (size_t) length;
 }
+
+EXTERN_C bool Os_FileIsEOF(Os_FileHandle handle) {
+  return feof((FILE *) handle);
+}

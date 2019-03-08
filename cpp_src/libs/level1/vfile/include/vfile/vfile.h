@@ -24,5 +24,6 @@ EXTERN_C bool VFile_Seek(VFile_Handle handle, int64_t offset, enum VFile_SeekDir
 EXTERN_C int64_t VFile_Tell(VFile_Handle handle);
 EXTERN_C size_t VFile_Size(VFile_Handle handle);
 EXTERN_C char const *VFile_GetName(VFile_Handle handle);
+EXTERN_C bool VFile_IsEOF(VFile_Handle handle);
 
 #endif //WYRD_VFILE_VFILE_H

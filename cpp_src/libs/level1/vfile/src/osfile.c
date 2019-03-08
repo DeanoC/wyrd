@@ -46,6 +46,12 @@ static char const *VFile_OsFile_GetName(VFile_Interface_t *vif) {
   return name;
 }
 
+static bool VFile_OsFile_IsEOF(VFile_Interface_t *vif) {
+  VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
+  return Os_FileIsEOF(vof->fileHandle);
+}
+
+
 EXTERN_C VFile_Handle VFile_FromFile(char const *filename, enum Os_FileMode mode) {
   Os_FileHandle handle = Os_FileOpen(filename, mode);
   if (handle == NULL) { return NULL; }
@@ -65,6 +71,8 @@ EXTERN_C VFile_Handle VFile_FromFile(char const *filename, enum Os_FileMode mode
   vif->tellFunc = &VFile_OsFile_Tell;
   vif->sizeFunc = &VFile_OsFile_Size;
   vif->nameFunc = &VFile_OsFile_GetName;
+  vif->isEofFunc = &VFile_OsFile_IsEOF;
+
   VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
   vof->fileHandle = handle;
   char *dstname = (char *) (vof + 1);

@@ -88,6 +88,11 @@ static char const *VFile_MemFile_GetName(VFile_Interface_t *vif) {
   return NoName;
 }
 
+static bool VFile_MemFile_IsEOF(VFile_Interface_t *vif) {
+  VFile_MemFile_t *vof = (VFile_MemFile_t *) (vif + 1);
+  return vof->offset >= vof->size;
+}
+
 EXTERN_C VFile_Handle VFile_FromMemory(void *memory, size_t size, bool takeOwnership) {
 
   static const uint32_t mallocSize =
@@ -105,6 +110,7 @@ EXTERN_C VFile_Handle VFile_FromMemory(void *memory, size_t size, bool takeOwner
   vif->tellFunc = &VFile_MemFile_Tell;
   vif->sizeFunc = &VFile_MemFile_Size;
   vif->nameFunc = &VFile_MemFile_GetName;
+  vif->isEofFunc = &VFile_MemFile_IsEOF;
   vof->memory = memory;
   vof->size = size;
   vof->takeOwnership = takeOwnership;

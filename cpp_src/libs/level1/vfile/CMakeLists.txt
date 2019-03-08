@@ -3,6 +3,7 @@ set(LibName vfile)
 set(CInterface
         interface.h
         vfile.h
+        utils.h
         )
 
 set(CPPInterface
@@ -14,6 +15,7 @@ set(Src
         osfile.h
         memfile.c
         memfile.h
+        utils.c
         )
 
 set(Deps

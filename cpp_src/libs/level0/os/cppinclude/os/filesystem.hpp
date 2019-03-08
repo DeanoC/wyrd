@@ -37,6 +37,14 @@ inline bool IsAbsolutePath(tinystl::string const& path) {
 
 bool SplitPath(tinystl::string const& fullPath, tinystl::string_view& fileName,
                tinystl::string_view& extension);
+bool SplitPath(tinystl::string const& fullPath, tinystl::string& fileName,
+               tinystl::string& extension) {
+  tinystl::string_view fn, ext;
+  bool result = SplitPath(fullPath, fn, ext);
+  fileName = fn;
+  extension = ext;
+  return result;
+}
 
 inline tinystl::string ReplaceExtension(tinystl::string const& path,
                                         tinystl::string const& newExtension) {
@@ -84,6 +92,14 @@ inline bool FileDelete(tinystl::string const& src) {
 
 inline bool CreateDir(tinystl::string const& dir) {
   return Os_CreateDir(dir.c_str());
+}
+
+inline tinystl::string GetFileName(tinystl::string const& path) {
+  tinystl::string_view fileName;
+  tinystl::string_view extension;
+  bool splitOk = FileSystem::SplitPath(path, fileName, extension);
+  if (splitOk) { return fileName; }
+  else { return {}; }
 }
 
 inline tinystl::string GetExtension(tinystl::string const& path) {

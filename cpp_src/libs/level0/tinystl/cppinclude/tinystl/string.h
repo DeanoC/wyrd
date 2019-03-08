@@ -34,6 +34,8 @@
 #include <tinystl/string_view.h>
 #include <cctype>
 #include <cstring>
+#include <cstdarg>
+#include <cstdio>
 
 namespace tinystl {
 
@@ -64,6 +66,9 @@ class basic_string {
 
   const char *c_str() const;
   char *c_str();
+  const char& at(size_t index) const { return m_first[index]; }
+  char& at(size_t index) { return m_first[index]; }
+
   size_type size() const;
 
   bool empty() const { return size() == 0; }
@@ -75,6 +80,7 @@ class basic_string {
   void append(const char *first, const char *last);
   void append(const char c) { append(&c, (&c) + 1); };
   void assign(const char *s, size_t n);
+  void push_back(char c) { append(c); }
 
   char const *data() const { return c_str(); }
   char *data() { return c_str(); }
@@ -91,8 +97,12 @@ class basic_string {
 
   void replace(char replaceThis, char replaceWith, bool caseSensitive = true);
 
+  size_type find(char c, size_type startPos, bool caseSensitive = true) const;
+  size_type find(const basic_string& str, size_type startPos, bool caseSensitive = true) const;
+  bool rfind(const char ch, size_t pos, unsigned int *index) const;
   size_type find_last(char c, size_type startPos = npos, bool caseSensitive = true) const;
-  size_type find_last(basic_string<allocator> const& str, size_type startPos = npos, bool caseSensitive = true) const;
+  size_type find_last(basic_string const& str, size_type startPos = npos, bool caseSensitive = true) const;
+  static basic_string format(const char *fmt, ...);
 
  private:
   pointer m_first;
@@ -339,9 +349,11 @@ inline void basic_string<allocator>::replace(char replaceThis, char replaceWith,
 }
 
 template<typename allocator>
-inline typename basic_string<allocator>::size_type basic_string<allocator>::find_last(char c,
-                                                                                      size_t startPos /* = npos*/,
-                                                                                      bool caseSensitive /* = true*/) const {
+inline typename basic_string<allocator>::size_type basic_string<allocator>::find_last(
+    char c,
+    size_t startPos /* = npos*/,
+    bool caseSensitive /* = true*/) const {
+
   if (startPos >= size()) {
     startPos = size() - 1;
   }
@@ -410,9 +422,122 @@ inline typename basic_string<allocator>::size_type basic_string<allocator>::find
 }
 
 template<typename allocator>
+inline typename basic_string<allocator>::size_type basic_string<allocator>::find(char c,
+                                                                                 size_type startPos,
+                                                                                 bool caseSensitive /* = true*/) const {
+  if (caseSensitive) {
+    for (size_type i = startPos; i < size(); ++i) {
+      if (m_first[i] == c) {
+        return i;
+      }
+    }
+  } else {
+    c = (char) tolower(c);
+    for (size_type i = startPos; i < size(); ++i) {
+      if (tolower(m_first[i]) == c) {
+        return i;
+      }
+    }
+  }
+
+  return npos;
+}
+
+template<typename allocator>
+inline typename basic_string<allocator>::size_type basic_string<allocator>::find(const basic_string& str,
+                                                                                 size_t startPos,
+                                                                                 bool caseSensitive /* = true*/) const {
+  if (!str.size() || str.size() > size()) {
+    return npos;
+  }
+
+  char first = str.m_first[0];
+  if (!caseSensitive) {
+    first = (char) tolower(first);
+  }
+
+  for (size_type i = startPos; i <= size() - str.size(); ++i) {
+    char c = m_first[i];
+    if (!caseSensitive) {
+      c = (char) tolower(c);
+    }
+
+    if (c == first) {
+      size_type skip = npos;
+      bool found = true;
+      for (unsigned j = 1; j < (unsigned) str.size(); ++j) {
+        c = m_first[i + j];
+        char d = str.m_first[j];
+        if (!caseSensitive) {
+          c = (char) tolower(c);
+          d = (char) tolower(d);
+        }
+
+        if (skip == npos && c == first) {
+          skip = i + j - 1;
+        }
+
+        if (c != d) {
+          found = false;
+          if (skip != npos) {
+            i = skip;
+          }
+          break;
+        }
+      }
+      if (found) {
+        return i;
+      }
+    }
+  }
+
+  return npos;
+}
+
+template<typename allocator>
+inline bool basic_string<allocator>::rfind(const char ch, size_type pos, unsigned int *index) const {
+  size_type i = (pos < 0) ? size() : pos;
+
+  while (i) {
+    i--;
+    if (m_first[i] == ch) {
+      if (index != nullptr) {
+        *index = i;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+template<typename allocator>
 inline char basic_string<allocator>::back() const {
   if (empty()) { return 0; }
   else { return *(c_str() + size() - 1); }
+}
+
+template<typename allocator>
+basic_string<allocator> basic_string<allocator>::format(const char *fmt, ...) {
+  int size = int(strlen(fmt) * 2 + 50);
+  basic_string str;
+  va_list ap;
+  while (1) {     // Maximum two passes on a POSIX system...
+    str.resize(size);
+    va_start(ap, fmt);
+    int n = vsnprintf((char *) str.c_str(), size, fmt, ap);
+    va_end(ap);
+    if (n > -1 && n < size) {  // Everything worked
+      str.resize(n);
+      return str;
+    }
+    if (n > -1) {  // Needed size returned
+      size = n + 1;   // For null char
+    } else {
+      size *= 2;
+    }      // Guess at a larger size (OS specific)
+  }
+  return str;
 }
 
 template<typename allocatorl, typename allocatorr>

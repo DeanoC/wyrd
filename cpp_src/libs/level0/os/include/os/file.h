@@ -39,6 +39,7 @@ EXTERN_C size_t Os_FileWrite(Os_FileHandle handle, void const *buffer, size_t by
 EXTERN_C bool Os_FileSeek(Os_FileHandle handle, int64_t offset, enum Os_FileSeekDir origin);
 EXTERN_C int64_t Os_FileTell(Os_FileHandle handle);
 EXTERN_C size_t Os_FileSize(Os_FileHandle handle);
+EXTERN_C bool Os_FileIsEOF(Os_FileHandle handle);
 
 #endif //WYRD_OS_FILE_H
 
