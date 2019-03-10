@@ -1,5 +1,5 @@
 module CSingleHeaders {
-    umbrella "../../../../cpp_src/libs/level0/singleheaders/include/singleheaders"
+    umbrella "../../../../src/libs/level0/singleheaders/include/singleheaders"
     link "singleheaders"
     export *
  }

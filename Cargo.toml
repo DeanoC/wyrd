@@ -5,11 +5,10 @@ authors = ["Dean Calver <me@deanoc.com>"]
 edition = "2018"
 
 [lib]
-path = "rust_src/dummy.rs"
+path = "src/dummy.rs"
 
 [dependencies]
-core = { path = "rust_src/libs/level0/core" }
-os = { path = "rust_src/libs/level0/os" }
-lz4 = { path = "rust_src/libs/level0/lz4" }
-logmanager = { path = "rust_src/libs/level1/logmanager" }
-theforge = { path = "rust_src/libs/level2/theforge" }
+core = { path = "src/libs/level0/core" }
+os = { path = "src/libs/level0/os" }
+lz4 = { path = "src/libs/level0/lz4" }
+logmanager = { path = "src/libs/level1/logmanager" }
