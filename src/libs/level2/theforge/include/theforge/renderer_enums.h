@@ -45,11 +45,12 @@ typedef enum TheForge_CmdPoolType {
   TheForge_MAX_CMD_TYPE
 } TheForge_CmdPoolType;
 
-typedef enum TheForge_QueueFlag {
-  TheForge_QUEUE_FLAG_NONE,
-  TheForge_QUEUE_FLAG_DISABLE_GPU_TIMEOUT,
+typedef enum TheForge_QueueFlagBits {
+  TheForge_QUEUE_FLAG_NONE = 0,
+  TheForge_QUEUE_FLAG_DISABLE_GPU_TIMEOUT = 0x1,
   TheForge_MAX_QUEUE_FLAG
-} TheForge_QueueFlag;
+} TheForge_QueueFlagBits;
+typedef uint8_t TheForge_QueueFlags;
 
 typedef enum TheForge_QueuePriority {
   TheForge_QUEUE_PRIORITY_NORMAL,
@@ -65,7 +66,7 @@ typedef enum TheForge_LoadActionType {
   TheForge_MAX_LOAD_ACTION
 } TheForge_LoadActionType;
 
-typedef enum TheForge_ResourceState {
+typedef enum TheForge_ResourceStateFlagBits {
   TheForge_RESOURCE_STATE_UNDEFINED = 0,
   TheForge_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER = 0x1,
   TheForge_RESOURCE_STATE_INDEX_BUFFER = 0x2,
@@ -82,7 +83,8 @@ typedef enum TheForge_ResourceState {
   TheForge_RESOURCE_STATE_GENERIC_READ = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
   TheForge_RESOURCE_STATE_PRESENT = 0x4000,
   TheForge_RESOURCE_STATE_COMMON = 0x8000,
-} TheForge_ResourceState;
+} TheForge_ResourceStateFlagBits;
+typedef uint32_t TheForge_ResourceStateFlags;
 
 typedef enum TheForge_ResourceMemoryUsage {
   /// No intended memory usage specified
@@ -112,7 +114,7 @@ typedef enum TheForge_IndirectArgumentType {
   TheForge_INDIRECT_UNORDERED_ACCESS_VIEW    // only for dx
 } TheForge_IndirectArgumentType;
 
-typedef enum TheForge_DescriptorType {
+typedef enum TheForge_DescriptorTypeFlagBits {
   TheForge_DESCRIPTOR_TYPE_UNDEFINED = 0,
   TheForge_DESCRIPTOR_TYPE_SAMPLER = 0x01,
   TheForge_DESCRIPTOR_TYPE_TEXTURE = (TheForge_DESCRIPTOR_TYPE_SAMPLER << 1),
@@ -136,7 +138,8 @@ typedef enum TheForge_DescriptorType {
       TheForge_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = (TheForge_DESCRIPTOR_TYPE_RENDER_TARGET_DEPTH_SLICES << 1),
   TheForge_DESCRIPTOR_TYPE_TEXEL_BUFFER = (TheForge_DESCRIPTOR_TYPE_INPUT_ATTACHMENT << 1),
   TheForge_DESCRIPTOR_TYPE_RW_TEXEL_BUFFER = (TheForge_DESCRIPTOR_TYPE_TEXEL_BUFFER << 1),
-} TheForge_DescriptorType;
+} TheForge_DescriptorTypeFlagBits;
+typedef uint32_t TheForge_DescriptorTypeFlags;
 
 typedef enum TheForge_TextureDimension {
   TheForge_TEXTURE_DIM_UNDEFINED = 0,
@@ -156,7 +159,7 @@ typedef enum TheForge_SampleCount {
   TheForge_SAMPLE_COUNT_16 = 16,
 } TheForge_SampleCount;
 
-typedef enum TheForge_ShaderStage {
+typedef enum TheForge_ShaderStageFlagBits {
   TheForge_SHADER_STAGE_NONE = 0,
   TheForge_SHADER_STAGE_VERT = 0X00000001,
   TheForge_SHADER_STAGE_TESC = 0X00000002,
@@ -168,7 +171,10 @@ typedef enum TheForge_ShaderStage {
   TheForge_SHADER_STAGE_HULL = TheForge_SHADER_STAGE_TESC,
   TheForge_SHADER_STAGE_DOMN = TheForge_SHADER_STAGE_TESE,
   TheForge_SHADER_STAGE_COUNT = 6,
-} TheForge_ShaderStage;
+} TheForge_ShaderStageFlagBits;
+// its used as both flags and and enum. Type makes it clear which is intended
+typedef uint8_t TheForge_ShaderStage;
+typedef uint8_t TheForge_ShaderStageFlags;
 
 typedef enum TheForge_PrimitiveTopology {
   TheForge_PRIMITIVE_TOPO_POINT_LIST = 0,
@@ -257,7 +263,7 @@ typedef enum TheForge_StencilOp {
 // Blend states are always attached to one of the eight or more render targets that
 // are in a MRT
 // Mask constants
-typedef enum TheForge_BlendStateTargets {
+typedef enum TheForge_BlendStateTargetsFlagBits {
   TheForge_BLEND_STATE_TARGET_0 = 0x1,
   TheForge_BLEND_STATE_TARGET_1 = 0x2,
   TheForge_BLEND_STATE_TARGET_2 = 0x4,
@@ -267,7 +273,8 @@ typedef enum TheForge_BlendStateTargets {
   TheForge_BLEND_STATE_TARGET_6 = 0x40,
   TheForge_BLEND_STATE_TARGET_7 = 0x80,
   TheForge_BLEND_STATE_TARGET_ALL = 0xFF,
-} TheForge_BlendStateTargets;
+} TheForge_BlendStateTargetsFlagBits;
+typedef uint8_t TheForge_BlendStateTargetsFlags;
 
 typedef enum TheForge_CullMode {
   TheForge_CULL_MODE_NONE = 0,
@@ -292,6 +299,7 @@ typedef enum TheForge_PipelineType {
   TheForge_PIPELINE_TYPE_UNDEFINED = 0,
   TheForge_PIPELINE_TYPE_COMPUTE,
   TheForge_PIPELINE_TYPE_GRAPHICS,
+  TheForge_PIPELINE_TYPE_RAYTRACING,
   TheForge_PIPELINE_TYPE_COUNT,
 } TheForge_PipelineType;
 
@@ -312,12 +320,13 @@ typedef enum TheForge_MipMapMode {
   TheForge_MIPMAP_MODE_LINEAR
 } TheForge_MipMapMode;
 
-typedef enum TheForge_DepthStencilClearFlags {
+typedef enum TheForge_DepthStencilClearFlagBits {
   TheForge_CLEAR_DEPTH = 0x01,
   TheForge_CLEAR_STENCIL = 0x02
-} TheForge_DepthStencilClearFlags;
+} TheForge_DepthStencilClearFlagBits;
+typedef uint8_t TheForge_DepthStencilClearFlags;
 
-typedef enum TheForge_BufferCreationFlags {
+typedef enum TheForge_BufferCreationFlagBits {
   /// Default flag (Buffer will use aliased memory, buffer will not be cpu accessible until mapBuffer is called)
       TheForge_BUFFER_CREATION_FLAG_NONE = 0x01,
   /// Buffer will allocate its own memory (COMMITTED resource)
@@ -328,9 +337,10 @@ typedef enum TheForge_BufferCreationFlags {
       TheForge_BUFFER_CREATION_FLAG_ESRAM = 0x08,
   /// Flag to specify not to allocate descriptors for the resource
       TheForge_BUFFER_CREATION_FLAG_NO_DESCRIPTOR_VIEW_CREATION = 0x10,
-} TheForge_BufferCreationFlags;
+} TheForge_BufferCreationFlagBits;
+typedef uint8_t TheForge_BufferCreationFlags;
 
-typedef enum TheForge_TextureCreationFlags {
+typedef enum TheForge_TextureCreationFlagBits {
   /// Default flag (Texture will use default allocation strategy decided by the api specific allocator)
       TheForge_TEXTURE_CREATION_FLAG_NONE = 0,
   /// Texture will allocate its own memory (COMMITTED resource)
@@ -347,7 +357,8 @@ typedef enum TheForge_TextureCreationFlags {
       TheForge_TEXTURE_CREATION_FLAG_ON_TILE = 0x20,
   /// Prevent compression meta data from generating (XBox)
       TheForge_TEXTURE_CREATION_FLAG_NO_COMPRESSION = 0x40,
-} TheForge_TextureCreationFlags;
+} TheForge_TextureCreationFlagBits;
+typedef uint32_t TheForge_TextureCreationFlags;
 
 typedef enum TheForge_GPUPresetLevel {
   TheForge_GPU_PRESET_NONE = 0,
@@ -409,5 +420,11 @@ typedef enum TheForge_D3D_FEATURE_LEVEL {
   TheForge_D3D_FEATURE_LEVEL_12_0,
   TheForge_D3D_FEATURE_LEVEL_12_1
 } TheForge_D3D_FEATURE_LEVEL;
+
+typedef enum TheForge_RootSignatureType {
+  TheForge_ROOT_SIGNATURE_GRAPHICS_COMPUTE,
+  TheForge_ROOT_SIGNATURE_RAYTRACING_LOCAL,
+  TheForge_ROOT_SIGNATURE_RAYTRACING_GLOBAL,
+} TheForge_RootSignatureType;
 
 #endif //WYRD_THEFORGE_RENDERER_ENUMS_H

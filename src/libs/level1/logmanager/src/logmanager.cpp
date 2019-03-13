@@ -33,7 +33,7 @@ LogManager::LogManager() :
     mQuietMode(false) {
   pLogInstance = this;
 
-  logFile = Os::File::Open(FileSystem::GetCurrentDir() + "log.log", Os_FM_Write);
+  logFile = Os::File::Open(Os::FileSystem::GetCurrentDir() + "log.log", Os_FM_Write);
 
   Os::Thread::SetMainThread();
   oldLog = Core_Log;

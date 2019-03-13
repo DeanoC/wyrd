@@ -2,8 +2,12 @@
 #ifndef WYRD_OS_FILESYSTEM_HPP
 #define WYRD_OS_FILESYSTEM_HPP
 
+#include "core/core.h"
+#include "core/logger.h"
 #include "os/filesystem.h"
 #include "tinystl/string.h"
+#include "tinystl/vector.h"
+
 namespace Os {
 namespace FileSystem {
 
@@ -37,7 +41,7 @@ inline bool IsAbsolutePath(tinystl::string const& path) {
 
 bool SplitPath(tinystl::string const& fullPath, tinystl::string_view& fileName,
                tinystl::string_view& extension);
-bool SplitPath(tinystl::string const& fullPath, tinystl::string& fileName,
+inline bool SplitPath(tinystl::string const& fullPath, tinystl::string& fileName,
                tinystl::string& extension) {
   tinystl::string_view fn, ext;
   bool result = SplitPath(fullPath, fn, ext);
@@ -129,6 +133,15 @@ inline tinystl::string GetAppPrefsDir(tinystl::string const& org, tinystl::strin
   if (Os_GetAppPrefsDir(org.c_str(), app.c_str(), tmp, sizeof(tmp))) {
     return tinystl::string(tmp);
   } else { return {}; }
+}
+
+inline int SystemRun(tinystl::string const& fileName, tinystl::vector<tinystl::string> const& args) {
+  char const* cargs[100];
+  ASSERT(args.size() < 100);
+  for (auto i = 0u; i < args.size(); ++i) {
+    cargs[i] = args[i].c_str();
+  }
+  return Os_SystemRun(fileName.c_str(), args.size(), cargs);
 }
 
 inline size_t GetLastModifiedTime(tinystl::string const& fileName) {

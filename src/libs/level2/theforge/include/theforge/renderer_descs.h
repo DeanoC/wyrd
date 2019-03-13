@@ -1,6 +1,12 @@
 #pragma once
 #ifndef WYRD_THEFORGE_RENDERER_DESC_H
 #define WYRD_THEFORGE_RENDERER_DESC_H
+
+#include "core/core.h"
+#include "os/windowsdesc.h"
+#include "theforge/image_enums.h"
+#include "theforge/renderer_enums.h"
+
 /// Data structure holding necessary info to create a Buffer
 typedef struct TheForge_BufferDesc {
   /// Size of the buffer (in bytes)
@@ -10,7 +16,7 @@ typedef struct TheForge_BufferDesc {
   /// Creation flags of the buffer
   TheForge_BufferCreationFlags mFlags;
   /// What state will the buffer get created in
-  TheForge_ResourceState mStartState;
+  TheForge_ResourceStateFlags mStartState;
   /// Specifies whether the buffer will have 32 bit or 16 bit indices (applicable to BUFFER_USAGE_INDEX)
   TheForge_IndexType mIndexType;
   /// Vertex stride of the buffer (applicable to BUFFER_USAGE_VERTEX)
@@ -26,7 +32,7 @@ typedef struct TheForge_BufferDesc {
   /// Format of the buffer (applicable to typed storage buffers (Buffer<T>)
 //  ImageFormat::Enum mFormat;
   /// Flags specifying the suitable usage of this buffer (Uniform buffer, Vertex Buffer, Index Buffer,...)
-  TheForge_DescriptorType mDescriptors;
+  TheForge_DescriptorTypeFlags mDescriptors;
   /// Debug name used in gpu profile
   const char *pDebugName;
   uint32_t *pSharedNodeIndices;
@@ -63,13 +69,13 @@ typedef struct TheForge_RenderTargetDesc {
   /// MSAA
   TheForge_SampleCount mSampleCount;
   /// Internal image format
-  //ImageFormat::Enum mFormat;
+  TheForge_ImageFormat mFormat;
   /// Optimized clear value (recommended to use this same value when clearing the rendertarget)
   TheForge_ClearValue mClearValue;
   /// The image quality level. The higher the quality, the lower the performance. The valid range is between zero and the value appropriate for mSampleCount
   uint32_t mSampleQuality;
   /// Descriptor creation
-  TheForge_DescriptorType mDescriptors;
+  TheForge_DescriptorTypeFlags mDescriptors;
   const void *pNativeHandle;
   /// Debug name used in gpu profile
   const char *pDebugName;
@@ -102,13 +108,13 @@ typedef struct TheForge_TextureDesc {
   /// The image quality level. The higher the quality, the lower the performance. The valid range is between zero and the value appropriate for mSampleCount
   uint32_t mSampleQuality;
   /// Internal image format
-  //ImageFormat::Enum mFormat;
+  TheForge_ImageFormat mFormat;
   /// Optimized clear value (recommended to use this same value when clearing the rendertarget)
   TheForge_ClearValue mClearValue;
   /// What state will the texture get created in
-  TheForge_ResourceState mStartState;
+  TheForge_ResourceStateFlags mStartState;
   /// Descriptor creation
-  TheForge_DescriptorType mDescriptors;
+  TheForge_DescriptorTypeFlags mDescriptors;
   /// Pointer to native texture handle if the texture does not own underlying resource
   const void *pNativeHandle;
   /// Debug name used in gpu profile
@@ -152,6 +158,14 @@ typedef struct TheForge_RootSignatureDesc {
   const char **ppStaticSamplerNames;
   struct TheForge_Sampler **ppStaticSamplers;
   uint32_t mStaticSamplerCount;
+  TheForge_RootSignatureType mSignatureType;
+  struct TheForge_ShaderResource *pRaytracingShaderResources;
+  uint32_t pRaytracingResourcesCount;
+
+  // Vulkan only at the moment
+  const char **ppDynamicUniformBufferNames;
+  uint32_t mDynamicUniformBufferCount;
+
 } TheForge_RootSignatureDesc;
 
 typedef struct TheForge_CmdPoolDesc {
@@ -159,7 +173,7 @@ typedef struct TheForge_CmdPoolDesc {
 } TheForge_CmdPoolDesc;
 
 typedef struct TheForge_QueueDesc {
-  TheForge_QueueFlag mFlag;
+  TheForge_QueueFlags mFlag;
   TheForge_QueuePriority mPriority;
   TheForge_CmdPoolType mType;
   uint32_t mNodeIndex;
@@ -229,7 +243,7 @@ typedef struct TheForge_BlendStateDesc {
   /// Write mask per render target.
   int32_t mMasks[TheForge_MAX_RENDER_TARGET_ATTACHMENTS];
   /// Mask that identifies the render targets affected by the blend state.
-  TheForge_BlendStateTargets mRenderTargetMask;
+  TheForge_BlendStateTargetsFlags mRenderTargetMask;
   /// Set whether alpha to coverage should be enabled.
   bool mAlphaToCoverage;
   /// Set whether each render target has an unique blend function. When false the blend function in slot 0 will be used for all render targets.
@@ -267,7 +281,7 @@ typedef struct TheForge_VertexAttrib {
   TheForge_ShaderSemantic mSemantic;
   uint32_t mSemanticNameLength;
   char mSemanticName[TheForge_MAX_SEMANTIC_NAME_LENGTH];
-  //ImageFormat::Enum mFormat;
+  TheForge_ImageFormat mFormat;
   uint32_t mBinding;
   uint32_t mLocation;
   uint32_t mOffset;
@@ -284,6 +298,36 @@ typedef struct TheForge_VertexLayout {
   TheForge_VertexAttrib mAttribs[TheForge_MAX_VERTEX_ATTRIBS];
 } TheForge_VertexLayout;
 
+/************************************************************************/
+// #pGlobalRootSignature - Root Signature used by all shaders in the ppShaders array
+// #ppShaders - Array of all shaders which can be called during the raytracing operation
+//	  This includes the ray generation shader, all miss, any hit, closest hit shaders
+// #pHitGroups - Name of the hit groups which will tell the pipeline about which combination of hit shaders to use
+// #mPayloadSize - Size of the payload struct for passing data to and from the shaders.
+//	  Example - float4 payload sent by raygen shader which will be filled by miss shader as a skybox color
+//				  or by hit shader as shaded color
+// #mAttributeSize - Size of the intersection attribute. As long as user uses the default intersection shader
+//	  this size is sizeof(float2) which represents the ZW of the barycentric co-ordinates of the intersection
+/************************************************************************/
+typedef struct TheForge_RaytracingPipelineDesc {
+  struct Raytracing *pRaytracing;
+  struct TheForge_RootSignature *pGlobalRootSignature;
+  struct TheForge_Shader *pRayGenShader;
+  struct TheForge_RootSignature *pRayGenRootSignature;
+  struct TheForge_Shader **ppMissShaders;
+  struct TheForge_RootSignature **ppMissRootSignatures;
+  struct TheForge_RaytracingHitGroup *pHitGroups;
+  struct TheForge_RootSignature *pEmptyRootSignature;
+  unsigned mMissShaderCount;
+  unsigned mHitGroupCount;
+  // #TODO : Remove this after adding shader reflection for raytracing shaders
+  unsigned mPayloadSize;
+  // #TODO : Remove this after adding shader reflection for raytracing shaders
+  unsigned mAttributeSize;
+  unsigned mMaxTraceRecursionDepth;
+  unsigned mMaxRaysCount;
+} TheForge_RaytracingPipelineDesc;
+
 typedef struct TheForge_GraphicsPipelineDesc {
   struct TheForge_Shader *pShaderProgram;
   struct TheForge_RootSignature *pRootSignature;
@@ -291,12 +335,12 @@ typedef struct TheForge_GraphicsPipelineDesc {
   struct TheForge_BlendState *pBlendState;
   struct TheForge_DepthState *pDepthState;
   struct TheForge_RasterizerState *pRasterizerState;
-//  ImageFormat::Enum *pColorFormats;
+  TheForge_ImageFormat *pColorFormats;
   bool *pSrgbValues;
   uint32_t mRenderTargetCount;
   TheForge_SampleCount mSampleCount;
   uint32_t mSampleQuality;
-//  TheForge_ImageFormat::Enum mDepthStencilFormat;
+  TheForge_ImageFormat mDepthStencilFormat;
   TheForge_PrimitiveTopology mPrimitiveTopo;
 } TheForge_GraphicsPipelineDesc;
 
@@ -304,6 +348,15 @@ typedef struct TheForge_ComputePipelineDesc {
   struct TheForge_Shader *pShaderProgram;
   struct TheForge_RootSignature *pRootSignature;
 } TheForge_ComputePipelineDesc;
+
+typedef struct TheForge_PipelineDesc {
+  TheForge_PipelineType mType;
+  union {
+    TheForge_ComputePipelineDesc mComputeDesc;
+    TheForge_GraphicsPipelineDesc mGraphicsDesc;
+    TheForge_RaytracingPipelineDesc mRaytracingDesc;
+  };
+} TheForge_PipelineDesc;
 
 typedef struct TheForge_SubresourceDataDesc {
   uint32_t mArrayLayer;
@@ -320,7 +373,7 @@ typedef struct TheForge_SubresourceDataDesc {
 
 typedef struct TheForge_SwapChainDesc {
   /// Window handle
-  struct Os_WindowsDesc *pWindow;
+  Os_WindowsDesc_t *pWindow;
   /// Queues which should be allowed to present
   struct TheForge_Queue **ppPresentQueues;
   /// Number of present queues
@@ -336,7 +389,7 @@ typedef struct TheForge_SwapChainDesc {
   /// Sample quality (DirectX12 only)
   uint32_t mSampleQuality;
   /// Color format of the swapchain
-  // ImageFormat::Enum mColorFormat;
+  TheForge_ImageFormat mColorFormat;
   /// Clear value
   TheForge_ClearValue mColorClearValue;
   /// Set whether this swapchain using srgb color space
@@ -371,5 +424,31 @@ typedef struct TheForge_RendererDesc {
   };
 
 } TheForge_RendererDesc;
+
+// Indirect command sturcture define
+typedef struct TheForge_IndirectArgumentDescriptor {
+  TheForge_IndirectArgumentType mType;
+  uint32_t mRootParameterIndex;
+  uint32_t mCount;
+  uint32_t mDivisor;
+
+} TheForge_IndirectArgumentDescriptor;
+
+typedef struct TheForge_CommandSignatureDesc {
+  struct TheForge_CmdPool *pCmdPool;
+  TheForge_RootSignature *pRootSignature;
+  uint32_t mIndirectArgCount;
+  TheForge_IndirectArgumentDescriptor *pArgDescs;
+} TheForge_CommandSignatureDesc;
+
+typedef struct TheForge_QueryHeapDesc {
+  TheForge_QueryType mType;
+  uint32_t mQueryCount;
+  uint32_t mNodeIndex;
+} TheForge_QueryHeapDesc;
+
+typedef struct TheForge_QueryDesc {
+  uint32_t mIndex;
+} TheForge_QueryDesc;
 
 #endif //WYRD_THEFORGE_RENDERER_DESC_H

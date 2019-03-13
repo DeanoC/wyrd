@@ -24,6 +24,7 @@
       <extensions>
         <pair source="cpp" header="hpp" fileNamingConvention="LOWERCASE" />
         <pair source="c" header="h" fileNamingConvention="LOWERCASE" />
+        <pair source="mm" header="hpp" fileNamingConvention="LOWERCASE" />
       </extensions>
     </Objective-C-extensions>
     <codeStyleSettings language="ObjectiveC">

@@ -5,6 +5,7 @@
 #include "core/core.h"
 #include "theforge/renderer_enums.h"
 #include "theforge/renderer_descs.h"
+#include "stb/stb_dict.h"
 
 typedef struct TheForge_IndirectDrawArguments {
   uint32_t mVertexCount;
@@ -29,13 +30,13 @@ typedef struct TheForge_IndirectDispatchArguments {
 
 typedef struct TheForge_BufferBarrier {
   struct TheForge_Buffer *pBuffer;
-  TheForge_ResourceState mNewState;
+  TheForge_ResourceStateFlags mNewState;
   bool mSplit;
 } TheForge_BufferBarrier;
 
 typedef struct TheForge_TextureBarrier {
   struct TheForge_Texture *pTexture;
-  TheForge_ResourceState mNewState;
+  TheForge_ResourceStateFlags mNewState;
   bool mSplit;
 } TheForge_TextureBarrier;
 
@@ -43,16 +44,6 @@ typedef struct TheForge_ReadRange {
   uint64_t mOffset;
   uint64_t mSize;
 } TheForge_ReadRange;
-
-typedef struct TheForge_QueryHeapDesc {
-  TheForge_QueryType mType;
-  uint32_t mQueryCount;
-  uint32_t mNodeIndex;
-} TheForge_QueryHeapDesc;
-
-typedef struct TheForge_QueryDesc {
-  uint32_t mIndex;
-} TheForge_QueryDesc;
 
 typedef struct TheForge_QueryHeap {
   TheForge_QueryHeapDesc mDesc;
@@ -68,9 +59,9 @@ typedef struct TheForge_Buffer {
   /// Buffer creation info
   TheForge_BufferDesc mDesc;
   /// Current state of the buffer
-  TheForge_ResourceState mCurrentState;
+  TheForge_ResourceStateFlags mCurrentState;
   /// State of the buffer before mCurrentState (used for state tracking during a split barrier)
-  TheForge_ResourceState mPreviousState;
+  TheForge_ResourceStateFlags mPreviousState;
 } TheForge_Buffer;
 
 typedef struct TheForge_Texture {
@@ -81,9 +72,9 @@ typedef struct TheForge_Texture {
   /// Size of the texture (in bytes)
   uint64_t mTextureSize;
   /// Current state of the texture
-  TheForge_ResourceState mCurrentState;
+  TheForge_ResourceStateFlags mCurrentState;
   /// State of the texture before mCurrentState (used for state tracking during a split barrier)
-  TheForge_ResourceState mPreviousState;
+  TheForge_ResourceStateFlags mPreviousState;
   /// This value will be false if the underlying resource is not owned by the texture (swapchain textures,...)
   bool mOwnsImage;
 } TheForge_Texture;
@@ -104,7 +95,7 @@ typedef struct TheForge_Sampler {
 /// Data structure holding the layout for a descriptor
 typedef struct TheForge_DescriptorInfo {
   /// Binding information generated from the shader reflection
-  TheForge_ShaderResource mDesc;
+  TheForge_ShaderResourceDesc mDesc;
   /// Index in the descriptor set
   uint32_t mIndexInParent;
   /// Update frequency of this descriptor
@@ -117,15 +108,16 @@ typedef struct TheForge_RootSignature {
   uint32_t mDescriptorCount;
   /// Array of all descriptors declared in the root signature layout
   TheForge_DescriptorInfo *pDescriptors;
-  /// Translates hash of descriptor name to descriptor index
-//  tinystl::unordered_map <uint32_t, uint32_t> pDescriptorNameToIndexMap;
-
   TheForge_PipelineType mPipelineType;
 
-//  using ThreadLocalDescriptorManager = tinystl::unordered_map<ThreadID, struct DescriptorManager *>;
-
   /// Api specific binding manager
-//  TheForge_ThreadLocalDescriptorManager pDescriptorManagerMap;
+//  using ThreadLocalDescriptorManager = tinystl::unordered_map<ThreadID, struct DescriptorManager *>;
+  typedef stb_ptrmap ThreadLocalDescriptorManager;
+  ThreadLocalDescriptorManager pDescriptorManagerMap;
+
+  /// Translates hash of descriptor name to descriptor index
+  stb_udict32 pDescriptorNameToIndexMap;
+
 } TheForge_RootSignature;
 
 typedef struct TheForge_DescriptorData {
@@ -206,6 +198,7 @@ typedef struct TheForge_Pipeline {
   union {
     TheForge_GraphicsPipelineDesc mGraphics;
     TheForge_ComputePipelineDesc mCompute;
+    TheForge_RaytracingPipelineDesc mRaytracing;
   };
   TheForge_PipelineType mType;
 } TheForge_Pipeline;
@@ -240,34 +233,21 @@ typedef struct TheForge_GPUSettings {
   bool mROVsSupported;
 } TheForge_GPUSettings;
 
+typedef struct TheForge_ResourceAllocator TheForge_ResourceAllocator;
+
 typedef struct TheForge_Renderer {
   char *pName;
   TheForge_RendererDesc mSettings;
   uint32_t mNumOfGPUs;
   TheForge_GPUSettings *pActiveGpuSettings;
   TheForge_GPUSettings mGpuSettings[TheForge_MAX_GPUS];
+  TheForge_ResourceAllocator*   pResourceAllocator;
 
   // Default states used if user does not specify them in pipeline creation
   TheForge_BlendState *pDefaultBlendState;
   TheForge_DepthState *pDefaultDepthState;
   TheForge_RasterizerState *pDefaultRasterizerState;
 } TheForge_Renderer;
-
-// Indirect command sturcture define
-typedef struct TheForge_IndirectArgumentDescriptor {
-  TheForge_IndirectArgumentType mType;
-  uint32_t mRootParameterIndex;
-  uint32_t mCount;
-  uint32_t mDivisor;
-
-} TheForge_IndirectArgumentDescriptor;
-
-typedef struct TheForge_CommandSignatureDesc {
-  TheForge_CmdPool *pCmdPool;
-  TheForge_RootSignature *pRootSignature;
-  uint32_t mIndirectArgCount;
-  TheForge_IndirectArgumentDescriptor *pArgDescs;
-} TheForge_CommandSignatureDesc;
 
 typedef struct TheForge_CommandSignature {
   TheForge_CommandSignatureDesc mDesc;

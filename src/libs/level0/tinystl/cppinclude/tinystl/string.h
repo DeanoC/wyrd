@@ -104,6 +104,9 @@ class basic_string {
   size_type find_last(basic_string const& str, size_type startPos = npos, bool caseSensitive = true) const;
   static basic_string format(const char *fmt, ...);
 
+  basic_string<allocator> to_lower() const;
+  basic_string<allocator> to_upper() const;
+
  private:
   pointer m_first;
   pointer m_last;
@@ -538,6 +541,26 @@ basic_string<allocator> basic_string<allocator>::format(const char *fmt, ...) {
     }      // Guess at a larger size (OS specific)
   }
   return str;
+}
+
+template<typename allocator>
+inline basic_string<allocator> basic_string<allocator>::to_lower() const
+{
+  basic_string ret = *this;
+  for (unsigned i = 0; i < (unsigned)ret.size(); ++i)
+    ret.m_first[i] = (char)tolower(m_first[i]);
+
+  return ret;
+}
+
+template<typename allocator>
+inline basic_string<allocator> basic_string<allocator>::to_upper() const
+{
+  basic_string ret = *this;
+  for (unsigned i = 0; i < (unsigned)ret.size(); ++i)
+    ret.m_first[i] = (char)toupper(m_first[i]);
+
+  return ret;
 }
 
 template<typename allocatorl, typename allocatorr>

@@ -2,33 +2,55 @@ set(LibName theforge)
 
 set(CInterface
         renderer.h
+        raytracer.h
         renderer_enums.h
         renderer_structs.h
         shader_reflection.h
+        image_enums.h
         )
 
 set(CPPInterface
+        renderer.hpp
+        raytracer.hpp
+        renderer_enums.hpp
+        renderer_structs.hpp
+        shader_reflection.hpp
+        image_enums.hpp
         )
 
 set(Src
-        IRay.h
-        IRenderer.h
-        ResourceLoader.h
-        ResourceLoader.cpp
-        Image/Image.h
-        Image/ImageEnums.h)
+        c_api.cpp
+        resource_loader.h
+        resource_loader.cpp
+        shader_reflection.cpp
+        Image/image.h
+        alloc_utils.hpp
+        dynamic_memory_allocator.cpp
+        dynamic_memory_allocator.hpp
+        )
 
 if (APPLE)
-    list(APPEND Src Metal/MetalMemoryAllocator.h)
-    list(APPEND Src Metal/MetalRaytracing.mm)
-    list(APPEND Src Metal/MetalRenderer.mm)
-    list(APPEND Src Metal/MetalShaderReflection.mm)
+    list(APPEND Src Metal/cpp_api.mm)
+    list(APPEND Src Metal/cmds.hpp)
+    list(APPEND Src Metal/cmds.mm)
+    list(APPEND Src Metal/descriptor_manager.hpp)
+    list(APPEND Src Metal/descriptor_manager.mm)
+    list(APPEND Src Metal/memory_allocator.hpp)
+    #   list(APPEND Src Metal/raytracing.mm)
+    list(APPEND Src Metal/renderer.hpp)
+    list(APPEND Src Metal/renderer.mm)
+    list(APPEND Src Metal/renderer_api.cpp)
+    list(APPEND Src Metal/shader_reflection.mm)
+    list(APPEND Src Metal/structs.hpp)
+    list(APPEND Src Metal/utils.hpp)
+    list(APPEND Src Metal/utils.mm)
 endif ()
 
 set(Deps
         level0/core
         level0/os
         level0/tinystl
+        level0/stb
         level1/vfile
         )
 
@@ -37,3 +59,7 @@ set(Tests
         )
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")
+if (APPLE)
+    add_compile_definitions(${LibName} METAL)
+    target_compile_options(${LibName} PRIVATE -fobjc-arc)
+endif()

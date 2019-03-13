@@ -47,6 +47,9 @@ namespace tinystl {
 
 		typedef pair<Key, Value> value_type;
 
+        typedef unordered_hash_node<Key, Value> const const_hash_node;
+		typedef unordered_hash_node<Key, Value> hash_node;
+
 		typedef unordered_hash_iterator<const unordered_hash_node<Key, Value> > const_iterator;
 		typedef unordered_hash_iterator<unordered_hash_node<Key, Value> > iterator;
 

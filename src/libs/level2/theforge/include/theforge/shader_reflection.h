@@ -2,52 +2,8 @@
 #ifndef WYRD_THEFORGE_SHADER_REFLECTION_H
 #define WYRD_THEFORGE_SHADER_REFLECTION_H
 
-static const uint32_t TheForge_MAX_SHADER_STAGE_COUNT = 5;
-
-typedef struct TheForge_VertexInput {
-  // The size of the attribute
-  uint32_t size;
-
-  // resource name
-  const char *name;
-
-  // name size
-  uint32_t name_size;
-} TheForge_VertexInput;
-
-typedef struct TheForge_ShaderResource {
-  // resource Type
-  TheForge_DescriptorType type;
-
-  // The resource set for binding frequency
-  uint32_t set;
-
-  // The resource binding location
-  uint32_t reg;
-
-  // The size of the resource. This will be the DescriptorInfo array size for textures
-  uint32_t size;
-
-  // what stages use this resource
-  TheForge_ShaderStage used_stages;
-
-  // resource name
-  const char *name;
-
-  // name size
-  uint32_t name_size;
-
-#if defined(METAL)
-  uint32_t mtlTextureType;           // Needed to bind different types of textures as default resources on Metal.
-    uint32_t mtlArgumentBufferType;    // Needed to bind multiple resources under a same descriptor on Metal.
-#endif
-#if defined(DIRECT3D11)
-  uint32_t constant_size;
-#endif
-#if defined(VULKAN)
-  TheForge_TextureDimension textureDim;
-#endif
-} TheForge_ShaderResource;
+#include "core/core.h"
+#include "theforge/renderer_enums.h"
 
 typedef struct TheForge_ShaderVariable {
   // parents resource index
@@ -76,7 +32,7 @@ typedef struct TheForge_ShaderReflection {
   struct TheForge_VertexInput *pVertexInputs;
   uint32_t mVertexInputsCount;
 
-  struct TheForge_ShaderResource *pShaderResources;
+  struct TheForge_ShaderResourceDesc *pShaderResources;
   uint32_t mShaderResourceCount;
 
   struct TheForge_ShaderVariable *pVariables;
@@ -91,6 +47,53 @@ typedef struct TheForge_ShaderReflection {
   char const *pEntryPoint;
 } TheForge_ShaderReflection;
 
+typedef struct TheForge_VertexInput {
+  // The size of the attribute
+  uint32_t size;
+
+  // resource name
+  const char *name;
+
+  // name size
+  uint32_t name_size;
+} TheForge_VertexInput;
+
+typedef struct TheForge_ShaderResourceDesc {
+  // resource Type
+  TheForge_DescriptorTypeFlags type;
+
+  // The resource set for binding frequency
+  uint32_t set;
+
+  // The resource binding location
+  uint32_t reg;
+
+  // The size of the resource. This will be the DescriptorInfo array size for textures
+  uint32_t size;
+
+  // what stages use this resource
+  TheForge_ShaderStage used_stages;
+
+  // resource name
+  const char *name;
+
+  // name size
+  uint32_t name_size;
+
+  // we don't usually expose the backend but this makes the implementation
+  // easier and saves an alloc
+  union {
+    struct {
+      uint32_t mtlTextureType;           // Needed to bind different types of textures as default resources on Metal.
+      uint32_t mtlArgumentBufferType;    // Needed to bind multiple resources under a same descriptor on Metal.
+    };
+    uint64_t constant_size; // d3d12
+  } backend;
+
+} TheForge_ShaderResourceDesc;
+
+static const uint32_t TheForge_MAX_SHADER_STAGE_COUNT = 5;
+
 typedef struct TheForge_PipelineReflection {
   TheForge_ShaderStage mShaderStages;
   // the individual stages reflection data.
@@ -103,7 +106,7 @@ typedef struct TheForge_PipelineReflection {
   uint32_t mGeometryStageIndex;
   uint32_t mPixelStageIndex;
 
-  struct TheForge_ShaderResource *pShaderResources;
+  struct TheForge_ShaderResourceDesc *pShaderResources;
   uint32_t mShaderResourceCount;
 
   struct TheForge_ShaderVariable *pVariables;

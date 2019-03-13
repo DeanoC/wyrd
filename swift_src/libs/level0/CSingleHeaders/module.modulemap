@@ -1,5 +1,5 @@
 module CSingleHeaders {
-    umbrella "../../../../src/libs/level0/singleheaders/include/singleheaders"
-    link "singleheaders"
+    umbrella "../../../../src/libs/level0/stb/include/stb"
+    link "stb"
     export *
  }

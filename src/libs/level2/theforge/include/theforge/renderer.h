@@ -18,7 +18,7 @@ EXTERN_C void TheForge_AddFence(TheForge_Renderer *pRenderer, TheForge_Fence **p
 EXTERN_C void TheForge_RemoveFence(TheForge_Renderer *pRenderer, TheForge_Fence *p_fence);
 EXTERN_C void TheForge_AddSemaphore(TheForge_Renderer *pRenderer, TheForge_Semaphore **pp_semaphore);
 EXTERN_C void TheForge_RemoveSemaphore(TheForge_Renderer *pRenderer, TheForge_Semaphore *p_semaphore);
-EXTERN_C void TheForge_QddQueue(TheForge_Renderer *pRenderer, TheForge_QueueDesc *pQDesc, TheForge_Queue **ppQueue);
+EXTERN_C void TheForge_AddQueue(TheForge_Renderer *pRenderer, TheForge_QueueDesc *pQDesc, TheForge_Queue **ppQueue);
 EXTERN_C void TheForge_RemoveQueue(TheForge_Queue *pQueue);
 EXTERN_C void TheForge_AddSwapChain(TheForge_Renderer *pRenderer,
                                     const TheForge_SwapChainDesc *p_desc,
@@ -78,15 +78,15 @@ EXTERN_C void TheForge_RemovePipeline(TheForge_Renderer *pRenderer, TheForge_Pip
 EXTERN_C void TheForge_AddBlendState(TheForge_Renderer *pRenderer,
                                      const TheForge_BlendStateDesc *pDesc,
                                      TheForge_BlendState **ppBlendState);
-EXTERN_C void TheForge_RemoveBlendState(TheForge_BlendState *pBlendState);
+EXTERN_C void TheForge_RemoveBlendState(TheForge_Renderer *pRenderer, TheForge_BlendState *pBlendState);
 EXTERN_C void TheForge_AddDepthState(TheForge_Renderer *pRenderer,
                                      const TheForge_DepthStateDesc *pDesc,
                                      TheForge_DepthState **ppDepthState);
-EXTERN_C void TheForge_RemoveDepthState(TheForge_DepthState *pDepthState);
+EXTERN_C void TheForge_RemoveDepthState(TheForge_Renderer *pRenderer, TheForge_DepthState *pDepthState);
 EXTERN_C void TheForge_AddRasterizerState(TheForge_Renderer *pRenderer,
                                           const TheForge_RasterizerStateDesc *pDesc,
                                           TheForge_RasterizerState **ppRasterizerState);
-EXTERN_C void TheForge_RemoveRasterizerState(TheForge_RasterizerState *pRasterizerState);
+EXTERN_C void TheForge_RemoveRasterizerState(TheForge_Renderer *pRenderer, TheForge_RasterizerState *pRasterizerState);
 
 // command buffer functions
 EXTERN_C void TheForge_BeginCmd(TheForge_Cmd *p_cmd);
@@ -178,13 +178,15 @@ EXTERN_C void TheForge_QueuePresent(TheForge_Queue *p_queue,
                                     uint32_t swap_chain_image_index,
                                     uint32_t wait_semaphore_count,
                                     TheForge_Semaphore **pp_wait_semaphores);
+EXTERN_C void TheForge_WaitQueueIdle(TheForge_Queue *p_queue);
+
 EXTERN_C void TheForge_GetFenceStatus(TheForge_Renderer *pRenderer,
                                       TheForge_Fence *p_fence,
                                       TheForge_FenceStatus *p_fence_status);
-EXTERN_C void TheForge_WaitForFences(TheForge_Queue *p_queue,
+EXTERN_C void TheForge_WaitForFences(TheForge_Renderer *pRenderer,
                                      uint32_t fence_count,
-                                     TheForge_Fence **pp_fences,
-                                     bool signal);
+                                     TheForge_Fence **pp_fences);
+
 EXTERN_C void TheForge_ToggleVSync(TheForge_Renderer *pRenderer, TheForge_SwapChain **ppSwapchain);
 
 // image related functions
@@ -234,5 +236,10 @@ EXTERN_C void TheForge_CmdAddDebugMarker(TheForge_Cmd *pCmd, float r, float g, f
 // Resource Debug Naming Interface
 EXTERN_C void TheForge_SetBufferName(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer, const char *pName);
 EXTERN_C void TheForge_SetTextureName(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture, const char *pName);
+
+EXTERN_C void TheForge_AllocBuffer(TheForge_Renderer *pRenderer, const TheForge_BufferDesc *pDesc, TheForge_Buffer **pp_buffer);
+EXTERN_C void TheForge_FreeBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer);
+EXTERN_C void TheForge_AllocTexture(TheForge_Renderer *pRenderer, const TheForge_TextureDesc *pDesc, TheForge_Texture **ppTexture);
+EXTERN_C void TheForge_FreeTexture(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture);
 
 #endif //WYRD_THEFORGE_RENDERER_H
