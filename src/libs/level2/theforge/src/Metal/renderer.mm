@@ -336,7 +336,7 @@ void DestroyBuffer(ResourceAllocator *baseAllocator, Buffer *pBuffer) {
   }
 }
 
-long CreateTexture(
+bool CreateTexture(
     ResourceAllocator *baseAllocator,
     const TextureCreateInfo *pCreateInfo,
     const AllocatorMemoryRequirements *pMemoryRequirements,
@@ -429,7 +429,6 @@ const RendererShaderDefinesDesc get_renderer_shaderdefines(Renderer *pRenderer) 
   RendererShaderDefinesDesc defineDesc = {NULL, 0};
   return defineDesc;
 }
-
 
 // Resource allocation statistics.
 void CalculateMemoryStats(Renderer *pRenderer, char **stats) {
@@ -1164,16 +1163,6 @@ void RemoveBuffer(Renderer *pRenderer, Buffer *pBuffer) {
   free(pBuffer);
 }
 
-void AddTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **ppTexture) {
-  ASSERT(pRenderer);
-  ASSERT(pDesc && pDesc->mWidth && pDesc->mHeight && (pDesc->mDepth || pDesc->mArraySize));
-  if (pDesc->mSampleCount > SAMPLE_COUNT_1 && pDesc->mMipLevels > 1) {
-    InternalLog(LOG_TYPE_ERROR, "Multi-Sampled textures cannot have mip maps", "MetalRenderer");
-    return;
-  }
-  AddTexture(pRenderer, pDesc, ppTexture, false);
-}
-
 void AddRenderTarget(Renderer *pRenderer, const RenderTargetDesc *pDesc, RenderTarget **ppRenderTarget) {
   ASSERT(pRenderer);
   ASSERT(pDesc);
@@ -1625,7 +1614,7 @@ void AddRootSignature(Renderer *pRenderer,
     }
     case (ROOT_SIGNATURE_RAYTRACING_LOCAL): {
       AddRaytracingRootSignature(pRenderer,
-                                 (ShaderResource*)pRootSignatureDesc->pRaytracingShaderResources,
+                                 (ShaderResource *) pRootSignatureDesc->pRaytracingShaderResources,
                                  pRootSignatureDesc->pRaytracingResourcesCount,
                                  true,
                                  ppRootSignature,
@@ -1634,7 +1623,7 @@ void AddRootSignature(Renderer *pRenderer,
     }
     case (ROOT_SIGNATURE_RAYTRACING_GLOBAL): {
       AddRaytracingRootSignature(pRenderer,
-                                 (ShaderResource*)pRootSignatureDesc->pRaytracingShaderResources,
+                                 (ShaderResource *) pRootSignatureDesc->pRaytracingShaderResources,
                                  pRootSignatureDesc->pRaytracingResourcesCount,
                                  false,
                                  ppRootSignature,
@@ -1646,7 +1635,6 @@ void AddRootSignature(Renderer *pRenderer,
     }
   }
 }
-
 
 void RemoveRootSignature(Renderer *pRenderer, RootSignature *pRootSignature) {
 
@@ -1735,7 +1723,7 @@ void AddGraphicsPipelineImpl(Renderer *pRenderer,
 
   // assign render target pixel format for all attachments
   const BlendState *blendState = pDesc->pBlendState ?
-                                 (Metal::BlendState*)pDesc->pBlendState :
+                                 (Metal::BlendState *) pDesc->pBlendState :
                                  pRenderer->pDefaultBlendState;
   for (uint32_t i = 0; i < pDesc->mRenderTargetCount; i++) {
     renderPipelineDesc.colorAttachments[i].pixelFormat =
@@ -1770,12 +1758,12 @@ void AddGraphicsPipelineImpl(Renderer *pRenderer,
             renderPipelineDesc.stencilAttachmentPixelFormat = MTLPixelFormatStencil8;
 #endif
   }
-  if(pDesc->pRasterizerState) {
+  if (pDesc->pRasterizerState) {
     pPipeline->mGraphics.pRasterizerState = pDesc->pRasterizerState;
   } else {
     pPipeline->mGraphics.pRasterizerState = pRenderer->pDefaultRasterizerState;
   }
-  if(pDesc->pDepthState) {
+  if (pDesc->pDepthState) {
     pPipeline->mGraphics.pDepthState = pDesc->pDepthState;
   } else {
     pPipeline->mGraphics.pDepthState = pRenderer->pDefaultDepthState;
@@ -1824,7 +1812,7 @@ void AddComputePipelineImpl(Renderer *pRenderer, const ComputePipelineDesc *pDes
 
   memcpy(&(pPipeline->mCompute), pDesc, sizeof(*pDesc));
   pPipeline->mType = PIPELINE_TYPE_COMPUTE;
-  pPipeline->pShader = (Shader*)pPipeline->mCompute.pShaderProgram;
+  pPipeline->pShader = (Shader *) pPipeline->mCompute.pShaderProgram;
 
   NSError *error = nil;
   pPipeline->mtlComputePipelineState =
@@ -2052,8 +2040,8 @@ void AcquireNextImage(Renderer *pRenderer,
   // Look for the render target containing this texture.
   // If not found: assign it to an empty slot
   for (uint32_t i = 0; i < pSwapChain->mDesc.mImageCount; i++) {
-    RenderTarget *renderTarget = (RenderTarget*)pSwapChain->ppSwapchainRenderTargets[i];
-    Texture* texture = (Texture*)renderTarget->pTexture;
+    RenderTarget *renderTarget = (RenderTarget *) pSwapChain->ppSwapchainRenderTargets[i];
+    Texture *texture = (Texture *) renderTarget->pTexture;
     if (texture->mtlTexture == pSwapChain->mMTKDrawable.texture) {
       *pImageIndex = i;
       return;
@@ -2062,8 +2050,8 @@ void AcquireNextImage(Renderer *pRenderer,
 
   // Not found: assign the texture to an empty slot
   for (uint32_t i = 0; i < pSwapChain->mDesc.mImageCount; i++) {
-    RenderTarget *renderTarget = (RenderTarget*)pSwapChain->ppSwapchainRenderTargets[i];
-    Texture* texture = (Texture*)renderTarget->pTexture;
+    RenderTarget *renderTarget = (RenderTarget *) pSwapChain->ppSwapchainRenderTargets[i];
+    Texture *texture = (Texture *) renderTarget->pTexture;
     if (texture->mtlTexture == nil) {
       texture->mtlTexture = pSwapChain->mMTKDrawable.texture;
 
@@ -2081,8 +2069,8 @@ void AcquireNextImage(Renderer *pRenderer,
   // The swapchain textures have changed internally:
   // Invalidate the texures and re-acquire the render targets
   for (uint32_t i = 0; i < pSwapChain->mDesc.mImageCount; i++) {
-    RenderTarget *renderTarget = (RenderTarget*)pSwapChain->ppSwapchainRenderTargets[i];
-    Texture* texture = (Texture*)renderTarget->pTexture;
+    RenderTarget *renderTarget = (RenderTarget *) pSwapChain->ppSwapchainRenderTargets[i];
+    Texture *texture = (Texture *) renderTarget->pTexture;
     texture->mtlTexture = nil;
   }
 
@@ -2227,6 +2215,13 @@ void AddTexture(Renderer *pRenderer,
                 Texture **ppTexture,
                 const bool isRT,
                 const bool forceNonPrivate) {
+  ASSERT(pRenderer);
+  ASSERT(pDesc && pDesc->mWidth && pDesc->mHeight && (pDesc->mDepth || pDesc->mArraySize));
+  if (pDesc->mSampleCount > SAMPLE_COUNT_1 && pDesc->mMipLevels > 1) {
+    InternalLog(LOG_TYPE_ERROR, "Multi-Sampled textures cannot have mip maps", "MetalRenderer");
+    return;
+  }
+
   Texture *pTexture = (Texture *) calloc(1, sizeof(*pTexture));
   ASSERT(pTexture);
 
@@ -2300,15 +2295,15 @@ void AddTexture(Renderer *pRenderer,
           textureDesc.arrayLength /= 6;
         }
 #else
-                                                                                                                                else if ([pRenderer->pDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1])
-                {
-                    textureDesc.textureType = MTLTextureTypeCubeArray;
-                    textureDesc.arrayLength /= 6;
-                }
-                else
-                {
-                    internal_log(LOG_TYPE_ERROR, "Cube Array textures are not supported on this iOS device", "addTexture");
-                }
+        else if ([pRenderer->pDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1])
+        {
+            textureDesc.textureType = MTLTextureTypeCubeArray;
+            textureDesc.arrayLength /= 6;
+        }
+        else
+        {
+            internal_log(LOG_TYPE_ERROR, "Cube Array textures are not supported on this iOS device", "addTexture");
+        }
 #endif
       } else {
         if (pDesc->mArraySize > 1) {
@@ -2333,10 +2328,10 @@ void AddTexture(Renderer *pRenderer,
       textureDesc.resourceOptions = MTLResourceStorageModePrivate;
     }
 #ifdef TARGET_IOS
-                                                                                                                            if (pDesc->mFlags & TEXTURE_CREATION_FLAG_ON_TILE)
-        {
-            textureDesc.resourceOptions = MTLResourceStorageModeMemoryless;
-        }
+    if (pDesc->mFlags & TEXTURE_CREATION_FLAG_ON_TILE)
+    {
+      textureDesc.resourceOptions = MTLResourceStorageModeMemoryless;
+    }
 #endif
 
     if (isRT || isDepthBuffer) {

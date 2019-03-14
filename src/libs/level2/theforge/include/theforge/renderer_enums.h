@@ -53,14 +53,14 @@ typedef enum TheForge_QueueFlagBits {
 typedef uint8_t TheForge_QueueFlags;
 
 typedef enum TheForge_QueuePriority {
-  TheForge_QUEUE_PRIORITY_NORMAL,
+  TheForge_QUEUE_PRIORITY_NORMAL = 0,
   TheForge_QUEUE_PRIORITY_HIGH,
   TheForge_QUEUE_PRIORITY_GLOBAL_REALTIME,
   TheForge_MAX_QUEUE_PRIORITY
 } TheForge_QueuePriority;
 
 typedef enum TheForge_LoadActionType {
-  TheForge_LOAD_ACTION_DONTCARE,
+  TheForge_LOAD_ACTION_DONTCARE = 0,
   TheForge_LOAD_ACTION_LOAD,
   TheForge_LOAD_ACTION_CLEAR,
   TheForge_MAX_LOAD_ACTION

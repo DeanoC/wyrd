@@ -39,19 +39,23 @@ class LogManager {
   void Open(const tinystl::string& fileName);
   void Close();
 
-  void SetLevel();
   void SetTimeStamp(bool enable);
-  void SetQuiet(bool quiet);
-
   bool GetTimeStamp() const { return mRecordTimestamp; }
+
   tinystl::string GetLastMessage() const { return mLastMessage; }
-  bool IsQuiet() const { return mQuietMode; }
+
+  void SetInfoQuiet(bool quiet) { mInfoQuietMode = quiet; }
+  void SetWarningQuiet(bool quiet) { mWarningQuietMode = quiet; }
+  void SetErrorQuiet(bool quiet) { mErrorQuietMode = quiet; }
+  bool IsInfoQuiet() const { return mInfoQuietMode; }
+  bool IsWarningQuiet() const { return mWarningQuietMode; }
+  bool IsErrorQuiet() const { return mErrorQuietMode; }
 
  private:
   void msg(char const *level, char const *file, int line, const char *function, char const *msg);
-  static void errorMsg(char const *file, int line, const char *function, char const *msg);
-  static void warningMsg(char const *file, int line, const char *function, char const *msg);
   static void infoMsg(char const *file, int line, const char *function, char const *msg);
+  static void warningMsg(char const *file, int line, const char *function, char const *msg);
+  static void errorMsg(char const *file, int line, const char *function, char const *msg);
   static void debugMsg(char const *file, int line, const char *function, char const *msg);
   static void failedAssert(char const *file, int line, char const *msg);
 
@@ -61,7 +65,10 @@ class LogManager {
   tinystl::string mLastMessage;
   bool mRecordTimestamp;
   bool mInWrite;
-  bool mQuietMode;
+  bool mInfoQuietMode;
+  bool mWarningQuietMode;
+  bool mErrorQuietMode;
+
   static Core_Logger log;
   static Core_Logger oldLog;
 };

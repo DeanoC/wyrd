@@ -43,7 +43,7 @@ EXTERN_C Os_FileHandle Os_FileOpen(char const *filename, enum Os_FileMode mode) 
   char flags[4];
   TranslateFileAccessFlags(mode, flags, 4);
   FILE *fp = fopen(filename, flags);
-  return fp;
+  return (Os_FileHandle)fp;
 }
 
 EXTERN_C bool Os_FileClose(Os_FileHandle handle) {

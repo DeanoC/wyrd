@@ -51,6 +51,7 @@ set(Deps
         level0/tinystl
         level0/stb
         level1/vfile
+        level1/logmanager
         )
 
 set(Tests

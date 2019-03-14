@@ -201,7 +201,7 @@ TEST_CASE("Open and close MemFile (CPP)", "[VFile]") {
 
   static char testData[] = "Testing 1, 2, 3";
 
-  VFile::VFile *vfh = VFile::VFile::FromMemory(testData, sizeof(testData), false);
+  VFile::File *vfh = VFile::File::FromMemory(testData, sizeof(testData), false);
   REQUIRE(vfh);
   REQUIRE(stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
   vfh->Close();
@@ -212,7 +212,7 @@ TEST_CASE("Scoped Open and close MemFile (CPP)", "[VFile]") {
 
   static char testData[] = "Testing 1, 2, 3";
 
-  VFile::ScopedVFile vfh = VFile::VFile::FromMemory(testData, sizeof(testData), false);
+  VFile::ScopedFile vfh = VFile::File::FromMemory(testData, sizeof(testData), false);
   REQUIRE(vfh);
   REQUIRE(stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
 }

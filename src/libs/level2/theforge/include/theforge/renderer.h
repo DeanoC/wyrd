@@ -20,15 +20,24 @@ EXTERN_C void TheForge_AddSemaphore(TheForge_Renderer *pRenderer, TheForge_Semap
 EXTERN_C void TheForge_RemoveSemaphore(TheForge_Renderer *pRenderer, TheForge_Semaphore *p_semaphore);
 EXTERN_C void TheForge_AddQueue(TheForge_Renderer *pRenderer, TheForge_QueueDesc *pQDesc, TheForge_Queue **ppQueue);
 EXTERN_C void TheForge_RemoveQueue(TheForge_Renderer *pRenderer, TheForge_Queue *pQueue);
-EXTERN_C void TheForge_AddSwapChain(TheForge_Renderer *pRenderer,
-                                    const TheForge_SwapChainDesc *p_desc,
-                                    TheForge_SwapChain **pp_swap_chain);
+EXTERN_C void TheForge_AddRootSignature(TheForge_Renderer *pRenderer, const TheForge_RootSignatureDesc *pRootDesc,     TheForge_RootSignature **pp_root_signature);
+EXTERN_C void TheForge_RemoveRootSignature(TheForge_Renderer *pRenderer, TheForge_RootSignature *pRootSignature);
+EXTERN_C void TheForge_AddBlendState(TheForge_Renderer *pRenderer, const TheForge_BlendStateDesc *pDesc,  TheForge_BlendState **ppBlendState);
+EXTERN_C void TheForge_RemoveBlendState(TheForge_Renderer *pRenderer, TheForge_BlendState *pBlendState);
+EXTERN_C void TheForge_AddDepthState(TheForge_Renderer *pRenderer, const TheForge_DepthStateDesc *pDesc, TheForge_DepthState **ppDepthState);
+EXTERN_C void TheForge_RemoveDepthState(TheForge_Renderer *pRenderer, TheForge_DepthState *pDepthState);
+EXTERN_C void TheForge_AddRasterizerState(TheForge_Renderer *pRenderer, const TheForge_RasterizerStateDesc *pDesc,  TheForge_RasterizerState **ppRasterizerState);
+EXTERN_C void TheForge_RemoveRasterizerState(TheForge_Renderer *pRenderer, TheForge_RasterizerState *pRasterizerState);
+EXTERN_C void TheForge_AddRenderTarget(TheForge_Renderer *pRenderer, const TheForge_RenderTargetDesc *p_desc,  TheForge_RenderTarget **pp_render_target);
+EXTERN_C void TheForge_RemoveRenderTarget(TheForge_Renderer *pRenderer, TheForge_RenderTarget *p_render_target);
+EXTERN_C void TheForge_AddSampler(TheForge_Renderer *pRenderer, const TheForge_SamplerDesc *pDesc,  TheForge_Sampler **pp_sampler);
+EXTERN_C void TheForge_RemoveSampler(TheForge_Renderer *pRenderer, TheForge_Sampler *p_sampler);
+EXTERN_C void TheForge_AddSwapChain(TheForge_Renderer *pRenderer, const TheForge_SwapChainDesc *p_desc,  TheForge_SwapChain **pp_swap_chain);
 EXTERN_C void TheForge_RemoveSwapChain(TheForge_Renderer *pRenderer, TheForge_SwapChain *p_swap_chain);
 EXTERN_C void TheForge_AddBuffer(TheForge_Renderer *pRenderer, const TheForge_BufferDesc *pDesc, TheForge_Buffer **pp_buffer);
 EXTERN_C void TheForge_RemoveBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer);
 EXTERN_C void TheForge_AddTexture(TheForge_Renderer *pRenderer, const TheForge_TextureDesc *pDesc, TheForge_Texture **ppTexture);
 EXTERN_C void TheForge_RemoveTexture(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture);
-
 
 // command pool functions
 EXTERN_C void TheForge_AddCmdPool(TheForge_Renderer *pRenderer,
@@ -44,19 +53,6 @@ EXTERN_C void TheForge_AddCmd_n(TheForge_CmdPool *p_CmdPool,
                                 TheForge_Cmd ***ppp_cmd);
 EXTERN_C void TheForge_RemoveCmd_n(TheForge_CmdPool *p_CmdPool, uint32_t cmd_count, TheForge_Cmd **pp_cmd);
 
-//
-// All buffer, texture loading handled by resource system -> IResourceLoader.*
-//
-
-EXTERN_C void TheForge_AddRenderTarget(TheForge_Renderer *pRenderer,
-                                       const TheForge_RenderTargetDesc *p_desc,
-                                       TheForge_RenderTarget **pp_render_target);
-EXTERN_C void TheForge_RemoveRenderTarget(TheForge_Renderer *pRenderer, TheForge_RenderTarget *p_render_target);
-EXTERN_C void TheForge_AddSampler(TheForge_Renderer *pRenderer,
-                                  const TheForge_SamplerDesc *pDesc,
-                                  TheForge_Sampler **pp_sampler);
-EXTERN_C void TheForge_RemoveSampler(TheForge_Renderer *pRenderer, TheForge_Sampler *p_sampler);
-
 // shader functions
 EXTERN_C void TheForge_AddShader(TheForge_Renderer *pRenderer,
                                  const TheForge_ShaderDesc *p_desc,
@@ -67,10 +63,6 @@ EXTERN_C void TheForge_AddShaderBinary(TheForge_Renderer *pRenderer,
 EXTERN_C void TheForge_RemoveShader(TheForge_Renderer *pRenderer, TheForge_Shader *p_shader_program);
 
 // pipeline functions
-EXTERN_C void TheForge_AddRootSignature(TheForge_Renderer *pRenderer,
-                                        const TheForge_RootSignatureDesc *pRootDesc,
-                                        TheForge_RootSignature **pp_root_signature);
-EXTERN_C void TheForge_RemoveRootSignature(TheForge_Renderer *pRenderer, TheForge_RootSignature *pRootSignature);
 EXTERN_C void TheForge_AddPipeline(TheForge_Renderer *pRenderer,
                                    const TheForge_GraphicsPipelineDesc *p_pipeline_settings,
                                    TheForge_Pipeline **pp_pipeline);
@@ -78,20 +70,6 @@ EXTERN_C void TheForge_AddComputePipeline(TheForge_Renderer *pRenderer,
                                           const TheForge_ComputePipelineDesc *p_pipeline_settings,
                                           TheForge_Pipeline **p_pipeline);
 EXTERN_C void TheForge_RemovePipeline(TheForge_Renderer *pRenderer, TheForge_Pipeline *p_pipeline);
-
-/// Pipeline State Functions
-EXTERN_C void TheForge_AddBlendState(TheForge_Renderer *pRenderer,
-                                     const TheForge_BlendStateDesc *pDesc,
-                                     TheForge_BlendState **ppBlendState);
-EXTERN_C void TheForge_RemoveBlendState(TheForge_Renderer *pRenderer, TheForge_BlendState *pBlendState);
-EXTERN_C void TheForge_AddDepthState(TheForge_Renderer *pRenderer,
-                                     const TheForge_DepthStateDesc *pDesc,
-                                     TheForge_DepthState **ppDepthState);
-EXTERN_C void TheForge_RemoveDepthState(TheForge_Renderer *pRenderer, TheForge_DepthState *pDepthState);
-EXTERN_C void TheForge_AddRasterizerState(TheForge_Renderer *pRenderer,
-                                          const TheForge_RasterizerStateDesc *pDesc,
-                                          TheForge_RasterizerState **ppRasterizerState);
-EXTERN_C void TheForge_RemoveRasterizerState(TheForge_Renderer *pRenderer, TheForge_RasterizerState *pRasterizerState);
 
 // command buffer functions
 EXTERN_C void TheForge_BeginCmd(TheForge_Cmd *p_cmd);
@@ -160,10 +138,6 @@ EXTERN_C void TheForge_CmdSynchronizeResources(TheForge_Cmd *p_cmd,
 /// Flushes all the batched transitions requested in cmdResourceBarrier
 EXTERN_C void TheForge_CmdFlushBarriers(TheForge_Cmd *p_cmd);
 
-//
-// All buffer, texture update handled by resource system -> IResourceLoader.*
-//
-
 // queue/fence/swapchain functions
 EXTERN_C void TheForge_AcquireNextImage(TheForge_Renderer *pRenderer,
                                         TheForge_SwapChain *p_swap_chain,
@@ -195,11 +169,12 @@ EXTERN_C void TheForge_WaitForFences(TheForge_Renderer *pRenderer,
 EXTERN_C void TheForge_ToggleVSync(TheForge_Renderer *pRenderer, TheForge_SwapChain **ppSwapchain);
 
 // image related functions
-//EXTERN_C bool TheForge_IsImageFormatSupported(ImageFormat::Enum format);
+EXTERN_C bool TheForge_IsImageFormatSupported(TheForge_ImageFormat format);
+
 //Returns the recommended format for the swapchain.
 //If true is passed for the hintHDR parameter, it will return an HDR format IF the platform supports it
 //If false is passed or the platform does not support HDR a non HDR format is returned.
-//EXTERN_C ImageFormat::Enum TheForge_GetRecommendedSwapchainFormat(bool hintHDR);
+EXTERN_C TheForge_ImageFormat TheForge_GetRecommendedSwapchainFormat(bool hintHDR);
 
 //indirect Draw functions
 EXTERN_C void TheForge_AddIndirectCommandSignature(TheForge_Renderer *pRenderer,
