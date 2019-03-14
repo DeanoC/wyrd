@@ -22,9 +22,9 @@ typedef struct vec4_t { float x; float y; float z; float w; } vec4_t;
 typedef struct ivec4_t { int32_t x; int32_t y; int32_t z; int32_t w; } ivec4_t;
 typedef struct uvec4_t { uint32_t x; uint32_t y; uint32_t z; uint32_t w; } uvec4_t;
 
-typedef struct mat2_t { vec2_t col0; vec2_t col1; } Math_mat2_t;
-typedef struct mat3_t { vec3_t col0; vec3_t col1; vec3_t col2; } Math_mat3_t;
-typedef struct mat4_t { vec4_t col0; vec4_t col1; vec4_t col2; vec4_t col3; } Math_mat4_t;
+typedef struct mat2_t { vec2_t col0; vec2_t col1; } mat2_t;
+typedef struct mat3_t { vec3_t col0; vec3_t col1; vec3_t col2; } mat3_t;
+typedef struct mat4_t { vec4_t col0; vec4_t col1; vec4_t col2; vec4_t col3; } mat4_t;
 
 #define MATH_FUNC_MACRO_CREATE(postfix, type)\
 EXTERN_C inline type Math_Min##postfix(type const v, type const a) { return (v < a) ? a : v; } \
