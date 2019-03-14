@@ -146,7 +146,7 @@ static void cleanupCopyEngine(Renderer *pRenderer, CopyEngine *pCopyEngine) {
 
   RemoveCmdPool(pRenderer, pCopyEngine->pCmdPool);
 
-  RemoveQueue(pCopyEngine->pQueue);
+  RemoveQueue(pRenderer, pCopyEngine->pQueue);
 }
 
 static void waitCopyEngineSet(Renderer *pRenderer, CopyEngine *pCopyEngine, size_t activeSet) {

@@ -4,22 +4,28 @@
 
 #include "core/core.h"
 #include "theforge/renderer.hpp"
+#include "renderer.hpp"
 #include "theforge/shader_reflection.hpp"
 #include "tinystl/unordered_map.h"
 #include "tinystl/vector.h"
+#include "tinystl/unordered_set.h"
+#include "stb/stb_dict.h"
 #include "math/math.h"
+#include "utils.hpp"
+#include "os/thread.hpp"
+#include <new>
 
 #define MAX_BUFFER_BINDINGS 31
 
-namespace TheForge {
+namespace TheForge { namespace Metal {
 
-extern void mtl_createShaderReflection(Renderer *pRenderer,
-                                       Shader *shader,
-                                       const uint8_t *shaderCode,
-                                       uint32_t shaderSize,
-                                       ShaderStage shaderStage,
-                                       tinystl::unordered_map <uint32_t, MTLVertexFormat> *vertexAttributeFormats,
-                                       ShaderReflection *pOutReflection);
+extern void CreateShaderReflection(Renderer *pRenderer,
+                                   Shader *shader,
+                                   const uint8_t *shaderCode,
+                                   uint32_t shaderSize,
+                                   ShaderStage shaderStage,
+                                   tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats,
+                                   ShaderReflection *pOutReflection);
 
 struct AccelerationStructure {
   MPSAccelerationStructureGroup *pSharedGroup;
@@ -30,7 +36,7 @@ struct AccelerationStructure {
   id <MTLBuffer> mMasks;
   id <MTLBuffer> mInstanceIDs;
   id <MTLBuffer> mHitGroupIndices;
-  tinystl::vector <uint32_t> mActiveHitGroups;
+  tinystl::vector<uint32_t> mActiveHitGroups;
 };
 
 struct ShaderReference {
@@ -99,16 +105,15 @@ struct RaytracingPipeline {
   uint32_t mPayloadRecordSize;
 };
 
-//implemented in MetalRenderer.mm
-extern void add_descriptor_manager(Renderer *pRenderer, RootSignature *pRootSignature, DescriptorManager **ppManager);
-extern void util_end_current_encoders(Cmd *pCmd);
+extern void AddDescriptorManager(Renderer *pRenderer, RootSignature *pRootSignature, DescriptorManager **ppManager);
 
-bool isRaytracingSupported(Renderer *pRenderer) {
+bool IsRaytracingSupported(Renderer *pRenderer) {
   return true;
 }
 
-bool initRaytracing(Renderer *pRenderer, Raytracing **ppRaytracing) {
-  Raytracing *pRaytracing = conf_new<Raytracing>();
+bool InitRaytracing(Renderer *pRenderer, Raytracing **ppRaytracing) {
+  Raytracing *pRaytracing = (Raytracing *) malloc(sizeof(Raytracing));
+  new(pRaytracing) Raytracing();
   // Create a raytracer for our Metal device
   pRaytracing->pIntersector = [[MPSRayIntersector alloc] initWithDevice:pRenderer->pDevice];
 
@@ -124,7 +129,7 @@ bool initRaytracing(Renderer *pRenderer, Raytracing **ppRaytracing) {
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
-void computeBuffersSize(const AccelerationStructureDescTop *pDesc,
+void ComputeBuffersSize(const AccelerationStructureDescTop *pDesc,
                         unsigned *pVbSize,
                         unsigned *pIbSize,
                         unsigned *pMasksSize) {
@@ -135,7 +140,7 @@ void computeBuffersSize(const AccelerationStructureDescTop *pDesc,
   unsigned mskSize = 0;
   for (unsigned i = 0; i < pDesc->mBottomASDescsCount; ++i) {
     for (unsigned idesc = 0; idesc < pDesc->mBottomASDescs[i].mDescCount; ++idesc) {
-      vbSize += pDesc->mBottomASDescs[i].pGeometryDescs[idesc].vertexCount * sizeof(float3);
+      vbSize += pDesc->mBottomASDescs[i].pGeometryDescs[idesc].vertexCount * sizeof(vec3_t);
       ibSize += pDesc->mBottomASDescs[i].pGeometryDescs[idesc].indicesCount * indexSize;
 
       if (pDesc->mBottomASDescs[i].pGeometryDescs[idesc].indicesCount > 0) {
@@ -169,15 +174,15 @@ struct ASOffset {
 };
 
 template<typename T1, typename T2>
-void copyIndices(T1 *dst, T2 *src, unsigned count) {
+void CopyIndices(T1 *dst, T2 *src, unsigned count) {
   for (unsigned i = 0; i < count; ++i) {
     dst[i] = src[i];
   }
 }
 
-void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc,
+void CreateVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc,
                                  id <MTLBuffer> *pVbBuffer, id <MTLBuffer> *pIbBuffer, id <MTLBuffer> *pMasksBuffer,
-                                 tinystl::vector <ASOffset>& outOffsets) {
+                                 tinystl::vector<ASOffset>& outOffsets) {
   outOffsets.resize(pDesc->mBottomASDescsCount);
   // Vertex data should be stored in private or managed buffers on discrete GPU systems (AMD, NVIDIA).
   // Private buffers are stored entirely in GPU memory and cannot be accessed by the CPU. Managed
@@ -189,10 +194,12 @@ void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStru
   options = MTLResourceStorageModeShared;
 #endif
   unsigned vbSize = 0, ibSize = 0, mskSize = 0;
-  computeBuffersSize(pDesc, &vbSize, &ibSize, &mskSize);
-  id <MTLBuffer> _vertexPositionBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:vbSize options:options];
+
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
+  ComputeBuffersSize(pDesc, &vbSize, &ibSize, &mskSize);
+  id <MTLBuffer> _vertexPositionBuffer = [pRenderer->pDevice newBufferWithLength:vbSize options:options];
   id <MTLBuffer> _indexBuffer = nil;
-  id <MTLBuffer> _masksBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:mskSize options:options];
+  id <MTLBuffer> _masksBuffer = [pRenderer->pDevice newBufferWithLength:mskSize options:options];
 
   unsigned vbOffset = 0;
   unsigned ibOffset = 0;
@@ -200,11 +207,11 @@ void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStru
   uint8_t *vbDstPtr = static_cast<uint8_t *>(_vertexPositionBuffer.contents);
   uint8_t *ibDstPtr = nullptr;
   if (ibSize > 0) {
-    _indexBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:ibSize options:options];
+    _indexBuffer = [pRenderer->pDevice newBufferWithLength:ibSize options:options];
     ibDstPtr = static_cast<uint8_t *>(_indexBuffer.contents);
   }
 
-  tinystl::vector <uint32_t> masksVector;
+  tinystl::vector<uint32_t> masksVector;
   masksVector.reserve(pDesc->mBottomASDescsCount * 1000); //initial reservation
 
   for (unsigned i = 0; i < pDesc->mBottomASDescsCount; ++i) {
@@ -215,7 +222,7 @@ void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStru
     asoffset.vbSize = 0;
     asoffset.ibSize = 0;
     asoffset.trianglesCount = 0;
-    asoffset.vertexStride = sizeof(float3);
+    asoffset.vertexStride = sizeof(vec3_t);
     for (unsigned j = 0; j < pDesc->mBottomASDescs[i].mDescCount; ++j) {
       asoffset.vbGeometriesOffsets[j] = vbOffset;
       asoffset.ibGeometriesOffsets[j] = ibOffset;
@@ -224,9 +231,9 @@ void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStru
       // Copy vertex data into buffers
       memcpy(&vbDstPtr[vbOffset],
              pDesc->mBottomASDescs[i].pGeometryDescs[j].pVertexArray,
-             pDesc->mBottomASDescs[i].pGeometryDescs[j].vertexCount * sizeof(float3));
-      vbOffset += pDesc->mBottomASDescs[i].pGeometryDescs[j].vertexCount * sizeof(float3);
-      asoffset.vbSize += pDesc->mBottomASDescs[i].pGeometryDescs[j].vertexCount * sizeof(float3);
+             pDesc->mBottomASDescs[i].pGeometryDescs[j].vertexCount * sizeof(vec3_t));
+      vbOffset += pDesc->mBottomASDescs[i].pGeometryDescs[j].vertexCount * sizeof(vec3_t);
+      asoffset.vbSize += pDesc->mBottomASDescs[i].pGeometryDescs[j].vertexCount * sizeof(vec3_t);
 
       if (ibDstPtr != nullptr) {
         unsigned indexSize = (pDesc->mIndexType == INDEX_TYPE_UINT16 ? 2 : 4);
@@ -239,12 +246,12 @@ void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStru
         } else {
           if (pDesc->mIndexType == INDEX_TYPE_UINT16 &&
               pDesc->mBottomASDescs[i].pGeometryDescs[j].indexType == INDEX_TYPE_UINT32) {
-            copyIndices<uint16_t, uint32_t>((uint16_t *) &ibDstPtr[ibOffset],
+            CopyIndices<uint16_t, uint32_t>((uint16_t *) &ibDstPtr[ibOffset],
                                             pDesc->mBottomASDescs[i].pGeometryDescs[j].pIndices32,
                                             pDesc->mBottomASDescs[i].pGeometryDescs[j].indicesCount);
           } else if (pDesc->mIndexType == INDEX_TYPE_UINT32 &&
               pDesc->mBottomASDescs[i].pGeometryDescs[j].indexType == INDEX_TYPE_UINT16) {
-            copyIndices<uint32_t, uint16_t>((uint32_t *) &ibDstPtr[ibOffset],
+            CopyIndices<uint32_t, uint16_t>((uint32_t *) &ibDstPtr[ibOffset],
                                             pDesc->mBottomASDescs[i].pGeometryDescs[j].pIndices16,
                                             pDesc->mBottomASDescs[i].pGeometryDescs[j].indicesCount);
           } else {
@@ -281,16 +288,17 @@ void createVertexAndIndexBuffers(Raytracing *pRaytracing, const AccelerationStru
   *pMasksBuffer = _masksBuffer;
 }
 
-id <MTLBuffer> createInstanceIDBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
-  MTLResourceOptions options = 0;
+id <MTLBuffer> CreateInstanceIDBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
+  MTLResourceOptions options;
 #if !TARGET_OS_IPHONE
   options = MTLResourceStorageModeManaged;
 #else
   options = MTLResourceStorageModeShared;
 #endif
 
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
   unsigned bufferSize = pDesc->mInstancesDescCount * sizeof(uint32_t);
-  id <MTLBuffer> result = [pRaytracing->pRenderer->pDevice newBufferWithLength:bufferSize options:options];
+  id <MTLBuffer> result = [pRenderer->pDevice newBufferWithLength:bufferSize options:options];
 
   uint32_t *ptr = (uint32_t *) result.contents;
   for (unsigned i = 0; i < pDesc->mInstancesDescCount; ++i) {
@@ -304,8 +312,8 @@ id <MTLBuffer> createInstanceIDBuffer(Raytracing *pRaytracing, const Acceleratio
   return result;
 }
 
-id <MTLBuffer> createInstancesIndicesBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
-  tinystl::vector <uint32_t> instancesIndices(pDesc->mInstancesDescCount);
+id <MTLBuffer> CreateInstancesIndicesBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
+  tinystl::vector<uint32_t> instancesIndices(pDesc->mInstancesDescCount);
   for (unsigned i = 0; i < pDesc->mInstancesDescCount; ++i) {
     instancesIndices[i] = pDesc->pInstanceDescs[i].mAccelerationStructureIndex;
   }
@@ -313,15 +321,16 @@ id <MTLBuffer> createInstancesIndicesBuffer(Raytracing *pRaytracing, const Accel
   ASSERT(pDesc->mInstancesDescCount > 0);
   unsigned instanceBufferLength = sizeof(uint32_t) * pDesc->mInstancesDescCount;
 
-  MTLResourceOptions options = 0;
+  MTLResourceOptions options;
 #if !TARGET_OS_IPHONE
   options = MTLResourceStorageModeManaged;
 #else
   options = MTLResourceStorageModeShared;
 #endif
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
 
   id <MTLBuffer>
-      instanceBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
+      instanceBuffer = [pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
   memcpy(instanceBuffer.contents, instancesIndices.data(), instanceBufferLength);
 
 #if !TARGET_OS_IPHONE
@@ -330,23 +339,24 @@ id <MTLBuffer> createInstancesIndicesBuffer(Raytracing *pRaytracing, const Accel
   return instanceBuffer;
 }
 
-id <MTLBuffer> createTransformationsBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
+id <MTLBuffer> CreateTransformationsBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
 #if !TARGET_OS_IPHONE
   MTLResourceOptions options = MTLResourceStorageModeManaged;
 #else
   MTLResourceOptions options = MTLResourceStorageModeShared;
 #endif
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
 
   unsigned instanceBufferLength = sizeof(matrix_float4x4) * pDesc->mInstancesDescCount;
   id <MTLBuffer>
-      transformations = [pRaytracing->pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
+      transformations = [pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
   uint8_t *ptr = static_cast<uint8_t *>(transformations.contents);
   for (unsigned i = 0; i < pDesc->mInstancesDescCount; ++i) {
     float *tr = &pDesc->pInstanceDescs[i].mTransform[0];
-    vector_float4 v1 = {tr[0], tr[4], tr[8], 0.0};
-    vector_float4 v2 = {tr[1], tr[5], tr[9], 0.0};
-    vector_float4 v3 = {tr[2], tr[6], tr[10], 0.0};
-    vector_float4 v4 = {tr[3], tr[7], tr[11], 1.0};
+    vector_float4 v1{tr[0], tr[4], tr[8], 0.0f};
+    vector_float4 v2{tr[1], tr[5], tr[9], 0.0f};
+    vector_float4 v3{tr[2], tr[6], tr[10], 0.0f};
+    vector_float4 v4{tr[3], tr[7], tr[11], 1.0f};
     matrix_float4x4 m = {v1, v2, v3, v4};
     memcpy(&ptr[i * sizeof(matrix_float4x4)], &m, sizeof(matrix_float4x4));
   }
@@ -357,7 +367,7 @@ id <MTLBuffer> createTransformationsBuffer(Raytracing *pRaytracing, const Accele
   return transformations;
 }
 
-uint32_t encodeInstanceMask(uint32_t mask, uint32_t hitGroupIndex, uint32_t instanceID) {
+uint32_t EncodeInstanceMask(uint32_t mask, uint32_t hitGroupIndex, uint32_t instanceID) {
   ASSERT(mask < 0x100); //in DXR limited to 8 bits
   ASSERT(hitGroupIndex < 0x10); //in DXR limited to 16
   ASSERT(instanceID < 0x10000);
@@ -365,18 +375,20 @@ uint32_t encodeInstanceMask(uint32_t mask, uint32_t hitGroupIndex, uint32_t inst
   return (instanceID << 16) | (hitGroupIndex << 8) | (mask);
 }
 
-id <MTLBuffer> createInstancesMaskBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
+id <MTLBuffer> CreateInstancesMaskBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
 #if !TARGET_OS_IPHONE
   MTLResourceOptions options = MTLResourceStorageModeManaged;
 #else
   MTLResourceOptions options = MTLResourceStorageModeShared;
 #endif
 
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
+
   unsigned instanceBufferLength = sizeof(uint32_t) * pDesc->mInstancesDescCount;
-  id <MTLBuffer> ids = [pRaytracing->pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
+  id <MTLBuffer> ids = [pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
   uint32_t *ptr = static_cast<uint32_t *>(ids.contents);
   for (unsigned i = 0; i < pDesc->mInstancesDescCount; ++i) {
-    ptr[i] = encodeInstanceMask(pDesc->pInstanceDescs[i].mInstanceMask,
+    ptr[i] = EncodeInstanceMask(pDesc->pInstanceDescs[i].mInstanceMask,
                                 pDesc->pInstanceDescs[i].mInstanceContributionToHitGroupIndex,
                                 pDesc->pInstanceDescs[i].mInstanceID);
   }
@@ -386,15 +398,16 @@ id <MTLBuffer> createInstancesMaskBuffer(Raytracing *pRaytracing, const Accelera
   return ids;
 }
 
-id <MTLBuffer> createHitGroupIndicesBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
+id <MTLBuffer> CreateHitGroupIndicesBuffer(Raytracing *pRaytracing, const AccelerationStructureDescTop *pDesc) {
 #if !TARGET_OS_IPHONE
   MTLResourceOptions options = MTLResourceStorageModeManaged;
 #else
   MTLResourceOptions options = MTLResourceStorageModeShared;
 #endif
 
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
   unsigned instanceBufferLength = sizeof(uint32_t) * pDesc->mInstancesDescCount;
-  id <MTLBuffer> ids = [pRaytracing->pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
+  id <MTLBuffer> ids = [pRenderer->pDevice newBufferWithLength:instanceBufferLength options:options];
   uint32_t *ptr = static_cast<uint32_t *>(ids.contents);
   for (unsigned i = 0; i < pDesc->mInstancesDescCount; ++i) {
     ptr[i] = pDesc->pInstanceDescs[i].mInstanceContributionToHitGroupIndex;
@@ -407,7 +420,7 @@ id <MTLBuffer> createHitGroupIndicesBuffer(Raytracing *pRaytracing, const Accele
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
-void addAccelerationStructure(Raytracing *pRaytracing,
+void AddAccelerationStructure(Raytracing *pRaytracing,
                               const AccelerationStructureDescTop *pDesc,
                               AccelerationStructure **ppAccelerationStructure) {
   ASSERT(pRaytracing);
@@ -415,35 +428,38 @@ void addAccelerationStructure(Raytracing *pRaytracing,
   ASSERT(pRaytracing->pIntersector);
   ASSERT(ppAccelerationStructure);
 
-  AccelerationStructure *AS = (AccelerationStructure *) conf_malloc(sizeof(AccelerationStructure));
-  memset(AS, 0, sizeof(*AS));
-  conf_placement_new < tinystl::vector < uint32_t > > (&AS->mActiveHitGroups);
+  AccelerationStructure *AS = (AccelerationStructure *) calloc(1, sizeof(AccelerationStructure));
+  new(&AS->mActiveHitGroups) tinystl::vector<uint32_t>();
+
   AS->pBottomAS = [[NSMutableArray alloc] init];
 
   //pDesc->mFlags. Just ignore this
   id <MTLBuffer> _vertexPositionBuffer = nil;
   id <MTLBuffer> _indexBuffer = nil;
   id <MTLBuffer> _masks = nil;
-  tinystl::vector <ASOffset> offsets;
+  tinystl::vector<ASOffset> offsets;
 
   //copy vertices and indices to buffer
-  createVertexAndIndexBuffers(pRaytracing, pDesc, &_vertexPositionBuffer, &_indexBuffer, &_masks, offsets);
+  CreateVertexAndIndexBuffers(pRaytracing, pDesc, &_vertexPositionBuffer, &_indexBuffer, &_masks, offsets);
 
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
   MPSAccelerationStructureGroup
-      *group = [[MPSAccelerationStructureGroup alloc] initWithDevice:pRaytracing->pRenderer->pDevice];
+      *group = [[MPSAccelerationStructureGroup alloc] initWithDevice:pRenderer->pDevice];
   AS->pSharedGroup = group;
   MPSInstanceAccelerationStructure *as = [[MPSInstanceAccelerationStructure alloc] initWithGroup:group];
   AS->pInstanceAccel = as;
   AS->mIndexBuffer = _indexBuffer;
   AS->mVertexPositionBuffer = _vertexPositionBuffer;
   AS->mMasks = _masks;
-  AS->mInstanceIDs = createInstanceIDBuffer(pRaytracing, pDesc);
-  AS->mHitGroupIndices = createHitGroupIndicesBuffer(pRaytracing, pDesc);
+  AS->mInstanceIDs = CreateInstanceIDBuffer(pRaytracing, pDesc);
+  AS->mHitGroupIndices = CreateHitGroupIndicesBuffer(pRaytracing, pDesc);
+  tinystl::unordered_set<uint32_t> idSet;
+
   for (unsigned i = 0; i < pDesc->mBottomASDescsCount; ++i) {
     uint32_t hitID = pDesc->pInstanceDescs[i].mInstanceContributionToHitGroupIndex;
-    //find for vector is O(n) but this is done once. It is faster for iteration (than iteration over set) which will happen often
-    auto it = AS->mActiveHitGroups.find(hitID);
-    if (it == AS->mActiveHitGroups.end()) {
+    auto it = idSet.find(hitID);
+    if (it == idSet.end()) {
+      idSet.insert(hitID);
       AS->mActiveHitGroups.push_back(hitID);
     }
   }
@@ -469,27 +485,27 @@ void addAccelerationStructure(Raytracing *pRaytracing,
   }
   AS->pInstanceAccel.accelerationStructures = AS->pBottomAS;
   AS->pInstanceAccel.instanceCount = pDesc->mInstancesDescCount;
-  AS->pInstanceAccel.instanceBuffer = createInstancesIndicesBuffer(pRaytracing, pDesc);
+  AS->pInstanceAccel.instanceBuffer = CreateInstancesIndicesBuffer(pRaytracing, pDesc);
 
   //generate buffer for instances transformations
   {
-    AS->pInstanceAccel.transformBuffer = createTransformationsBuffer(pRaytracing, pDesc);
+    AS->pInstanceAccel.transformBuffer = CreateTransformationsBuffer(pRaytracing, pDesc);
     AS->pInstanceAccel.transformType = MPSTransformTypeFloat4x4;
   }
   //generate instances ID buffer
-  AS->pInstanceAccel.maskBuffer = createInstancesMaskBuffer(pRaytracing, pDesc);
+  AS->pInstanceAccel.maskBuffer = CreateInstancesMaskBuffer(pRaytracing, pDesc);
 
   *ppAccelerationStructure = AS;
 }
 
-void cmdBuildTopAS(Cmd *pCmd, Raytracing *pRaytracing, AccelerationStructure *pAccelerationStructure) {
+void CmdBuildTopAS(Cmd *pCmd, Raytracing *pRaytracing, AccelerationStructure *pAccelerationStructure) {
   ASSERT(pRaytracing);
   ASSERT(pAccelerationStructure);
   ASSERT(pAccelerationStructure->pInstanceAccel);
   [pAccelerationStructure->pInstanceAccel rebuild];
 }
 
-void cmdBuildBottomAS(Cmd *pCmd,
+void CmdBuildBottomAS(Cmd *pCmd,
                       Raytracing *pRaytracing,
                       AccelerationStructure *pAccelerationStructure,
                       unsigned bottomASIndex) {
@@ -500,74 +516,77 @@ void cmdBuildBottomAS(Cmd *pCmd,
   [pAccelerationStructure->pBottomAS[bottomASIndex] rebuild];
 }
 
-void cmdBuildAccelerationStructure(Cmd *pCmd, Raytracing *pRaytracing, RaytracingBuildASDesc *pDesc) {
+void CmdBuildAccelerationStructure(Cmd *pCmd, Raytracing *pRaytracing, RaytracingBuildASDesc *pDesc) {
   for (unsigned i = 0; i < pDesc->mBottomASIndicesCount; ++i) {
-    cmdBuildBottomAS(pCmd, pRaytracing, pDesc->pAccelerationStructure, i);
+    CmdBuildBottomAS(pCmd, pRaytracing, (AccelerationStructure *) pDesc->pAccelerationStructure, i);
   }
-  cmdBuildTopAS(pCmd, pRaytracing, pDesc->pAccelerationStructure);
+  CmdBuildTopAS(pCmd, pRaytracing, (AccelerationStructure *) pDesc->pAccelerationStructure);
 }
 
-void cmdCopyTexture(Cmd *pCmd, Texture *pDst, Texture *pSrc) {
+void CmdCopyTexture(Cmd *pCmd, Texture *pDst, Texture *pSrc) {
   ASSERT(pDst->mDesc.mWidth == pSrc->mDesc.mWidth);
   ASSERT(pDst->mDesc.mHeight == pSrc->mDesc.mHeight);
   ASSERT(pDst->mDesc.mMipLevels == pSrc->mDesc.mMipLevels);
   ASSERT(pDst->mDesc.mArraySize == pSrc->mDesc.mArraySize);
-  util_end_current_encoders(pCmd);
+  Util::EndCurrentEncoders(pCmd);
 
   pCmd->mtlBlitEncoder = [pCmd->mtlCommandBuffer blitCommandEncoder];
 
-  uint nLayers = min(pSrc->mDesc.mArraySize, pDst->mDesc.mArraySize);
-  uint nMips = min(pSrc->mDesc.mMipLevels, pDst->mDesc.mMipLevels);
-  uint32_t width = min(pSrc->mDesc.mWidth, pDst->mDesc.mWidth);
-  uint height = min(pSrc->mDesc.mHeight, pDst->mDesc.mHeight);
+  uint32_t nLayers = Math_MinU32(pSrc->mDesc.mArraySize, pDst->mDesc.mArraySize);
+  uint32_t nMips = Math_MinU32(pSrc->mDesc.mMipLevels, pDst->mDesc.mMipLevels);
+  uint32_t width = Math_MinU32(pSrc->mDesc.mWidth, pDst->mDesc.mWidth);
+  uint32_t height = Math_MinU32(pSrc->mDesc.mHeight, pDst->mDesc.mHeight);
   for (uint32_t l = 0; l < nLayers; ++l) {
     for (uint32_t m = 0; m < nMips; ++m) {
-      uint32_t mipmapWidth = max(width >> m, 1u);
-      uint32_t mipmapHeight = max(height >> m, 1u);
+      uint32_t mipmapWidth = Math_MaxU32(width >> m, 1u);
+      uint32_t mipmapHeight = Math_MaxU32(height >> m, 1u);
 
-      [pCmd->mtlBlitEncoder                                                                                            copyFromTexture:pSrc->mtlTexture                                                           sourceSlice:l                                             sourceLevel:m sourceOrigin:MTLOriginMake(0,
-                                                                                                                    0,
-                                                                                                                    0) sourceSize:MTLSizeMake(
-          mipmapWidth,
-          mipmapHeight,
-          1)                                                                                                           toTexture:pDst->mtlTexture destinationSlice:l destinationLevel:m destinationOrigin:MTLOriginMake(0, 0, 0)];
+      [pCmd->mtlBlitEncoder
+          copyFromTexture:pSrc->mtlTexture
+              sourceSlice:l
+              sourceLevel:m
+             sourceOrigin:MTLOriginMake(0,0,0)
+               sourceSize:MTLSizeMake(mipmapWidth, mipmapHeight, 1)                                                                                         toTexture:pDst->mtlTexture                                                              destinationSlice:l
+         destinationLevel:m
+        destinationOrigin:MTLOriginMake(0, 0, 0)];
     }
   }
 }
 
-void removeRaytracing(Renderer *pRenderer, Raytracing *pRaytracing) {
+void RemoveRaytracing(Renderer *pRenderer, Raytracing *pRaytracing) {
   ASSERT(pRaytracing);
   pRaytracing->pIntersector = nil;
   pRaytracing->~Raytracing();
   memset(pRaytracing, 0, sizeof(*pRaytracing));
-  conf_free(pRaytracing);
+  free(pRaytracing);
 }
 
-void addRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPipeline) {
+void AddRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPipeline) {
   ASSERT(pDesc);
   ASSERT(ppPipeline);
 
-  Raytracing *pRaytracing = pDesc->pRaytracing;
+  Raytracing *pRaytracing = (Raytracing*) pDesc->pRaytracing;
   ASSERT(pRaytracing);
 
-  Pipeline *pGenericPipeline = (Pipeline *) conf_calloc(1, sizeof(Pipeline));
-
-  RaytracingPipeline *pPipeline = (RaytracingPipeline *) conf_calloc(1, sizeof(RaytracingPipeline));
-  memset(pPipeline, 0, sizeof(*pPipeline));
+  Pipeline *pGenericPipeline = (Pipeline *) calloc(1, sizeof(Pipeline));
+  RaytracingPipeline *pPipeline = (RaytracingPipeline *) calloc(1, sizeof(RaytracingPipeline));
 
   pGenericPipeline->pRaytracingPipeline = pPipeline;
+
   /******************************/
   // Create compute pipelines
   MTLComputePipelineDescriptor *computeDescriptor = [[MTLComputePipelineDescriptor alloc] init];
   // Set to YES to allow compiler to make certain optimizations
   computeDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
 
-  NSString
-      *entryPointNStr = [[NSString alloc] initWithUTF8String:pDesc->pRayGenShader->mtlComputeShaderEntryPoint.c_str()];
-  computeDescriptor.computeFunction = pDesc->pRayGenShader->mtlComputeShader;
+  Renderer* pRenderer = (Renderer*)pRaytracing->pRenderer;
+  Shader* pRayGenShader = (Shader*)pDesc->pRayGenShader;
+
+  NSString *entryPointNStr = [[NSString alloc] initWithUTF8String:pRayGenShader->mtlComputeShaderEntryPoint.c_str()];
+  computeDescriptor.computeFunction = pRayGenShader->mtlComputeShader;
 
   NSError *error = NULL;
-  pPipeline->mRayPipeline = [pRaytracing->pRenderer->pDevice
+  pPipeline->mRayPipeline = [pRenderer->pDevice
       newComputePipelineStateWithDescriptor:computeDescriptor
                                     options:0
                                  reflection:nil
@@ -581,19 +600,20 @@ void addRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
 #else
   MTLResourceOptions options = MTLResourceStorageModeShared;
 #endif
-  pPipeline->mHitGroupNames = (char **) conf_calloc(pDesc->mHitGroupCount, sizeof(char *));
+  pPipeline->mHitGroupNames = (char **) calloc(pDesc->mHitGroupCount, sizeof(char *));
   for (uint32_t i = 0; i < pDesc->mHitGroupCount; ++i) {
     MTLComputePipelineDescriptor *computeDescriptor = [[MTLComputePipelineDescriptor alloc] init];
     // Set to YES to allow compiler to make certain optimizations
     computeDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
 
+    Shader* pClosestHitShader = (Shader*)pDesc->pHitGroups[i].pClosestHitShader;
     //Rustam: take care about "any hit" and "intersection" shaders
     entryPointNStr =
-        [[NSString alloc] initWithUTF8String:pDesc->pHitGroups[i].pClosestHitShader->mtlComputeShaderEntryPoint.c_str()];
+        [[NSString alloc] initWithUTF8String:pClosestHitShader->mtlComputeShaderEntryPoint.c_str()];
 
-    computeDescriptor.computeFunction = pDesc->pHitGroups[i].pClosestHitShader->mtlComputeShader;
+    computeDescriptor.computeFunction = pClosestHitShader->mtlComputeShader;
 
-    id <MTLComputePipelineState> _pipeline = [pRaytracing->pRenderer->pDevice
+    id <MTLComputePipelineState> _pipeline = [pRenderer->pDevice
         newComputePipelineStateWithDescriptor:computeDescriptor
                                       options:0
                                    reflection:nil
@@ -604,22 +624,23 @@ void addRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
     [pPipeline->mHitPipelines addObject:_pipeline];
 
     const char *groupName = pDesc->pHitGroups[i].pHitGroupName;
-    pPipeline->mHitGroupNames[i] = (char *) conf_calloc(strlen(groupName) + 1, sizeof(char));
+    pPipeline->mHitGroupNames[i] = (char *) calloc(strlen(groupName) + 1, sizeof(char));
     memcpy(pPipeline->mHitGroupNames[i], groupName, strlen(groupName) + 1);
   }
 
-  pPipeline->mMissGroupNames = (char **) conf_calloc(pDesc->mMissShaderCount, sizeof(char *));
+  pPipeline->mMissGroupNames = (char **) calloc(pDesc->mMissShaderCount, sizeof(char *));
   for (uint32_t i = 0; i < pDesc->mMissShaderCount; ++i) {
     MTLComputePipelineDescriptor *computeDescriptor = [[MTLComputePipelineDescriptor alloc] init];
     // Set to YES to allow compiler to make certain optimizations
     computeDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
 
+    Shader* pMissShader = (Shader*)pDesc->ppMissShaders[i];
     //Rustam: take care about "any hit" and "intersection" shaders
-    entryPointNStr = [[NSString alloc] initWithUTF8String:pDesc->ppMissShaders[i]->mtlComputeShaderEntryPoint.c_str()];
+    entryPointNStr = [[NSString alloc] initWithUTF8String:pMissShader->mtlComputeShaderEntryPoint.c_str()];
 
-    computeDescriptor.computeFunction = pDesc->ppMissShaders[i]->mtlComputeShader;
+    computeDescriptor.computeFunction = pMissShader->mtlComputeShader;
 
-    id <MTLComputePipelineState> _pipeline = [pRaytracing->pRenderer->pDevice
+    id <MTLComputePipelineState> _pipeline = [pRenderer->pDevice
         newComputePipelineStateWithDescriptor:computeDescriptor
                                       options:0
                                    reflection:nil
@@ -629,14 +650,14 @@ void addRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
     }
     [pPipeline->mMissPipelines addObject:_pipeline];
 
-    const char *groupName = pDesc->ppMissShaders[i]->mtlComputeShaderEntryPoint.c_str();
-    pPipeline->mMissGroupNames[i] = (char *) conf_calloc(strlen(groupName) + 1, sizeof(char));
+    const char *groupName = pMissShader->mtlComputeShaderEntryPoint.c_str();
+    pPipeline->mMissGroupNames[i] = (char *) calloc(strlen(groupName) + 1, sizeof(char));
     memcpy(pPipeline->mMissGroupNames[i], groupName, strlen(groupName) + 1);
   }
 
   /******************************/
   // Create a raytracer for our Metal device
-  pPipeline->mIntersector = [[MPSRayIntersector alloc] initWithDevice:pRaytracing->pRenderer->pDevice];
+  pPipeline->mIntersector = [[MPSRayIntersector alloc] initWithDevice:pRenderer->pDevice];
 
   pPipeline->mIntersector.rayDataType = MPSRayDataTypeOriginMaskDirectionMaxDistance;
   pPipeline->mIntersector.rayStride = sizeof(Ray);
@@ -650,21 +671,21 @@ void addRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
   //Create rays buffer for RayGen shader
   NSUInteger raysBufferSize = pPipeline->mIntersector.rayStride * pDesc->mMaxRaysCount;
   pPipeline->mRayGenRaysBuffer =
-      [pRaytracing->pRenderer->pDevice newBufferWithLength:raysBufferSize options:MTLResourceStorageModePrivate];
+      [pRenderer->pDevice newBufferWithLength:raysBufferSize options:MTLResourceStorageModePrivate];
 
   NSUInteger payloadBufferSize = pDesc->mPayloadSize * pDesc->mMaxRaysCount;
   pPipeline->mPayloadBuffer =
-      [pRaytracing->pRenderer->pDevice newBufferWithLength:payloadBufferSize options:MTLResourceStorageModePrivate];
+      [pRenderer->pDevice newBufferWithLength:payloadBufferSize options:MTLResourceStorageModePrivate];
 
   //Create buffer for settings (width, height,...)
   static const size_t alignedUniformsSize = (sizeof(RaysDispatchUniformBuffer) + 255) & ~255;
   NSUInteger uniformBufferSize = alignedUniformsSize; //Rustam: do multiple sized buffer for "Ring-buffer" approach
-  pPipeline->mSettingsBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:uniformBufferSize options:options];
+  pPipeline->mSettingsBuffer = [pRenderer->pDevice newBufferWithLength:uniformBufferSize options:options];
 
   //Create intersections buffer for initial intersection test
   NSUInteger intersectionsBufferSize =
       sizeof(MPSIntersectionDistancePrimitiveIndexInstanceIndexCoordinates) * pDesc->mMaxRaysCount;
-  pPipeline->mIntersectionBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:intersectionsBufferSize
+  pPipeline->mIntersectionBuffer = [pRenderer->pDevice newBufferWithLength:intersectionsBufferSize
                                                                                 options:MTLResourceStorageModePrivate];
 
 #if !TARGET_OS_IPHONE
@@ -675,18 +696,18 @@ void addRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
   *ppPipeline = pGenericPipeline;
 }
 
-void removeRaytracingPipeline(RaytracingPipeline *pPipeline) {
+void RemoveRaytracingPipeline(RaytracingPipeline *pPipeline) {
   ASSERT(pPipeline);
 
   for (uint32_t i = 0; i < pPipeline->mHitPipelines.count; ++i) {
-    conf_free(pPipeline->mHitGroupNames[i]);
+    free(pPipeline->mHitGroupNames[i]);
   }
-  conf_free(pPipeline->mHitGroupNames);
+  free(pPipeline->mHitGroupNames);
 
   for (uint32_t i = 0; i < pPipeline->mMissPipelines.count; ++i) {
-    conf_free(pPipeline->mMissGroupNames[i]);
+    free(pPipeline->mMissGroupNames[i]);
   }
-  conf_free(pPipeline->mMissGroupNames);
+  free(pPipeline->mMissGroupNames);
 
   pPipeline->mHitPipelines = nil;
   pPipeline->mIntersectionBuffer = nil;
@@ -695,14 +716,12 @@ void removeRaytracingPipeline(RaytracingPipeline *pPipeline) {
   pPipeline->mRayGenRaysBuffer = nil;
   pPipeline->mRayPipeline = nil;
   pPipeline->mSettingsBuffer = nil;
-
-  pPipeline->~RaytracingPipeline();
   memset(pPipeline, 0, sizeof(*pPipeline));
 
-  conf_free(pPipeline);
+  free(pPipeline);
 }
 
-void removeAccelerationStructure(Raytracing *pRaytracing, AccelerationStructure *pAccelerationStructure) {
+void RemoveAccelerationStructure(Raytracing *pRaytracing, AccelerationStructure *pAccelerationStructure) {
   pAccelerationStructure->mHitGroupIndices = nil;
   pAccelerationStructure->mIndexBuffer = nil;
   pAccelerationStructure->mInstanceIDs = nil;
@@ -713,10 +732,10 @@ void removeAccelerationStructure(Raytracing *pRaytracing, AccelerationStructure 
   pAccelerationStructure->pSharedGroup = nil;
 
   pAccelerationStructure->~AccelerationStructure();
-  conf_free(pAccelerationStructure);
+  free(pAccelerationStructure);
 }
 
-void setupShadersInfo(Raytracing *pRaytracing,
+void SetupShadersInfo(Raytracing *pRaytracing,
                       RaytracingShaderInfoSet *shadersInfo,
                       uint32_t groupsCount, RaytracingPipeline *pPipeline,
                       RaytracingShaderTableRecordDesc *pHitGroups,
@@ -727,10 +746,11 @@ void setupShadersInfo(Raytracing *pRaytracing,
 #else
   MTLResourceOptions options = MTLResourceStorageModeShared;
 #endif
+  Renderer* pRenderer =(Renderer*)pRenderer;
   shadersInfo->mHitPipelines = [[NSMutableArray alloc] init];
 
   uint32_t settingsBufferSize = sizeof(HitShaderSettings) * groupsCount;
-  shadersInfo->mHitSettings = [pRaytracing->pRenderer->pDevice newBufferWithLength:settingsBufferSize options:options];
+  shadersInfo->mHitSettings = [pRenderer->pDevice newBufferWithLength:settingsBufferSize options:options];
   HitShaderSettings *shaderSettingsPtr = (HitShaderSettings *) shadersInfo->mHitSettings.contents;
 
   for (uint32_t i = 0; i < groupsCount; ++i) {
@@ -754,8 +774,8 @@ void setupShadersInfo(Raytracing *pRaytracing,
   /***************************************************************/
   /*Check what shaders generate secondary rays*/
   /***************************************************************/
-  shadersInfo->pHitReferences = (ShaderReference *) conf_calloc(groupsCount, sizeof(ShaderReference));
-  shadersInfo->pShadersLocalData = (ShaderLocalData *) conf_calloc(groupsCount, sizeof(ShaderLocalData));
+  shadersInfo->pHitReferences = (ShaderReference *) calloc(groupsCount, sizeof(ShaderReference));
+  shadersInfo->pShadersLocalData = (ShaderLocalData *) calloc(groupsCount, sizeof(ShaderLocalData));
   memset(shadersInfo->pShadersLocalData, 0, groupsCount * sizeof(ShaderLocalData));
   shadersInfo->mHitGroupsRaysBuffers = [[NSMutableArray alloc] init];
   shadersInfo->mIntersectionBuffer = [[NSMutableArray alloc] init];
@@ -771,11 +791,11 @@ void setupShadersInfo(Raytracing *pRaytracing,
     id <MTLBuffer> payloadBuffer = nil;
     if (pHitGroups[i].mInvokeTraceRay) {
       raysBuffer =
-          [pRaytracing->pRenderer->pDevice newBufferWithLength:raysBufferSize options:MTLResourceStorageModePrivate];
-      intersectionsBuffer = [pRaytracing->pRenderer->pDevice newBufferWithLength:intersectionsBufferSize
+          [pRenderer->pDevice newBufferWithLength:raysBufferSize options:MTLResourceStorageModePrivate];
+      intersectionsBuffer = [pRenderer->pDevice newBufferWithLength:intersectionsBufferSize
                                                                          options:MTLResourceStorageModePrivate];
       payloadBuffer =
-          [pRaytracing->pRenderer->pDevice newBufferWithLength:payloadBufferSize options:MTLResourceStorageModePrivate];
+          [pRenderer->pDevice newBufferWithLength:payloadBufferSize options:MTLResourceStorageModePrivate];
 
       shadersInfo->pHitReferences[i].hitShader = pHitGroups[i].mHitShaderIndex;
       shadersInfo->pHitReferences[i].missShader = pHitGroups[i].mMissShaderIndex;
@@ -801,10 +821,10 @@ void setupShadersInfo(Raytracing *pRaytracing,
 
     /* Check Local Root Signature */
     if (pHitGroups[i].pRootSignature != nullptr) {
-      shadersInfo->pShadersLocalData[i].pLocalRootSignature = pHitGroups[i].pRootSignature;
+      shadersInfo->pShadersLocalData[i].pLocalRootSignature = (RootSignature*)pHitGroups[i].pRootSignature;
       shadersInfo->pShadersLocalData[i].mRootDataCount = pHitGroups[i].mRootDataCount;
       shadersInfo->pShadersLocalData[i].pRootData =
-          (DescriptorData *) conf_calloc(pHitGroups[i].mRootDataCount, sizeof(DescriptorData));
+          (DescriptorData *) calloc(pHitGroups[i].mRootDataCount, sizeof(DescriptorData));
       memcpy(shadersInfo->pShadersLocalData[i].pRootData,
              pHitGroups[i].pRootData,
              pHitGroups[i].mRootDataCount * sizeof(DescriptorData));
@@ -812,20 +832,20 @@ void setupShadersInfo(Raytracing *pRaytracing,
   }
 }
 
-void addRaytracingShaderTable(Raytracing *pRaytracing,
+void AddRaytracingShaderTable(Raytracing *pRaytracing,
                               const RaytracingShaderTableDesc *pDesc,
                               RaytracingShaderTable **ppTable) {
   ASSERT(pRaytracing);
   ASSERT(pDesc);
   ASSERT(ppTable);
 
-  RaytracingShaderTable *table = (RaytracingShaderTable *) conf_calloc(1, sizeof(RaytracingShaderTable));
+  RaytracingShaderTable *table = (RaytracingShaderTable *) calloc(1, sizeof(RaytracingShaderTable));
   memset(table, 0, sizeof(RaytracingShaderTable));
 
-  table->mRayGenData.pLocalRootSignature = pDesc->pRayGenShader->pRootSignature;
+  table->mRayGenData.pLocalRootSignature = (RootSignature*)pDesc->pRayGenShader->pRootSignature;
   if (pDesc->pRayGenShader->pRootData != nullptr) {
     table->mRayGenData.pRootData =
-        (DescriptorData *) conf_calloc(pDesc->pRayGenShader->mRootDataCount, sizeof(DescriptorData));
+        (DescriptorData *) calloc(pDesc->pRayGenShader->mRootDataCount, sizeof(DescriptorData));
     memcpy(table->mRayGenData.pRootData,
            pDesc->pRayGenShader->pRootData,
            pDesc->pRayGenShader->mRootDataCount * sizeof(DescriptorData));
@@ -839,15 +859,15 @@ void addRaytracingShaderTable(Raytracing *pRaytracing,
   /***************************************************************/
   /*Setup shaders settings*/
   /***************************************************************/
-  RaytracingPipeline *pPipeline = pDesc->pPipeline->pRaytracingPipeline;
-  setupShadersInfo(pRaytracing, &table->mHitShadersInfo, pDesc->mHitGroupCount, pPipeline, pDesc->pHitGroups,
+  RaytracingPipeline *pPipeline = ((Pipeline *)pDesc->pPipeline)->pRaytracingPipeline;
+  SetupShadersInfo(pRaytracing, &table->mHitShadersInfo, pDesc->mHitGroupCount, pPipeline, pDesc->pHitGroups,
                    pPipeline->mHitPipelines, pPipeline->mHitGroupNames);
-  setupShadersInfo(pRaytracing, &table->mMissShadersInfo, pDesc->mMissShaderCount, pPipeline, pDesc->pMissShaders,
+  SetupShadersInfo(pRaytracing, &table->mMissShadersInfo, pDesc->mMissShaderCount, pPipeline, pDesc->pMissShaders,
                    pPipeline->mMissPipelines, pPipeline->mMissGroupNames);
   *ppTable = table;
 }
 
-void removeShaderInfoSet(RaytracingShaderInfoSet *infoSet) {
+void RemoveShaderInfoSet(RaytracingShaderInfoSet *infoSet) {
   infoSet->mHitPipelines = nil;
   infoSet->mHitSettings = nil;
   infoSet->mHitGroupsRaysBuffers = nil;
@@ -855,29 +875,29 @@ void removeShaderInfoSet(RaytracingShaderInfoSet *infoSet) {
   infoSet->mPayloadBuffer = nil;
 
   if (infoSet->pShadersLocalData != nullptr) {
-    conf_free(infoSet->pShadersLocalData->pRootData);
+    free(infoSet->pShadersLocalData->pRootData);
     infoSet->pShadersLocalData->~ShaderLocalData();
   }
   if (infoSet->pHitReferences != nullptr) {
-    conf_free(infoSet->pHitReferences);
+    free(infoSet->pHitReferences);
   }
   infoSet->~RaytracingShaderInfoSet();
 }
 
-void removeRaytracingShaderTable(Raytracing *pRaytracing, RaytracingShaderTable *pTable) {
+void RemoveRaytracingShaderTable(Raytracing *pRaytracing, RaytracingShaderTable *pTable) {
   ASSERT(pTable);
   if (pTable->mRayGenData.pRootData != nullptr) {
-    conf_free(pTable->mRayGenData.pRootData);
+    free(pTable->mRayGenData.pRootData);
     pTable->mRayGenData.~ShaderLocalData();
   }
-  removeShaderInfoSet(&pTable->mHitShadersInfo);
-  removeShaderInfoSet(&pTable->mMissShadersInfo);
+  RemoveShaderInfoSet(&pTable->mHitShadersInfo);
+  RemoveShaderInfoSet(&pTable->mMissShadersInfo);
   pTable->~RaytracingShaderTable();
   memset(pTable, 0, sizeof(*pTable));
-  conf_free(pTable);
+  free(pTable);
 }
 
-void addRaytracingRootSignature(Renderer *pRenderer,
+void AddRaytracingRootSignature(Renderer *pRenderer,
                                 const ShaderResource *pResources,
                                 uint32_t resourceCount,
                                 bool local,
@@ -886,28 +906,29 @@ void addRaytracingRootSignature(Renderer *pRenderer,
   ASSERT(pRenderer);
   ASSERT(pRenderer->pDevice);
 
-  RootSignature *pRootSignature = (RootSignature *) conf_calloc(1, sizeof(*pRootSignature));
-  memset(pRootSignature, 0, sizeof(*pRootSignature));
+  RootSignature *pRootSignature = (RootSignature *) calloc(1, sizeof(*pRootSignature));
   pRootSignature->mPipelineType = PIPELINE_TYPE_COMPUTE;
 
   // Collect static samplers
-  tinystl::vector <tinystl::pair<ShaderResource const *, Sampler *>> staticSamplers;
-  tinystl::unordered_map < tinystl::string, Sampler * > staticSamplerMap;
+  tinystl::vector<tinystl::pair<ShaderResource const *, Sampler *>> staticSamplers;
+  tinystl::unordered_map<tinystl::string, Sampler *> staticSamplerMap;
   if (pRootDesc != nullptr) {
     for (uint32_t i = 0; i < pRootDesc->mStaticSamplerCount; ++i) {
-      staticSamplerMap.insert({pRootDesc->ppStaticSamplerNames[i], pRootDesc->ppStaticSamplers[i]});
+      staticSamplerMap.insert({
+        pRootDesc->ppStaticSamplerNames[i],
+        (Sampler*)pRootDesc->ppStaticSamplers[i]});
     }
   }
 
-  conf_placement_new < tinystl::unordered_map < uint32_t, uint32_t >> (&pRootSignature->pDescriptorNameToIndexMap);
+  new(&pRootSignature->pDescriptorNameToIndexMap) tinystl::unordered_map<uint32_t, uint32_t >();
 
   for (uint32_t i = 0; i < resourceCount; ++i) {
     ShaderResource const *pRes = &pResources[i];
 
     // Find all unique resources
-    tinystl::unordered_hash_node <uint32_t, uint32_t>
-        *pNode = pRootSignature->pDescriptorNameToIndexMap.find(tinystl::hash(pRes->name)).node;
-    if (!pNode) {
+    uint32_t index;
+    bool found = stb_udict32_get_flag(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pRes->name), &index);
+    if (!found) {
       if (pRes->type == DESCRIPTOR_TYPE_SAMPLER) {
         // If the sampler is a static sampler, no need to put it in the descriptor table
         const tinystl::unordered_hash_node<tinystl::string, Sampler *> *pNode = staticSamplerMap.find(pRes->name).node;
@@ -916,10 +937,10 @@ void addRaytracingRootSignature(Renderer *pRenderer,
           LOGINFOF("Descriptor (%s) : User specified Static Sampler", pRes->name);
           staticSamplers.push_back({pRes, pNode->second});
         } else {
-          pRootSignature->pDescriptorNameToIndexMap.insert({tinystl::hash(pRes->name), i});
+          stb_udict32_add(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pRes->name), i);
         }
       } else {
-        pRootSignature->pDescriptorNameToIndexMap.insert({tinystl::hash(pRes->name), i});
+        stb_udict32_add(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pRes->name), i);
       }
     } else {
       ASSERT(false && "Provided resources should be unique");
@@ -929,7 +950,7 @@ void addRaytracingRootSignature(Renderer *pRenderer,
   if (resourceCount > 0) {
     pRootSignature->mDescriptorCount = resourceCount;
     pRootSignature->pDescriptors =
-        (DescriptorInfo *) conf_calloc(pRootSignature->mDescriptorCount, sizeof(DescriptorInfo));
+        (DescriptorInfo *) calloc(pRootSignature->mDescriptorCount, sizeof(DescriptorInfo));
   }
 
   // Fill the descriptor array to be stored in the root signature
@@ -945,25 +966,25 @@ void addRaytracingRootSignature(Renderer *pRenderer,
     pDesc->mDesc.type = pRes->type;
     pDesc->mDesc.used_stages = pRes->used_stages;
     pDesc->mDesc.name_size = pRes->name_size;
-    pDesc->mDesc.name = (const char *) conf_calloc(pDesc->mDesc.name_size + 1, sizeof(char));
+    pDesc->mDesc.name = (const char *) calloc(pDesc->mDesc.name_size + 1, sizeof(char));
     memcpy((char *) pDesc->mDesc.name, pRes->name, pRes->name_size);
     pDesc->mUpdateFrquency = updateFreq;
 
     // In case we're binding a texture, we need to specify the texture type so the bound resource type matches the one defined in the shader.
     if (pRes->type == DESCRIPTOR_TYPE_TEXTURE || pRes->type == DESCRIPTOR_TYPE_RW_TEXTURE) {
-      pDesc->mDesc.mtlTextureType = pRes->mtlTextureType;
+      pDesc->mDesc.backend.mtlTextureType = pRes->backend.mtlTextureType;
     }
 
     // If we're binding an argument buffer, we also need to get the type of the resources that this buffer will store.
-    if (pRes->mtlArgumentBufferType != DESCRIPTOR_TYPE_UNDEFINED) {
-      pDesc->mDesc.mtlArgumentBufferType = pRes->mtlArgumentBufferType;
+    if (pRes->backend.mtlArgumentBufferType != DESCRIPTOR_TYPE_UNDEFINED) {
+      pDesc->mDesc.backend.mtlArgumentBufferType = pRes->backend.mtlArgumentBufferType;
     }
   }
 
   pRootSignature->mStaticSamplerCount = (uint32_t) staticSamplers.size();
-  pRootSignature->ppStaticSamplers = (Sampler **) conf_calloc(staticSamplers.size(), sizeof(Sampler *));
-  pRootSignature->pStaticSamplerStages = (ShaderStage *) conf_calloc(staticSamplers.size(), sizeof(ShaderStage));
-  pRootSignature->pStaticSamplerSlots = (uint32_t *) conf_calloc(staticSamplers.size(), sizeof(uint32_t));
+  pRootSignature->ppStaticSamplers = (Sampler **) calloc(staticSamplers.size(), sizeof(Sampler *));
+  pRootSignature->pStaticSamplerStages = (ShaderStage *) calloc(staticSamplers.size(), sizeof(ShaderStage));
+  pRootSignature->pStaticSamplerSlots = (uint32_t *) calloc(staticSamplers.size(), sizeof(uint32_t));
   for (uint32_t i = 0; i < pRootSignature->mStaticSamplerCount; ++i) {
     pRootSignature->ppStaticSamplers[i] = staticSamplers[i].second;
     pRootSignature->pStaticSamplerStages[i] = staticSamplers[i].first->used_stages;
@@ -972,18 +993,14 @@ void addRaytracingRootSignature(Renderer *pRenderer,
 
   // Create descriptor manager for this thread.
   DescriptorManager *pManager = NULL;
-  add_descriptor_manager(pRenderer, pRootSignature, &pManager);
-  pRootSignature->pDescriptorManagerMap.insert({Thread::GetCurrentThreadID(), pManager});
+  AddDescriptorManager(pRenderer, pRootSignature, &pManager);
+  stb_ptrmap_add(&pRootSignature->pDescriptorManagerMap,
+      Os::Thread::GetCurrentThreadID(), pManager);
 
   *ppRootSignature = pRootSignature;
 }
 
-extern void cmdBindLocalDescriptors(Cmd *pCmd,
-                                    RootSignature *pRootSignature,
-                                    uint32_t numDescriptors,
-                                    DescriptorData *pDescParams);
-
-void dispatch(id <MTLComputeCommandEncoder> computeEncoder,
+void Dispatch(id <MTLComputeCommandEncoder> computeEncoder,
               id <MTLBuffer> raysBuffer,
               id <MTLBuffer> globalSettingsBuffer,
               id <MTLBuffer> intersectionsBuffer,
@@ -1011,8 +1028,8 @@ void dispatch(id <MTLComputeCommandEncoder> computeEncoder,
   [computeEncoder dispatchThreadgroups:threadgroups threadsPerThreadgroup:threadsPerThreadgroup];
 }
 
-void invokeShader(Cmd *pCmd, Raytracing *pRaytracing,
-                  const RaytracingDispatchDesc *pDesc,
+void InvokeShader(Cmd *pCmd, Raytracing *pRaytracing,
+                  RaytracingDispatchDesc const *pDesc,
                   RaytracingShaderInfoSet *pShadersInfo,
                   uint32_t shaderId,
                   id <MTLBuffer> raysBuffer,
@@ -1025,7 +1042,7 @@ void invokeShader(Cmd *pCmd, Raytracing *pRaytracing,
                   id <MTLBuffer> hitGroupIndices,
                   MTLSize threadgroups,
                   MTLSize threadsPerThreadgroup) {
-  RaytracingShaderTable *pShaderTable = pDesc->pShaderTable;
+  RaytracingShaderTable *pShaderTable = (RaytracingShaderTable*) pDesc->pShaderTable;
   id <MTLBuffer> raysBufferLocal = raysBuffer;
   id <MTLBuffer> payloadBufferLocal = payloadBuffer;
   if (pShadersInfo->pHitReferences[shaderId].active) {
@@ -1045,31 +1062,32 @@ void invokeShader(Cmd *pCmd, Raytracing *pRaytracing,
   }
 
   //Bind "Global Root Signature" again
-  cmdBindDescriptors(pCmd,
-                     pDesc->pRootSignature,
+  CmdBindDescriptors(pCmd,
+                     (RootSignature*)pDesc->pRootSignature,
                      pDesc->mRootSignatureDescriptorsCount,
                      pDesc->pRootSignatureDescriptorData);
   if (pShadersInfo->pShadersLocalData[shaderId].pLocalRootSignature) {
     RootSignature *rs = pShadersInfo->pShadersLocalData[shaderId].pLocalRootSignature;
     uint32_t dc = pShadersInfo->pShadersLocalData[shaderId].mRootDataCount;
     DescriptorData *dd = pShadersInfo->pShadersLocalData[shaderId].pRootData;
-    cmdBindLocalDescriptors(pCmd, rs, dc, dd);
+    CmdBindLocalDescriptors(pCmd, rs, dc, dd);
   }
   id <MTLComputeCommandEncoder> computeEncoder = pCmd->mtlComputeEncoder;
-  dispatch(computeEncoder, raysBufferLocal, globalSettingsBuffer, intersectionsBuffer,
+  Dispatch(computeEncoder, raysBufferLocal, globalSettingsBuffer, intersectionsBuffer,
            indexBuffer, instancesIDsBuffer, payloadBuffer, masksBuffer, hitGroupIndices,
            pShadersInfo->mHitSettings, shaderId * sizeof(HitShaderSettings),
            pShadersInfo->mHitPipelines[shaderId], threadgroups, threadsPerThreadgroup);
 
   if (pShadersInfo->pHitReferences[shaderId].active) {
-    util_end_current_encoders(pCmd);
+    Util::EndCurrentEncoders(pCmd);
     uint32_t hitRef = pShadersInfo->pHitReferences[shaderId].hitShader;
     uint32_t missRef = pShadersInfo->pHitReferences[shaderId].missShader;
     NSUInteger width = (NSUInteger) pDesc->mWidth;
     NSUInteger height = (NSUInteger) pDesc->mHeight;
 
     id <MTLBuffer> intersectionBufferLocal = pShadersInfo->mIntersectionBuffer[shaderId];
-    RaytracingPipeline *pPipeline = pDesc->pPipeline->pRaytracingPipeline;
+    RaytracingPipeline *pPipeline = ((Pipeline*)pDesc->pPipeline)->pRaytracingPipeline;
+    AccelerationStructure* pTopLevelAS = (AccelerationStructure*)pDesc->pTopLevelAccelerationStructure;
     [pPipeline->mIntersector encodeIntersectionToCommandBuffer:pCmd->mtlCommandBuffer      // Command buffer to encode into
                                               intersectionType:MPSIntersectionTypeNearest  // Intersection test type //Rustam: Get this from RayFlags from shader
                                                      rayBuffer:raysBufferLocal   // Ray buffer
@@ -1077,17 +1095,17 @@ void invokeShader(Cmd *pCmd, Raytracing *pRaytracing,
                                             intersectionBuffer:intersectionBufferLocal // Intersection buffer (destination)
                                       intersectionBufferOffset:0                           // Offset into intersection buffer
                                                       rayCount:width * height              // Number of rays
-                                         accelerationStructure:pDesc->pTopLevelAccelerationStructure->pInstanceAccel];    // Acceleration structure
+                                         accelerationStructure:pTopLevelAS->pInstanceAccel];    // Acceleration structure
 
     //invoke hit shader
-    invokeShader(pCmd, pRaytracing, pDesc, &pShaderTable->mHitShadersInfo,
+    InvokeShader(pCmd, pRaytracing, pDesc, &pShaderTable->mHitShadersInfo,
                  hitRef, raysBufferLocal, globalSettingsBuffer,
                  intersectionBufferLocal, indexBuffer, instancesIDsBuffer, payloadBufferLocal,
                  masksBuffer, hitGroupIndices,
                  threadgroups, threadsPerThreadgroup);
 
     //invoke miss shader
-    invokeShader(pCmd, pRaytracing, pDesc, &pShaderTable->mMissShadersInfo,
+    InvokeShader(pCmd, pRaytracing, pDesc, &pShaderTable->mMissShadersInfo,
                  missRef, raysBufferLocal, globalSettingsBuffer,
                  intersectionBufferLocal, indexBuffer, instancesIDsBuffer, payloadBufferLocal,
                  masksBuffer, hitGroupIndices,
@@ -1095,11 +1113,11 @@ void invokeShader(Cmd *pCmd, Raytracing *pRaytracing,
   }
 }
 
-void cmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatchDesc *pDesc) {
+void CmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatchDesc *pDesc) {
   NSUInteger width = (NSUInteger) pDesc->mWidth;
   NSUInteger height = (NSUInteger) pDesc->mHeight;
 
-  RaytracingPipeline *pRaytracingPipeline = pDesc->pPipeline->pRaytracingPipeline;
+  RaytracingPipeline *pRaytracingPipeline = ((Pipeline*)pDesc->pPipeline)->pRaytracingPipeline;
   /*setup settings values in buffer*/
   //Rustam: implement ring-buffer
   RaysDispatchUniformBuffer *uniforms = (RaysDispatchUniformBuffer *) pRaytracingPipeline->mSettingsBuffer.contents;
@@ -1125,15 +1143,16 @@ void cmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatc
   // First, we will generate rays on the GPU. We create a compute command encoder which will be used to add
   // commands to the command buffer.
   //In terms of DXR here we bind "Global Root Signature"
-  cmdBindDescriptors(pCmd,
-                     pDesc->pRootSignature,
+  CmdBindDescriptors(pCmd,
+                     (RootSignature*)pDesc->pRootSignature,
                      pDesc->mRootSignatureDescriptorsCount,
                      pDesc->pRootSignatureDescriptorData);
-  if (pDesc->pShaderTable->mRayGenData.pLocalRootSignature) {
-    RootSignature *rs = pDesc->pShaderTable->mRayGenData.pLocalRootSignature;
-    uint32_t dc = pDesc->pShaderTable->mRayGenData.mRootDataCount;
-    DescriptorData *dd = pDesc->pShaderTable->mRayGenData.pRootData;
-    cmdBindLocalDescriptors(pCmd, rs, dc, dd);
+  RaytracingShaderTable* pShaderTable = (RaytracingShaderTable*)pDesc->pShaderTable;
+  if (pShaderTable->mRayGenData.pLocalRootSignature) {
+    RootSignature *rs = pShaderTable->mRayGenData.pLocalRootSignature;
+    uint32_t dc = pShaderTable->mRayGenData.mRootDataCount;
+    DescriptorData *dd = pShaderTable->mRayGenData.pRootData;
+    CmdBindLocalDescriptors(pCmd, rs, dc, dd);
   }
   id <MTLComputeCommandEncoder> computeEncoder = pCmd->mtlComputeEncoder;
   /*********************************************************************************/
@@ -1148,9 +1167,11 @@ void cmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatc
   [computeEncoder dispatchThreadgroups:threadgroups threadsPerThreadgroup:threadsPerThreadgroup];
 
   // End the encoder
-  util_end_current_encoders(pCmd);
+  Util::EndCurrentEncoders(pCmd);
 
-  if (!pDesc->pShaderTable->mInvokeShaders) { return; }
+  if (!pShaderTable->mInvokeShaders) { return; }
+
+  AccelerationStructure* pTopLevelAS = (AccelerationStructure*) pDesc->pTopLevelAccelerationStructure;
 
   // We can then pass the rays to the MPSRayIntersector to compute the intersections with our acceleration structure
   //_intersector.rayMaskOptions = //Rustam: get this from RayMask from shader
@@ -1161,43 +1182,43 @@ void cmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatc
                                                     intersectionBuffer:pRaytracingPipeline->mIntersectionBuffer // Intersection buffer (destination)
                                               intersectionBufferOffset:0                           // Offset into intersection buffer
                                                               rayCount:width * height              // Number of rays
-                                                 accelerationStructure:pDesc->pTopLevelAccelerationStructure->pInstanceAccel];    // Acceleration structure
+                                                 accelerationStructure:pTopLevelAS->pInstanceAccel];    // Acceleration structure
 
   /*********************************************************************************/
   //Now we can execute Hit/Miss shader
   /*********************************************************************************/
   //Execute initial hit shaders which process rays from  raygen shader
-  for (unsigned int i = 0; i < pDesc->pTopLevelAccelerationStructure->mActiveHitGroups.size(); ++i) {
-    uint32_t hitId = pDesc->pTopLevelAccelerationStructure->mActiveHitGroups[i];
+  for (unsigned int i = 0; i < pTopLevelAS->mActiveHitGroups.size(); ++i) {
+    uint32_t hitId = pTopLevelAS->mActiveHitGroups[i];
     /*If this hit shader emits secondary rays*/
-    invokeShader(pCmd, pRaytracing, pDesc,
-                 &pDesc->pShaderTable->mHitShadersInfo, hitId,
+    InvokeShader(pCmd, pRaytracing, pDesc,
+                 &pShaderTable->mHitShadersInfo, hitId,
                  pRaytracingPipeline->mRayGenRaysBuffer,
                  pRaytracingPipeline->mSettingsBuffer,
                  pRaytracingPipeline->mIntersectionBuffer,
-                 pDesc->pTopLevelAccelerationStructure->mIndexBuffer,
-                 pDesc->pTopLevelAccelerationStructure->mInstanceIDs,
+                 pTopLevelAS->mIndexBuffer,
+                 pTopLevelAS->mInstanceIDs,
                  pRaytracingPipeline->mPayloadBuffer,
-                 pDesc->pTopLevelAccelerationStructure->mMasks,
-                 pDesc->pTopLevelAccelerationStructure->mHitGroupIndices,
+                 pTopLevelAS->mMasks,
+                 pTopLevelAS->mHitGroupIndices,
                  threadgroups, threadsPerThreadgroup);
 
   }
   //Execute miss shader
-  uint32_t missId = pDesc->pShaderTable->mRayGenMissRef;
-  invokeShader(pCmd, pRaytracing, pDesc,
-               &pDesc->pShaderTable->mMissShadersInfo, missId,
+  uint32_t missId = pShaderTable->mRayGenMissRef;
+  InvokeShader(pCmd, pRaytracing, pDesc,
+               &pShaderTable->mMissShadersInfo, missId,
                pRaytracingPipeline->mRayGenRaysBuffer,
                pRaytracingPipeline->mSettingsBuffer,
                pRaytracingPipeline->mIntersectionBuffer,
-               pDesc->pTopLevelAccelerationStructure->mIndexBuffer,
-               pDesc->pTopLevelAccelerationStructure->mInstanceIDs,
+               pTopLevelAS->mIndexBuffer,
+               pTopLevelAS->mInstanceIDs,
                pRaytracingPipeline->mPayloadBuffer,
-               pDesc->pTopLevelAccelerationStructure->mMasks,
-               pDesc->pTopLevelAccelerationStructure->mHitGroupIndices,
+               pTopLevelAS->mMasks,
+               pTopLevelAS->mHitGroupIndices,
                threadgroups, threadsPerThreadgroup);
 }
-} // end namespace TheForge
+}} // end namespace TheForge::Metal
 
 /*
  * Copyright (c) 2018 Confetti Interactive Inc.

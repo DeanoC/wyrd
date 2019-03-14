@@ -38,22 +38,6 @@
 /*************************************************************************************/
 namespace TheForge {
 
-bool IsPlainFormat(const ImageFormat format);
-bool IsCompressedFormat(const ImageFormat format);
-bool IsFloatFormat(const ImageFormat format);
-bool IsSignedFormat(const ImageFormat format);
-bool IsStencilFormat(const ImageFormat format);
-bool IsDepthFormat(const ImageFormat format);
-bool IsPackedFormat(const ImageFormat format);
-bool IsIntegerFormat(const ImageFormat format);
-int GetChannelCount(const ImageFormat format);
-int GetBytesPerChannel(const ImageFormat format);
-int GetBytesPerPixel(const ImageFormat format);
-int GetBytesPerBlock(const ImageFormat format);
-TheForge_Image_BlockSize GetBlockSize(const ImageFormat format);
-const char *GetFormatString(const ImageFormat format);
-ImageFormat GetFormatFromString(char *string);
-
 typedef void *(*memoryAllocationFunc)(class Image *pImage, uint64_t memoryRequirement, void *pUserData);
 
 class Image {
@@ -80,7 +64,7 @@ class Image {
 
   unsigned char *GetPixels() const { return pData; }
   unsigned char *GetPixels(const uint32_t mipMapLevel) const;
-  unsigned char *GetPixels(unsigned char *pDstData, const uint32_t mipMapLevel, const uint32_t dummy);
+  unsigned char *GetPixels(unsigned char *pDstData, const uint32_t mipMapLevel);
   unsigned char *GetPixels(const uint32_t mipMapLevel, const uint32_t arraySlice) const;
 
   void SetPixels(unsigned char *pixelData) {
@@ -98,7 +82,7 @@ class Image {
   uint32_t GetMipMapCount() const { return mMipMapCount; }
   const tinystl::string& GetName() const { return mLoadFileName; }
   uint32_t GetMipMapCountFromDimensions() const;
-  uint32_t GetArraySliceSize(const uint32_t mipMapLevel = 0, ImageFormat srcFormat = NONE) const;
+  uint32_t GetArraySliceSize(const uint32_t mipMapLevel = 0, ImageFormat srcFormat = TheForge_IF_NONE) const;
   uint32_t GetNumberOfPixels(const uint32_t firstMipLevel = 0, uint32_t numMipLevels = ALL_MIPLEVELS) const;
   bool GetColorRange(float& min, float& max);
   bool Normalize();
@@ -112,7 +96,7 @@ class Image {
   uint32_t GetMipMappedSize(
       const uint32_t firstMipLevel = 0,
       uint32_t numMipLevels = ALL_MIPLEVELS,
-      ImageFormat srcFormat = NONE) const;
+      ImageFormat srcFormat = TheForge_IF_NONE) const;
 
   ImageFormat getFormat() const { return mFormat; }
 
@@ -277,7 +261,7 @@ static inline uint32_t CalculateImageFormatStride(ImageFormat format) {
   return result;
 }
 
-static inline uint32_t calculateImageFormatChannelCount(ImageFormat format) {
+static inline uint32_t CalculateImageFormatChannelCount(ImageFormat format) {
   //  uint32_t result = 0;
   if (format == BGRA8) {
     return 3;
@@ -286,7 +270,7 @@ static inline uint32_t calculateImageFormatChannelCount(ImageFormat format) {
   }
 }
 
-static inline uint32_t calculateMipMapLevels(uint32_t width, uint32_t height) {
+static inline uint32_t CalculateMipMapLevels(uint32_t width, uint32_t height) {
   if (width == 0 || height == 0) {
     return 0;
   }

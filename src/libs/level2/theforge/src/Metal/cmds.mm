@@ -2,7 +2,6 @@
 #include "os/thread.hpp"
 #include "structs.hpp"
 #include "renderer.hpp"
-#include "cmds.hpp"
 #include "descriptor_manager.hpp"
 #include "utils.hpp"
 
@@ -1275,7 +1274,10 @@ void EndCmd(Cmd *pCmd) {
     }
   }
 }
-
+void CmdBeginQuery(Cmd* pCmd, QueryHeap* pQueryHeap, QueryDesc* pQuery) {
+  // NOT SUPPORTED
+  ASSERT(false);
+}
 
 
 } } // end namespace TheForge::Metal

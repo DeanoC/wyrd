@@ -23,23 +23,22 @@ set(Src
         resource_loader.h
         resource_loader.cpp
         shader_reflection.cpp
+        Image/image.cpp
         Image/image.h
-        alloc_utils.hpp
+        utils.hpp
         dynamic_memory_allocator.cpp
         dynamic_memory_allocator.hpp
         )
 
 if (APPLE)
     list(APPEND Src Metal/cpp_api.mm)
-    list(APPEND Src Metal/cmds.hpp)
     list(APPEND Src Metal/cmds.mm)
     list(APPEND Src Metal/descriptor_manager.hpp)
     list(APPEND Src Metal/descriptor_manager.mm)
     list(APPEND Src Metal/memory_allocator.hpp)
-    #   list(APPEND Src Metal/raytracing.mm)
+    list(APPEND Src Metal/raytracing.mm)
     list(APPEND Src Metal/renderer.hpp)
     list(APPEND Src Metal/renderer.mm)
-    list(APPEND Src Metal/renderer_api.cpp)
     list(APPEND Src Metal/shader_reflection.mm)
     list(APPEND Src Metal/structs.hpp)
     list(APPEND Src Metal/utils.hpp)
@@ -62,4 +61,5 @@ ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests
 if (APPLE)
     add_compile_definitions(${LibName} METAL)
     target_compile_options(${LibName} PRIVATE -fobjc-arc)
+    target_link_libraries(${LibName} "-framework Metal -framework IoKit -framework MetalPerformanceShaders")
 endif()

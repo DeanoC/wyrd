@@ -69,7 +69,6 @@
 #endif
 #include <Windows.h>
 
-#ifdef FORGE_JHABLE_EDITS_V01
 // These are placed separately in Vulkan.cpp and Direct3D12.cpp, but they should be in one place
 // with an option for the user to append custom attributes. However, it should be initialized once
 // so that we can parse them during shader reflection, not during pipeline binding.
@@ -86,7 +85,6 @@ static const char * g_hackSemanticList[] =
     "TEXCOORD",
 };
 // clang-format on
-#endif
 
 #if !defined(_DURANGO)
 // Prefer Higher Performance GPU on switchable GPU systems
@@ -270,14 +268,9 @@ const DXGI_FORMAT gDX12FormatTranslatorTypeless[] = {
     DXGI_FORMAT_UNKNOWN, // GNF_BC3 = 74,
     DXGI_FORMAT_UNKNOWN, // GNF_BC4 = 75,
     DXGI_FORMAT_UNKNOWN, // GNF_BC5 = 76,
-#ifdef FORGE_JHABLE_EDITS_V01
     // should have 2 bc6h formats
     DXGI_FORMAT_BC6H_SF16, // GNF_BC6 = 77,
     DXGI_FORMAT_BC7_UNORM, // GNF_BC7 = 78,
-#else
-    DXGI_FORMAT_UNKNOWN, // GNF_BC6 = 77,
-    DXGI_FORMAT_UNKNOWN, // GNF_BC7 = 78,
-#endif
     // Reveser Form
     DXGI_FORMAT_B8G8R8A8_UNORM, // BGRA8 = 79,
     // Extend for DXGI
@@ -367,13 +360,8 @@ const DXGI_FORMAT gDX12FormatTranslator[] = {
     DXGI_FORMAT_UNKNOWN, // GNF_BC3 = 74,
     DXGI_FORMAT_UNKNOWN, // GNF_BC4 = 75,
     DXGI_FORMAT_UNKNOWN, // GNF_BC5 = 76,
-#ifdef FORGE_JHABLE_EDITS_V01
     DXGI_FORMAT_BC6H_SF16, // GNF_BC6 = 77,
     DXGI_FORMAT_BC7_UNORM, // GNF_BC7 = 78,
-#else
-    DXGI_FORMAT_UNKNOWN, // GNF_BC6 = 77,
-    DXGI_FORMAT_UNKNOWN, // GNF_BC7 = 78,
-#endif
     // Reveser Form
     DXGI_FORMAT_B8G8R8A8_UNORM, // BGRA8 = 79,
     // Extend for DXGI
@@ -4558,7 +4546,6 @@ void addPipeline(Renderer* pRenderer, const GraphicsPipelineDesc* pDesc, Pipelin
         {
             const VertexAttrib* attrib = &(pVertexLayout->mAttribs[attrib_index]);
 
-#ifdef FORGE_JHABLE_EDITS_V01
             input_elements[input_elementCount].SemanticName = g_hackSemanticList[attrib->mSemanticType];
             input_elements[input_elementCount].SemanticIndex = attrib->mSemanticIndex;
 
@@ -4568,59 +4555,6 @@ void addPipeline(Renderer* pRenderer, const GraphicsPipelineDesc* pDesc, Pipelin
                 strncpy_s(semantic_names[attrib_index], attrib->mSemanticName, name_length);
             }
 
-#else
-            ASSERT(SEMANTIC_UNDEFINED != attrib->mSemantic);
-
-            if (attrib->mSemanticNameLength > 0)
-            {
-                uint32_t name_length = min(MAX_SEMANTIC_NAME_LENGTH, attrib->mSemanticNameLength);
-                strncpy_s(semantic_names[attrib_index], attrib->mSemanticName, name_length);
-            }
-            else
-            {
-                DECLARE_ZERO(char, name[MAX_SEMANTIC_NAME_LENGTH]);
-                switch (attrib->mSemantic)
-                {
-                    case SEMANTIC_POSITION: sprintf_s(name, "POSITION"); break;
-                    case SEMANTIC_NORMAL: sprintf_s(name, "NORMAL"); break;
-                    case SEMANTIC_COLOR: sprintf_s(name, "COLOR"); break;
-                    case SEMANTIC_TANGENT: sprintf_s(name, "TANGENT"); break;
-                    case SEMANTIC_BITANGENT: sprintf_s(name, "BINORMAL"); break;
-                    case SEMANTIC_TEXCOORD0: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD1: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD2: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD3: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD4: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD5: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD6: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD7: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD8: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD9: sprintf_s(name, "TEXCOORD"); break;
-                    default: break;
-                }
-                ASSERT(0 != strlen(name));
-                strncpy_s(semantic_names[attrib_index], name, strlen(name));
-            }
-
-            UINT semantic_index = 0;
-            switch (attrib->mSemantic)
-            {
-                case SEMANTIC_TEXCOORD0: semantic_index = 0; break;
-                case SEMANTIC_TEXCOORD1: semantic_index = 1; break;
-                case SEMANTIC_TEXCOORD2: semantic_index = 2; break;
-                case SEMANTIC_TEXCOORD3: semantic_index = 3; break;
-                case SEMANTIC_TEXCOORD4: semantic_index = 4; break;
-                case SEMANTIC_TEXCOORD5: semantic_index = 5; break;
-                case SEMANTIC_TEXCOORD6: semantic_index = 6; break;
-                case SEMANTIC_TEXCOORD7: semantic_index = 7; break;
-                case SEMANTIC_TEXCOORD8: semantic_index = 8; break;
-                case SEMANTIC_TEXCOORD9: semantic_index = 9; break;
-                default: break;
-            }
-
-            input_elements[input_elementCount].SemanticName = semantic_names[attrib_index];
-            input_elements[input_elementCount].SemanticIndex = semantic_index;
-#endif
             input_elements[input_elementCount].Format = util_to_dx_image_format(attrib->mFormat, false);
             input_elements[input_elementCount].InputSlot = attrib->mBinding;
             input_elements[input_elementCount].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
@@ -6369,21 +6303,17 @@ void cmdBeginDebugMarker(Cmd* pCmd, float r, float g, float b, const char* pName
 #endif
     // note: USE_PIX isn't the ideal test because we might be doing a debug build where pix
     // is not installed, or a variety of other reasons. It should be a separate #ifdef flag?
-#ifndef FORGE_JHABLE_EDITS_V01
 #if defined(USE_PIX)
     //color is in B8G8R8X8 format where X is padding
     uint64_t color = packColorF32(r, g, b, 0 /*there is no alpha, that's padding*/);
     PIXBeginEvent(pCmd->pDxCmdList, color, pName);
 #endif
-#endif
 }
 
 void cmdEndDebugMarker(Cmd* pCmd)
 {
-#ifndef FORGE_JHABLE_EDITS_V01
 #if defined(USE_PIX)
     PIXEndEvent(pCmd->pDxCmdList);
-#endif
 #endif
 #if ENABLE_MICRO_PROFILER
     // Leave the current scope and pop up the scope stack
@@ -6393,12 +6323,10 @@ void cmdEndDebugMarker(Cmd* pCmd)
 
 void cmdAddDebugMarker(Cmd* pCmd, float r, float g, float b, const char* pName)
 {
-#ifndef FORGE_JHABLE_EDITS_V01
 #if defined(USE_PIX)
     //color is in B8G8R8X8 format where X is padding
     uint64_t color = packColorF32(r, g, b, 0 /*there is no alpha, that's padding*/);
     PIXSetMarker(pCmd->pDxCmdList, color, pName);
-#endif
 #endif
 }
 /************************************************************************/

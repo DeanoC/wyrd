@@ -249,7 +249,7 @@ MTLPixelFormat ToMtlPixelFormat(const ImageFormat format, const bool& srgb) {
   return result;
 }
 
-bool util_is_mtl_depth_pixel_format(const MTLPixelFormat& format) {
+bool IsMtlDepthPixelFormat(const MTLPixelFormat& format) {
   return format == MTLPixelFormatDepth32Float || format == MTLPixelFormatDepth32Float_Stencil8
 #ifndef TARGET_IOS
       || format == MTLPixelFormatDepth16Unorm || format == MTLPixelFormatDepth24Unorm_Stencil8
@@ -257,7 +257,7 @@ bool util_is_mtl_depth_pixel_format(const MTLPixelFormat& format) {
       ;
 }
 
-bool util_is_mtl_compressed_pixel_format(const MTLPixelFormat& format) {
+bool IsMtlCompressedPixelFormat(const MTLPixelFormat& format) {
 #ifndef TARGET_IOS
   return format == MTLPixelFormatBC1_RGBA || format == MTLPixelFormatBC1_RGBA_sRGB || format == MTLPixelFormatBC2_RGBA
       ||
@@ -437,7 +437,7 @@ void BindArgumentBuffer(Cmd *pCmd,
   }
 }
 
-void util_end_current_encoders(Cmd *pCmd) {
+void EndCurrentEncoders(Cmd *pCmd) {
   if (pCmd->mtlRenderEncoder != nil) {
     [pCmd->mtlRenderEncoder endEncoding];
     pCmd->mtlRenderEncoder = nil;
@@ -452,7 +452,7 @@ void util_end_current_encoders(Cmd *pCmd) {
   }
 }
 
-bool util_sync_encoders(Cmd *pCmd, const CmdPoolType& newEncoderType) {
+bool SyncEncoders(Cmd *pCmd, const CmdPoolType& newEncoderType) {
   if (newEncoderType != CMD_POOL_DIRECT && pCmd->mtlRenderEncoder != nil) {
     [pCmd->mtlRenderEncoder updateFence:pCmd->mtlEncoderFence afterStages:MTLRenderStageFragment];
     return true;
@@ -468,7 +468,7 @@ bool util_sync_encoders(Cmd *pCmd, const CmdPoolType& newEncoderType) {
   return false;
 }
 
-bool util_is_compatible_texture_view(const MTLTextureType& textureType, const MTLTextureType& subviewTye) {
+bool IsCompatibleTextureView(const MTLTextureType& textureType, const MTLTextureType& subviewTye) {
   switch (textureType) {
     case MTLTextureType1D:
       if (subviewTye != MTLTextureType1D) {

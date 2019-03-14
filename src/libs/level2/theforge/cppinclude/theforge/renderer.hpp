@@ -17,7 +17,7 @@ void RemoveFence(Renderer *pRenderer, Fence *p_fence);
 void AddSemaphore(Renderer *pRenderer, Semaphore **pp_semaphore);
 void RemoveSemaphore(Renderer *pRenderer, Semaphore *p_semaphore);
 void AddQueue(Renderer *pRenderer, QueueDesc *pQDesc, Queue **ppQueue);
-void RemoveQueue(Queue *pQueue);
+void RemoveQueue(Renderer* pRenderer, Queue *pQueue);
 void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *p_desc, SwapChain **pp_swap_chain);
 void RemoveSwapChain(Renderer *pRenderer, SwapChain *p_swap_chain);
 void AddCmdPool(Renderer *pRenderer, Queue *p_queue, bool transient, CmdPool **pp_CmdPool);
@@ -44,6 +44,11 @@ void AddDepthState(Renderer *pRenderer, const DepthStateDesc *pDesc, DepthState 
 void RemoveDepthState(Renderer *pRenderer, DepthState *pDepthState);
 void AddRasterizerState(Renderer *pRenderer, const RasterizerStateDesc *pDesc, RasterizerState **ppRasterizerState);
 void RemoveRasterizerState(Renderer *pRenderer, RasterizerState *pRasterizerState);
+void AddBuffer(Renderer *pRenderer, const BufferDesc *pDesc, Buffer **pp_buffer);
+void RemoveBuffer(Renderer *pRenderer, Buffer *pBuffer);
+void AddTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **ppTexture);
+void RemoveTexture(Renderer *pRenderer, Texture *pTexture);
+
 void BeginCmd(Cmd *p_cmd);
 void EndCmd(Cmd *p_cmd);
 void CmdBindRenderTargets(Cmd *p_cmd, uint32_t render_target_count,
@@ -62,12 +67,12 @@ void CmdSetViewport(Cmd *p_cmd,
                     float min_depth,
                     float max_depth);
 void CmdSetScissor(Cmd *p_cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
-void CmdBindPipeline(Cmd *p_cmd, TheForge_Pipeline *p_pipeline);
+void CmdBindPipeline(Cmd *p_cmd, Pipeline *p_pipeline);
 void CmdBindDescriptors(Cmd *pCmd,
                         RootSignature *pRootSignature,
                         uint32_t numDescriptors,
                         DescriptorData *pDescParams);
-void CmdBindIndexBuffer(Cmd *p_cmd, TheForge_Buffer *p_buffer, uint64_t offset);
+void CmdBindIndexBuffer(Cmd *p_cmd, Buffer *p_buffer, uint64_t offset);
 void CmdBindVertexBuffer(Cmd *p_cmd,
                          uint32_t buffer_count,
                          Buffer **pp_buffers,
@@ -144,6 +149,7 @@ void CmdExecuteIndirect(Cmd *pCmd,
                         uint64_t bufferOffset,
                         Buffer *pCounterBuffer,
                         uint64_t counterBufferOffset);
+bool IsQuerySupported(Renderer *pRenderer);
 void GetTimestampFrequency(Queue *pQueue, double *pFrequency);
 void AddQueryHeap(Renderer *pRenderer,
                   const QueryHeapDesc *pDesc,
@@ -163,10 +169,6 @@ void CmdEndDebugMarker(Cmd *pCmd);
 void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName);
 void SetBufferName(Renderer *pRenderer, Buffer *pBuffer, const char *pName);
 void SetTextureName(Renderer *pRenderer, Texture *pTexture, const char *pName);
-void AllocBuffer(Renderer *pRenderer, const BufferDesc *pDesc, Buffer **pp_buffer);
-void FreeBuffer(Renderer *pRenderer, Buffer *pBuffer);
-void AllocTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **ppTexture);
-void FreeTexture(Renderer *pRenderer, Texture *pTexture);
 
 } // end namespace TheForge
 

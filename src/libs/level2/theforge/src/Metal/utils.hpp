@@ -21,10 +21,10 @@ namespace TheForge { namespace Metal { namespace Util {
 
 uint64_t PthreadToUint64(const pthread_t& value);
 bool IsCompatibleTextureView(const MTLTextureType& textureType, const MTLTextureType& subviewTye);
-MTLPixelFormat ToMtlPixelFormat(const ImageFormat& format, const bool& srgb);
+MTLPixelFormat ToMtlPixelFormat(ImageFormat format, const bool& srgb);
 bool IsMtlDepthPixelFormat(const MTLPixelFormat& format);
 bool IsMtlCompressedPixelFormat(const MTLPixelFormat& format);
-MTLVertexFormat ToMtlVertexFormat(const ImageFormat& format);
+MTLVertexFormat ToMtlVertexFormat(ImageFormat format);
 MTLLoadAction ToMtlLoadAction(const LoadActionType& loadActionType);
 
 void BindArgumentBuffer(Cmd *pCmd,

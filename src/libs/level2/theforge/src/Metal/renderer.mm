@@ -212,12 +212,6 @@ AllocatorHeapProperties const gHeapProperties[RESOURCE_MEMORY_TYPE_NUM_TYPES] = 
 
 struct DescriptorManager;
 
-void AddTexture(Renderer *pRenderer,
-                const TextureDesc *pDesc,
-                Texture **ppTexture,
-                const bool isRT = false,
-                const bool forceNonPrivate = false);
-
 /************************************************************************/
 // Globals
 /************************************************************************/
@@ -415,8 +409,10 @@ void DestroyTexture(ResourceAllocator *baseAllocator, Texture *pTexture) {
 
 }
 const DescriptorInfo *GetDescriptor(const RootSignature *pRootSignature, const char *pResName, uint32_t *pIndex) {
-  uint32_t nameHash = stb_udict32_get(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pResName));
-  if (nameHash != (~0)) {
+  uint32_t nameHash;
+
+  int found = stb_udict32_get_flag(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pResName), &nameHash);
+  if (found) {
     *pIndex = nameHash;
     return &pRootSignature->pDescriptors[nameHash];
   } else {
@@ -485,33 +481,33 @@ void CreateDefaultResources(Renderer *pRenderer) {
   texture1DDesc.mDescriptors = DESCRIPTOR_TYPE_TEXTURE | DESCRIPTOR_TYPE_RW_TEXTURE;
   texture1DDesc.mWidth = 2;
   texture1DDesc.mFlags = TEXTURE_CREATION_FLAG_OWN_MEMORY_BIT;
-  AllocTexture(pRenderer, &texture1DDesc, &pRenderer->pDefault1DTexture);
+  AddTexture(pRenderer, &texture1DDesc, &pRenderer->pDefault1DTexture);
 
   TextureDesc texture1DArrayDesc = texture1DDesc;
   texture1DArrayDesc.mArraySize = 2;
-  AllocTexture(pRenderer, &texture1DArrayDesc, &pRenderer->pDefault1DTextureArray);
+  AddTexture(pRenderer, &texture1DArrayDesc, &pRenderer->pDefault1DTextureArray);
 
   TextureDesc texture2DDesc = texture1DDesc;
   texture2DDesc.mHeight = 2;
-  AllocTexture(pRenderer, &texture2DDesc, &pRenderer->pDefault2DTexture);
+  AddTexture(pRenderer, &texture2DDesc, &pRenderer->pDefault2DTexture);
 
   TextureDesc texture2DArrayDesc = texture2DDesc;
   texture2DArrayDesc.mArraySize = 2;
-  AllocTexture(pRenderer, &texture2DArrayDesc, &pRenderer->pDefault2DTextureArray);
+  AddTexture(pRenderer, &texture2DArrayDesc, &pRenderer->pDefault2DTextureArray);
 
   TextureDesc texture3DDesc = texture2DDesc;
   texture3DDesc.mDepth = 2;
-  AllocTexture(pRenderer, &texture3DDesc, &pRenderer->pDefault3DTexture);
+  AddTexture(pRenderer, &texture3DDesc, &pRenderer->pDefault3DTexture);
 
   TextureDesc textureCubeDesc = texture2DDesc;
   textureCubeDesc.mArraySize = 6;
   textureCubeDesc.mDescriptors |= DESCRIPTOR_TYPE_TEXTURE_CUBE;
-  AllocTexture(pRenderer, &textureCubeDesc, &pRenderer->pDefaultCubeTexture);
+  AddTexture(pRenderer, &textureCubeDesc, &pRenderer->pDefaultCubeTexture);
 
   TextureDesc textureCubeArrayDesc = textureCubeDesc;
   textureCubeArrayDesc.mArraySize *= 2;
 #ifndef TARGET_IOS
-  AllocTexture(pRenderer, &textureCubeArrayDesc, &pRenderer->pDefaultCubeTextureArray);
+  AddTexture(pRenderer, &textureCubeArrayDesc, &pRenderer->pDefaultCubeTextureArray);
 #else
   if ([pRenderer->pDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1])
     AddTexture(pRenderer, &textureCubeArrayDesc, &pDefaultCubeTextureArray);
@@ -526,7 +522,7 @@ void CreateDefaultResources(Renderer *pRenderer) {
   bufferDesc.mElementCount = 1;
   bufferDesc.mStructStride = sizeof(uint32_t);
   bufferDesc.mFlags = BUFFER_CREATION_FLAG_OWN_MEMORY_BIT;
-  AllocBuffer(pRenderer, &bufferDesc, &pRenderer->pDefaultBuffer);
+  AddBuffer(pRenderer, &bufferDesc, &pRenderer->pDefaultBuffer);
 
   SamplerDesc samplerDesc = {};
   samplerDesc.mAddressU = ADDRESS_MODE_CLAMP_TO_BORDER;
@@ -560,14 +556,14 @@ void CreateDefaultResources(Renderer *pRenderer) {
 }
 
 void DestroyDefaultResources(Renderer *pRenderer) {
-  FreeTexture(pRenderer, pRenderer->pDefault1DTexture);
-  FreeTexture(pRenderer, pRenderer->pDefault1DTextureArray);
-  FreeTexture(pRenderer, pRenderer->pDefault2DTexture);
-  FreeTexture(pRenderer, pRenderer->pDefault2DTextureArray);
-  FreeTexture(pRenderer, pRenderer->pDefault3DTexture);
-  FreeTexture(pRenderer, pRenderer->pDefaultCubeTexture);
-  FreeTexture(pRenderer, pRenderer->pDefaultCubeTextureArray);
-  FreeBuffer(pRenderer, pRenderer->pDefaultBuffer);
+  RemoveTexture(pRenderer, pRenderer->pDefault1DTexture);
+  RemoveTexture(pRenderer, pRenderer->pDefault1DTextureArray);
+  RemoveTexture(pRenderer, pRenderer->pDefault2DTexture);
+  RemoveTexture(pRenderer, pRenderer->pDefault2DTextureArray);
+  RemoveTexture(pRenderer, pRenderer->pDefault3DTexture);
+  RemoveTexture(pRenderer, pRenderer->pDefaultCubeTexture);
+  RemoveTexture(pRenderer, pRenderer->pDefaultCubeTextureArray);
+  RemoveBuffer(pRenderer, pRenderer->pDefaultBuffer);
   RemoveSampler(pRenderer, pRenderer->pDefaultSampler);
 
   RemoveBlendState(pRenderer, pRenderer->pDefaultBlendState);
@@ -920,7 +916,7 @@ void AddQueue(Renderer *pRenderer, QueueDesc *pQDesc, Queue **ppQueue) {
 
   *ppQueue = pQueue;
 }
-void RemoveQueue(Queue *pQueue) {
+void RemoveQueue(Renderer *pRenderer, Queue *pQueue) {
   ASSERT(pQueue);
   pQueue->mtlCommandQueue = nil;
   free(pQueue);
@@ -1534,8 +1530,9 @@ void AddGraphicsComputeRootSignature(Renderer *pRenderer,
       ShaderResource const *pRes = &pReflection->pShaderResources[i];
 
       // Find all unique resources
-      uint32_t index = stb_udict32_get(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pRes->name));
-      if (index == ~0u) {
+      uint32_t index;
+      int found = stb_udict32_get_flag(&pRootSignature->pDescriptorNameToIndexMap, stb_hash(pRes->name), &index);
+      if (found) {
         if (pRes->type == DESCRIPTOR_TYPE_SAMPLER) {
           // If the sampler is a static sampler, no need to put it in the descriptor table
           ssm_type::const_hash_node *pNode = staticSamplerMap.find(pRes->name).node;
@@ -1610,25 +1607,25 @@ void AddGraphicsComputeRootSignature(Renderer *pRenderer,
 
   *ppRootSignature = pRootSignature;
 }
-/*
-extern void addRaytracingRootSignature(Renderer *pRenderer,
+
+extern void AddRaytracingRootSignature(Renderer *pRenderer,
                                        const ShaderResource *pResources,
                                        uint32_t resourceCount,
                                        bool local,
                                        RootSignature **ppRootSignature,
                                        const RootSignatureDesc *pRootDesc = nullptr);
 
-void AddRootSignature(MetalRenderer *pRenderer,
+void AddRootSignature(Renderer *pRenderer,
                       const RootSignatureDesc *pRootSignatureDesc,
                       RootSignature **ppRootSignature) {
   switch (pRootSignatureDesc->mSignatureType) {
     case (ROOT_SIGNATURE_GRAPHICS_COMPUTE): {
-      addGraphicsComputeRootSignature(pRenderer, pRootSignatureDesc, ppRootSignature);
+      AddGraphicsComputeRootSignature(pRenderer, pRootSignatureDesc, ppRootSignature);
       break;
     }
     case (ROOT_SIGNATURE_RAYTRACING_LOCAL): {
-      addRaytracingRootSignature(pRenderer,
-                                 pRootSignatureDesc->pRaytracingShaderResources,
+      AddRaytracingRootSignature(pRenderer,
+                                 (ShaderResource*)pRootSignatureDesc->pRaytracingShaderResources,
                                  pRootSignatureDesc->pRaytracingResourcesCount,
                                  true,
                                  ppRootSignature,
@@ -1636,8 +1633,8 @@ void AddRootSignature(MetalRenderer *pRenderer,
       break;
     }
     case (ROOT_SIGNATURE_RAYTRACING_GLOBAL): {
-      addRaytracingRootSignature(pRenderer,
-                                 pRootSignatureDesc->pRaytracingShaderResources,
+      AddRaytracingRootSignature(pRenderer,
+                                 (ShaderResource*)pRootSignatureDesc->pRaytracingShaderResources,
                                  pRootSignatureDesc->pRaytracingResourcesCount,
                                  false,
                                  ppRootSignature,
@@ -1649,7 +1646,7 @@ void AddRootSignature(MetalRenderer *pRenderer,
     }
   }
 }
-*/
+
 
 void RemoveRootSignature(Renderer *pRenderer, RootSignature *pRootSignature) {
 
@@ -1983,7 +1980,7 @@ void AddRasterizerState(Renderer *pRenderer, const RasterizerStateDesc *pDesc, R
   memcpy(*ppRasterizerState, &rasterizerState, sizeof(rasterizerState));
 }
 
-void RemoveRasterizerState(RasterizerState *pRasterizerState) {
+void RemoveRasterizerState(Renderer *pRenderer, RasterizerState *pRasterizerState) {
   ASSERT(pRasterizerState);
   free(pRasterizerState);
 }

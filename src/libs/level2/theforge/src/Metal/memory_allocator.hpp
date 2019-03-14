@@ -6,7 +6,7 @@
 #include "core/logger.h"
 #include "tinystl/vector.h"
 #include "structs.hpp"
-#include "../alloc_utils.hpp"
+#include "../utils.hpp"
 #include <new>
 
 namespace TheForge { namespace Metal {

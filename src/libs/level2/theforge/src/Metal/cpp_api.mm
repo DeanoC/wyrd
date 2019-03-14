@@ -3,6 +3,7 @@
 #include "theforge/renderer_descs.hpp"
 #include "theforge/renderer_enums.hpp"
 #include "theforge/renderer_structs.hpp"
+#include "theforge/shader_reflection.hpp"
 #include "renderer.hpp"
 
 namespace TheForge {
@@ -126,20 +127,20 @@ void AddRenderTarget(Renderer *pRenderer, const RenderTargetDesc *p_desc, Render
   Metal::AddRenderTarget((Metal::Renderer *) pRenderer, p_desc, (Metal::RenderTarget **) pp_render_target);
 }
 
-void AllocBuffer(Renderer *pRenderer, const BufferDesc *pDesc, Buffer **pp_buffer) {
-  Metal::AllocBuffer((Metal::Renderer *) pRenderer, pDesc, (Metal::Buffer **) pp_buffer);
+void AddBuffer(Renderer *pRenderer, const BufferDesc *pDesc, Buffer **pp_buffer) {
+  Metal::AddBuffer((Metal::Renderer *) pRenderer, pDesc, (Metal::Buffer **) pp_buffer);
 }
 
-void FreeBuffer(Renderer *pRenderer, Buffer *pBuffer) {
-  Metal::FreeBuffer((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer);
+void RemoveBuffer(Renderer *pRenderer, Buffer *pBuffer) {
+  Metal::RemoveBuffer((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer);
 }
 
-void AllocTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **ppTexture) {
-  Metal::AllocTexture((Metal::Renderer *) pRenderer, pDesc, (Metal::Texture **) ppTexture);
+void AddTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **ppTexture) {
+  Metal::AddTexture((Metal::Renderer *) pRenderer, pDesc, (Metal::Texture **) ppTexture, false, false );
 }
 
-void FreeTexture(Renderer *pRenderer, Texture *pTexture) {
-  Metal::FreeTexture((Metal::Renderer *) pRenderer, (Metal::Texture *) pTexture);
+void RemoveTexture(Renderer *pRenderer, Texture *pTexture) {
+  Metal::RemoveTexture((Metal::Renderer *) pRenderer, (Metal::Texture *) pTexture);
 }
 
 void CalculateMemoryStats(Renderer *pRenderer, char **stats) {
@@ -213,18 +214,38 @@ void RemoveIndirectCommandSignature(Renderer *pRenderer,
   Metal::RemoveIndirectCommandSignature((Metal::Renderer *) pRenderer, (Metal::CommandSignature *) pCommandSignature);
 }
 
+bool IsQuerySupported(Renderer* pRenderer) {
+  return false;
+}
+
 void GetTimestampFrequency(Queue *pQueue, double *pFrequency) {
-  Metal::GetTimestampFrequency((Metal::Queue *) pQueue, pFrequency);
+  ASSERT(false);
 }
 
 void AddQueryHeap(Renderer *pRenderer,
                   const QueryHeapDesc *pDesc,
                   QueryHeap **ppQueryHeap) {
-  Metal::AddQueryHeap((Metal::Renderer *) pRenderer, pDesc, (Metal::QueryHeap **) ppQueryHeap);
+  ASSERT(false);
 }
 
 void RemoveQueryHeap(Renderer *pRenderer, QueryHeap *pQueryHeap) {
-  Metal::RemoveQueryHeap((Metal::Renderer *) pRenderer, (Metal::QueryHeap *) pQueryHeap);
+  ASSERT(false);
+}
+
+void CmdBeginQuery(Cmd *pCmd, QueryHeap *pQueryHeap, QueryDesc *pQuery) {
+  ASSERT(false);
+}
+
+void CmdEndQuery(Cmd *pCmd, QueryHeap *pQueryHeap, QueryDesc *pQuery) {
+  ASSERT(false);
+}
+
+void CmdResolveQuery(Cmd *pCmd,
+                     QueryHeap *pQueryHeap,
+                     Buffer *pReadbackBuffer,
+                     uint32_t startQuery,
+                     uint32_t queryCount) {
+  ASSERT(false);
 }
 
 void AcquireNextImage(Renderer *pRenderer,
@@ -240,11 +261,11 @@ void AcquireNextImage(Renderer *pRenderer,
 }
 
 void SetBufferName(Renderer *pRenderer, Buffer *pBuffer, const char *pName) {
-  Metal::SetBufferName((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer, pName);
+  // not supported on metal yet
 }
 
 void SetTextureName(Renderer *pRenderer, Texture *pTexture, const char *pName) {
-  Metal::SetTextureName((Metal::Renderer *) pRenderer, (Metal::Texture *) pTexture, pName);
+  // not supported on metal yet
 }
 
 void AddCmd(CmdPool *p_CmdPool, bool secondary, Cmd **pp_cmd) {
@@ -412,26 +433,6 @@ void CmdExecuteIndirect(Cmd *pCmd,
                             bufferOffset,
                             (Metal::Buffer *) pCounterBuffer,
                             counterBufferOffset);
-}
-
-void CmdBeginQuery(Cmd *pCmd, QueryHeap *pQueryHeap, QueryDesc *pQuery) {
-  Metal::CmdBeginQuery((Metal::Cmd *) pCmd, (Metal::QueryHeap *) pQueryHeap, pQuery);
-}
-
-void CmdEndQuery(Cmd *pCmd, QueryHeap *pQueryHeap, QueryDesc *pQuery) {
-  Metal::CmdEndQuery((Metal::Cmd *) pCmd, (Metal::QueryHeap *) pQueryHeap, pQuery);
-}
-
-void CmdResolveQuery(Cmd *pCmd,
-                     QueryHeap *pQueryHeap,
-                     Buffer *pReadbackBuffer,
-                     uint32_t startQuery,
-                     uint32_t queryCount) {
-  Metal::CmdResolveQuery((Metal::Cmd *) pCmd,
-                         (Metal::QueryHeap *) pQueryHeap,
-                         (Metal::Buffer *) pReadbackBuffer,
-                         startQuery,
-                         queryCount);
 }
 
 void CmdBeginDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName) {

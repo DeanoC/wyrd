@@ -11,5 +11,11 @@ int Main(int argc, char *argv[]) {
 
 #include "theforge/renderer.h"
 
-TEST_CASE("create/destroy", "[TheForge]") {
+TEST_CASE("create/destroy (C)", "[TheForge]") {
+
+  TheForge_RendererDesc desc;
+  TheForge_Renderer* renderer;
+  TheForge_InitRenderer("test", &desc, &renderer);
+
+  TheForge_RemoveRenderer(renderer);
 }

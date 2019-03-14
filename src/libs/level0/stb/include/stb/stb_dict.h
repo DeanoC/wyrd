@@ -1,6 +1,8 @@
 #pragma once
 #ifndef WYRD_STB_DICT_H
 #define WYRD_STB_DICT_H
+// few changes from stbs original
+// now have support fixed size hash tables for common cases
 
 #include "stb/stb_hash.h"
 
@@ -342,8 +344,8 @@ static void STB_(N, rehash)(TYPE *a, int count)                               \
               STB_equal,STB_equal,HASH,                                       \
               VALUE,STB_nonullvalue,0)
 
-#define stb_define_hash_vnull(TYPE, N, KEY, EMPTY, DEL, HASH, VALUE, VNULL)          \
-   stb_define_hash_base(STB_noprefix, TYPE,N,N,0.85f,           \
+#define stb_define_fixed_sized_hash_vnull(TYPE, N, KEY, EMPTY, DEL, HASH, VALUE, VNULL)          \
+   stb_define_fixed_sized_hash_base(STB_noprefix, TYPE,N,N,0.85f,           \
               KEY,EMPTY,DEL,STB_nocopy,STB_nodelete,STB_nosafe,               \
               STB_equal,STB_equal,HASH,                                       \
               VALUE,STB_nullvalue,VNULL)
@@ -369,13 +371,13 @@ EXTERN_C void stb_idict64_reset(stb_idict64 *e);
 
 #ifdef STB_DEFINE
 
-stb_define_fixed_sized_hash(stb_ptrmap, stb_ptrmap_, void*,
+stb_define_fixed_sized_hash_vnull(stb_ptrmap, stb_ptrmap_, void*,
                 ((void *) 2),((void *) 6),
-                return stb_hashptr(k);, void*);
+                return stb_hashptr(k);, void*, NULL);
 
 stb_define_fixed_sized_hash(stb_idict32, stb_idict32_, int32_t,
     (-1),(-2),
-    return stb_rehash_improved(k);, int32_t);
+    return stb_rehash_improved(k);, int32_t) ;
 
 stb_define_fixed_sized_hash(stb_udict32, stb_udict32_, uint32_t,
     (~0),(~1),

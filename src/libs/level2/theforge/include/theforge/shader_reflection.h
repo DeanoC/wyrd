@@ -113,11 +113,11 @@ typedef struct TheForge_PipelineReflection {
   uint32_t mVariableCount;
 } TheForge_PipelineReflection;
 
-void TheForge_DestroyShaderReflection(TheForge_ShaderReflection *pReflection);
-void TheForge_CreatePipelineReflection(TheForge_ShaderReflection *pReflection,
+EXTERN_C void TheForge_DestroyShaderReflection(TheForge_ShaderReflection *pReflection);
+EXTERN_C void TheForge_CreatePipelineReflection(TheForge_ShaderReflection *pReflection,
                                        uint32_t stageCount,
                                        TheForge_PipelineReflection *pOutReflection);
-void TheForge_DestroyPipelineReflection(TheForge_PipelineReflection *pReflection);
+EXTERN_C void TheForge_DestroyPipelineReflection(TheForge_PipelineReflection *pReflection);
 
 //void serializeReflection(File* pInFile, Reflection* pReflection);
 //void deserializeReflection(File* pOutFile, Reflection* pReflection);

@@ -6,7 +6,6 @@
 #include "theforge/image_enums.h"
 
 namespace TheForge {
-typedef TheForge_ImageFormat ImageFormat;
 
 static const auto R8 = TheForge_IF_R8;
 static const auto RG8 = TheForge_IF_RG8;
@@ -99,6 +98,62 @@ static const auto I16F = TheForge_IF_I16F;
 static const auto IA16F = TheForge_IF_IA16F;
 static const auto I32F = TheForge_IF_I32F;
 static const auto IA32F = TheForge_IF_IA32F;
+
+static const auto BLOCK_SIZE_1x1 = TheForge_BLOCK_SIZE_1x1;
+static const auto BLOCK_SIZE_4x4 = TheForge_BLOCK_SIZE_4x4;
+static const auto BLOCK_SIZE_4x8 = TheForge_BLOCK_SIZE_4x8;
+
+typedef TheForge_ImageFormat ImageFormat;
+typedef TheForge_BlockSize BlockSize;
+
+inline bool IsPlainFormat(const ImageFormat format) {
+  return TheForge_IsPlainFormat(format);
+}
+inline bool IsCompressedFormat(const ImageFormat format) {
+  return TheForge_IsCompressedFormat(format);
+}
+inline bool IsFloatFormat(const ImageFormat format) {
+  return TheForge_IsFloatFormat(format);
+}
+inline bool IsSignedFormat(const ImageFormat format) {
+  return TheForge_IsSignedFormat(format);
+}
+inline bool IsStencilFormat(const ImageFormat format) {
+  return TheForge_IsStencilFormat(format);
+}
+inline bool IsDepthFormat(const ImageFormat format) {
+  return TheForge_IsDepthFormat(format);
+}
+inline bool IsPackedFormat(const ImageFormat format) {
+  return TheForge_IsPackedFormat(format);
+}
+inline bool IsIntegerFormat(const ImageFormat format) {
+  return TheForge_IsIntegerFormat(format);
+}
+inline int GetChannelCount(const ImageFormat format) {
+  return TheForge_GetChannelCount(format);
+}
+inline int GetBytesPerChannel(const ImageFormat format) {
+  return TheForge_GetBytesPerChannel(format);
+}
+inline int GetBytesPerPixel(const ImageFormat format) {
+  return TheForge_GetBytesPerPixel(format);
+}
+inline int GetBytesPerBlock(const ImageFormat format) {
+  return TheForge_IsPlainFormat(format);
+}
+inline TheForge_BlockSize GetBlockSize(const ImageFormat format) {
+  return TheForge_GetBlockSize(format);
+}
+
+inline const char *GetImageFormatString(const ImageFormat format) {
+  return TheForge_GetImageFormatString(format);
+}
+
+inline ImageFormat GetImageFormatFromString(char *string) {
+  return GetImageFormatFromString(string);
+}
+
 
 } // end namespace
 

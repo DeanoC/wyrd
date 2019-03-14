@@ -30,7 +30,7 @@ typedef struct TheForge_BufferDesc {
   /// Set this to specify a counter buffer for this buffer (applicable to BUFFER_USAGE_STORAGE_SRV, BUFFER_USAGE_STORAGE_UAV)
   struct TheForge_Buffer *pCounterBuffer;
   /// Format of the buffer (applicable to typed storage buffers (Buffer<T>)
-//  ImageFormat::Enum mFormat;
+  TheForge_ImageFormat mFormat;
   /// Flags specifying the suitable usage of this buffer (Uniform buffer, Vertex Buffer, Index Buffer,...)
   TheForge_DescriptorTypeFlags mDescriptors;
   /// Debug name used in gpu profile
@@ -287,10 +287,8 @@ typedef struct TheForge_VertexAttrib {
   uint32_t mOffset;
   TheForge_VertexAttribRate mRate;
 
-#ifdef FORGE_JHABLE_EDITS_V01
   uint32_t mSemanticType;
-    uint32_t mSemanticIndex;
-#endif
+  uint32_t mSemanticIndex;
 } TheForge_VertexAttrib;
 
 typedef struct TheForge_VertexLayout {

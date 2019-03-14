@@ -49,7 +49,7 @@ static bool ShaderVariableCmp(ShaderVariable *a, ShaderVariable *b) {
   return isSame;
 }
 
-void destroyShaderReflection(ShaderReflection *pReflection) {
+void DestroyShaderReflection(ShaderReflection *pReflection) {
   if (pReflection == NULL) {
     return;
   }
@@ -60,7 +60,7 @@ void destroyShaderReflection(ShaderReflection *pReflection) {
   free(pReflection->pVariables);
 }
 
-void createPipelineReflection(ShaderReflection *pReflection, uint32_t stageCount, PipelineReflection *pOutReflection) {
+void CreatePipelineReflection(ShaderReflection *pReflection, uint32_t stageCount, PipelineReflection *pOutReflection) {
   //Parameter checks
   if (pReflection == NULL) {
     LOGERROR("Parameter 'pReflection' is NULL.");
@@ -218,13 +218,13 @@ void createPipelineReflection(ShaderReflection *pReflection, uint32_t stageCount
   pOutReflection->mVariableCount = variableCount;
 }
 
-void destroyPipelineReflection(PipelineReflection *pReflection) {
+void DestroyPipelineReflection(PipelineReflection *pReflection) {
   if (pReflection == NULL) {
     return;
   }
 
   for (uint32_t i = 0; i < pReflection->mStageReflectionCount; ++i) {
-    destroyShaderReflection(&pReflection->mStageReflections[i]);
+    DestroyShaderReflection(&pReflection->mStageReflections[i]);
   }
 
   free(pReflection->pShaderResources);

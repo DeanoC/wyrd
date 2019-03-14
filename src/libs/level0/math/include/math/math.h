@@ -10,21 +10,21 @@
 #include <math.h>
 #include <string.h>
 
-typedef struct vec2_t { float x; float y; } Math_vec2_t;
-typedef struct ivec2_t { int32_t x; int32_t y; } Math_ivec2_t;
-typedef struct uvec2_t { uint32_t x; uint32_t y; } Math_uvec2_t;
+typedef struct vec2_t { float x; float y; } vec2_t;
+typedef struct ivec2_t { int32_t x; int32_t y; } ivec2_t;
+typedef struct uvec2_t { uint32_t x; uint32_t y; } uvec2_t;
 
-typedef struct vec3_t { float x; float y; float z; } Math_vec3_t;
-typedef struct ivec3_t { int32_t x; int32_t y; int32_t z; } Math_ivec3_t;
-typedef struct uvec3_t { uint32_t x; uint32_t y; uint32_t z; } Math_uvec3_t;
+typedef struct vec3_t { float x; float y; float z; } vec3_t;
+typedef struct ivec3_t { int32_t x; int32_t y; int32_t z; } ivec3_t;
+typedef struct uvec3_t { uint32_t x; uint32_t y; uint32_t z; } uvec3_t;
 
-typedef struct vec4_t { float x; float y; float z; float w; } Math_vec4_t;
-typedef struct ivec4_t { int32_t x; int32_t y; int32_t z; int32_t w; } Math_ivec4_t;
-typedef struct uvec4_t { uint32_t x; uint32_t y; uint32_t z; uint32_t w; } Math_uvec4_t;
+typedef struct vec4_t { float x; float y; float z; float w; } vec4_t;
+typedef struct ivec4_t { int32_t x; int32_t y; int32_t z; int32_t w; } ivec4_t;
+typedef struct uvec4_t { uint32_t x; uint32_t y; uint32_t z; uint32_t w; } uvec4_t;
 
-typedef struct mat2_t { Math_vec2_t col0; Math_vec2_t col1; } Math_mat2_t;
-typedef struct mat3_t { Math_vec3_t col0; Math_vec3_t col1; Math_vec3_t col2; } Math_mat3_t;
-typedef struct mat4_t { Math_vec4_t col0; Math_vec4_t col1; Math_vec4_t col2; Math_vec4_t col3; } Math_mat4_t;
+typedef struct mat2_t { vec2_t col0; vec2_t col1; } Math_mat2_t;
+typedef struct mat3_t { vec3_t col0; vec3_t col1; vec3_t col2; } Math_mat3_t;
+typedef struct mat4_t { vec4_t col0; vec4_t col1; vec4_t col2; vec4_t col3; } Math_mat4_t;
 
 #define MATH_FUNC_MACRO_CREATE(postfix, type)\
 EXTERN_C inline type Math_Min##postfix(type const v, type const a) { return (v < a) ? a : v; } \
@@ -39,6 +39,9 @@ MATH_FUNC_MACRO_CREATE(I64, int64_t)
 MATH_FUNC_MACRO_CREATE(U64, uint64_t)
 
 #undef MATH_FUNC_MACRO_CREATE
+
+EXTERN_C inline float Math_SaturateF(const float x) { return Math_ClampF(x, 0.0f, 1.0f); }
+EXTERN_C inline double Math_SaturateD(const double x) { return Math_ClampD(x, 0.0, 1.0); }
 
 EXTERN_C inline double Math_PiD() { return (double) (3.14159265358979323846264338327950L); }
 EXTERN_C inline double Math_PiOver2D() { return Math_PiD() / 2.0; }
@@ -61,8 +64,58 @@ EXTERN_C inline double Math_Length(double const a) { return a; }
 
 EXTERN_C inline double Math_ReciprocalSqrtD(double const a) { return 1.0 / sqrt(a); }
 
-EXTERN_C uint8_t Math_LogTable256[];
+// Note: returns true for 0
+EXTERN_C inline bool Math_IsPowerOf2U32(const uint32_t x) {
+  return (x & (x - 1)) == 0;
+}
 
+// Note: returns true for 0
+EXTERN_C inline bool Math_IsPowerOf2U64(const uint64_t x) {
+  return (x & (x - 1)) == 0;
+}
+
+EXTERN_C inline uint32_t Math_UpperPowerOfTwoU32(uint32_t x) {
+  if(x == 0) return 1;
+
+  x -= 1;
+
+  x |= x >> 16;
+  x |= x >> 8;
+  x |= x >> 4;
+  x |= x >> 2;
+  x |= x >> 1;
+
+  return x + 1;
+}
+
+EXTERN_C inline uint64_t Math_UpperPowerOfTwoU64(uint64_t x) {
+  if(x == 0) return 1;
+
+  x -= 1;
+
+  x |= x >> 32;
+  x |= x >> 16;
+  x |= x >> 8;
+  x |= x >> 4;
+  x |= x >> 2;
+  x |= x >> 1;
+
+  return x + 1;
+}
+EXTERN_C inline uint32_t Math_GetClosestPowerOfTwoU32(const uint32_t x) {
+  uint32_t upow2 = Math_UpperPowerOfTwoU32(x);
+  if (4 * x < 3 * upow2) return upow2 >> 1;
+  else return upow2;
+}
+
+EXTERN_C inline uint64_t Math_GetClosestPowerOfTwoU64(const uint64_t x) {
+  uint64_t upow2 = Math_UpperPowerOfTwoU64(x);
+  if (4 * x < 3 * upow2) return upow2 >> 1;
+  else return upow2;
+}
+
+
+EXTERN_C uint8_t Math_LogTable256[256];
 
 /// \brief	return Log2 of v.
 /// return log2 of an int. this is equivalent to finding the highest bit that has been set
@@ -118,6 +171,109 @@ EXTERN_C inline float Math_SRGB2Float(uint32_t val) {
   float f;
   memcpy(&f, &Math_SRGBTable[val], sizeof(float));
   return f;
+}
+
+EXTERN_C inline uint32_t Math_PackColorU32(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+{
+  return
+      ((r & 0xff) << 24) |
+          ((g & 0xff) << 16) |
+          ((b & 0xff) << 8) |
+          ((a & 0xff) << 0);
+}
+
+//Output format is R8G8B8A8
+EXTERN_C inline uint32_t Math_PackColorF32(float r, float g, float b, float a)
+{
+  return Math_PackColorU32(
+      (uint32_t)(Math_ClampF(r, 0.0f, 1.0f) * 255),
+      (uint32_t)(Math_ClampF(g, 0.0f, 1.0f) * 255),
+      (uint32_t)(Math_ClampF(b, 0.0f, 1.0f) * 255),
+      (uint32_t)(Math_ClampF(a, 0.0f, 1.0f) * 255));
+}
+EXTERN_C inline uint32_t Math_PackColorVec44(struct vec4_t rgba) {
+  return Math_PackColorF32(rgba.x, rgba.y, rgba.z, rgba.w);
+}
+EXTERN_C inline vec4_t Math_UnpackColorU32(uint32_t colorValue)
+{
+  vec4_t r = {
+      (float) ((colorValue & 0xFF000000) >> 24) / 255.0f,
+      (float) ((colorValue & 0x00FF0000) >> 16) / 255.0f,
+      (float) ((colorValue & 0x0000FF00) >> 8) / 255.0f,
+      (float) ((colorValue & 0x000000FF)) / 255.0f
+  };
+  return r;
+}
+
+EXTERN_C inline vec3_t Math_RGBEToRGB(unsigned char *rgbe)
+{
+  if (rgbe[3])
+  {
+    float const e = ldexpf(1.0f, rgbe[3] - (int)(128 + 8));
+    vec3_t r = {
+        ((float)rgbe[0]) * e,
+        ((float)rgbe[1]) * e,
+        ((float)rgbe[2]) * e,
+    };
+    return r;
+  }
+  vec3_t r = {0, 0, 0};
+  return r;
+}
+EXTERN_C inline uint32_t Math_FloatRGBToRGBE8(const float r, const float g, const float b)
+{
+  float const v = Math_MaxF(Math_MaxF(r,g), b);
+
+  if (v < 1e-32f) {
+    return 0;
+  }
+  else {
+    int ex;
+    float m = frexpf(v, &ex) * 256.0f / v;
+
+    uint32_t r = (uint32_t)(m * r);
+    uint32_t g = (uint32_t)(m * g);
+    uint32_t b = (uint32_t)(m * b);
+    uint32_t e = (uint32_t)(ex + 128);
+
+    return r | (g << 8) | (b << 16) | (e << 24);
+  }
+}
+
+EXTERN_C inline uint32_t Math_Vec3RGBToRGBE8(const vec3_t rgb)
+{
+  return Math_FloatRGBToRGBE8(rgb.x, rgb.y, rgb.z);
+}
+
+EXTERN_C inline uint32_t Math_FloatRGBToRGB9E5(const float r, const float g, const float b)
+{
+  float const v = Math_MaxF(Math_MaxF(r,g), b);
+
+  if (v < 1.52587890625e-5f) {
+    return 0;
+  }
+  else if (v < 65536) {
+    int ex;
+    float m = frexpf(v, &ex) * 512.0f / v;
+
+    uint32_t r = (uint32_t)(m * r);
+    uint32_t g = (uint32_t)(m * g);
+    uint32_t b = (uint32_t)(m * b);
+    uint32_t e = (unsigned int)(ex + 15);
+
+    return r | (g << 9) | (b << 18) | (e << 27);
+  }
+  else {
+    uint32_t r = (r < 65536) ? (uint32_t)(r * (1.0f / 128.0f)) : 0x1FF;
+    uint32_t g = (g < 65536) ? (uint32_t)(g * (1.0f / 128.0f)) : 0x1FF;
+    uint32_t b = (b < 65536) ? (uint32_t)(b * (1.0f / 128.0f)) : 0x1FF;
+    uint32_t e = 31;
+
+    return r | (g << 9) | (b << 18) | (e << 27);
+  }
+}
+EXTERN_C inline uint32_t MathVec3RGBToRGB9E5(const vec3_t rgb) {
+  return Math_FloatRGBToRGB9E5(rgb.x, rgb.y, rgb.z);
 }
 
 EXTERN_C inline uint32_t round_up(uint32_t value, uint32_t multiple) {

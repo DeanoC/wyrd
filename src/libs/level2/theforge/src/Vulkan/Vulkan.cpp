@@ -54,7 +54,6 @@
 #include <Windows.h>
 #endif
 
-#ifdef FORGE_JHABLE_EDITS_V01
 // These are placed separately in Vulkan.cpp and Direct3D12.cpp, but they should be in one place
 // with an option for the user to append custom attributes. However, it should be initialized once
 // so that we can parse them during shader reflection, not during pipeline binding.
@@ -71,7 +70,6 @@ static const char * g_hackSemanticList[] =
     "TEXCOORD",
 };
 // clang-format on
-#endif
 
 #if defined(__linux__)
 #define stricmp(a, b) strcasecmp(a, b)
@@ -264,14 +262,10 @@ static const VkFormat gVkFormatTranslator[] = {
     VK_FORMAT_UNDEFINED, // GNF_BC3 = 74,
     VK_FORMAT_UNDEFINED, // GNF_BC4 = 75,
     VK_FORMAT_UNDEFINED, // GNF_BC5 = 76,
-#ifdef FORGE_JHABLE_EDITS_V01
                             // this is incorrect, because we need separate enums for signed float and unsigned float. for now, just pretend it's a signed float
     VK_FORMAT_BC6H_SFLOAT_BLOCK, // GNF_BC6 = 77,
     VK_FORMAT_BC7_UNORM_BLOCK, // GNF_BC7 = 78,
-#else
-    VK_FORMAT_UNDEFINED, // GNF_BC6 = 77,
-    VK_FORMAT_UNDEFINED, // GNF_BC7 = 78,
-#endif
+
     // Reveser Form
     VK_FORMAT_B8G8R8A8_UNORM, // BGRA8 = 79,
     // Extend for DXGI
@@ -4413,7 +4407,6 @@ void addRootSignature(Renderer* pRenderer, const RootSignatureDesc* pRootSignatu
     }
 }
 
-#ifdef FORGE_JHABLE_EDITS_V01
 static bool convertVertInputToSemantic(int& semanticType, int& semanticIndex, const char attrName[], int attrLen)
 {
     semanticType = -1;
@@ -4491,8 +4484,6 @@ static bool convertVertInputToSemantic(int& semanticType, int& semanticIndex, co
 
     return semanticType >= 0;
 }
-
-#endif
 
 /************************************************************************/
 // Pipeline State Functions
@@ -4604,7 +4595,6 @@ void addGraphicsPipelineImpl(Renderer* pRenderer, const GraphicsPipelineDesc* pD
             uint32_t attrib_count = pVertexLayout->mAttribCount > MAX_VERTEX_ATTRIBS ? MAX_VERTEX_ATTRIBS : pVertexLayout->mAttribCount;
             uint32_t binding_value = UINT32_MAX;
 
-#ifdef FORGE_JHABLE_EDITS_V01
             ASSERT(pShaderProgram->mReflection.mVertexStageIndex >= 0);
             ASSERT(attrib_count <= MAX_VERTEX_BINDINGS);
 
@@ -4661,9 +4651,6 @@ void addGraphicsPipelineImpl(Renderer* pRenderer, const GraphicsPipelineDesc* pD
                     }
                 }
             }
-#endif
-
-#ifdef FORGE_JHABLE_EDITS_V01
             // Initial values
             for (uint32_t i = 0; i < attrib_count; ++i)
             {
@@ -4696,36 +4683,6 @@ void addGraphicsPipelineImpl(Renderer* pRenderer, const GraphicsPipelineDesc* pD
                     ++input_attribute_count;
                 }
             }
-#else
-            // Initial values
-            for (uint32_t i = 0; i < attrib_count; ++i)
-            {
-                const VertexAttrib* attrib = &(pVertexLayout->mAttribs[i]);
-
-                if (binding_value != attrib->mBinding)
-                {
-                    binding_value = attrib->mBinding;
-                    ++input_binding_count;
-                }
-
-                input_bindings[input_binding_count - 1].binding = binding_value;
-                if (attrib->mRate == VERTEX_ATTRIB_RATE_INSTANCE)
-                {
-                    input_bindings[input_binding_count - 1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-                }
-                else
-                {
-                    input_bindings[input_binding_count - 1].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-                }
-                input_bindings[input_binding_count - 1].stride += calculateImageFormatStride(attrib->mFormat);
-
-                input_attributes[input_attribute_count].location = attrib->mLocation;
-                input_attributes[input_attribute_count].binding = attrib->mBinding;
-                input_attributes[input_attribute_count].format = util_to_vk_image_format(attrib->mFormat, false);
-                input_attributes[input_attribute_count].offset = attrib->mOffset;
-                ++input_attribute_count;
-            }
-#endif
         }
 
         DECLARE_ZERO(VkPipelineVertexInputStateCreateInfo, vi);

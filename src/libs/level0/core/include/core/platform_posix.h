@@ -1,6 +1,7 @@
 #ifndef _RUST_BINDGEN_
 #include <stdlib.h>
 #include <memory.h>
+#include <strings.h>
 #endif
 
 #include <stdbool.h>

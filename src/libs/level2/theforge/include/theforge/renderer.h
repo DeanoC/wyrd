@@ -19,11 +19,16 @@ EXTERN_C void TheForge_RemoveFence(TheForge_Renderer *pRenderer, TheForge_Fence 
 EXTERN_C void TheForge_AddSemaphore(TheForge_Renderer *pRenderer, TheForge_Semaphore **pp_semaphore);
 EXTERN_C void TheForge_RemoveSemaphore(TheForge_Renderer *pRenderer, TheForge_Semaphore *p_semaphore);
 EXTERN_C void TheForge_AddQueue(TheForge_Renderer *pRenderer, TheForge_QueueDesc *pQDesc, TheForge_Queue **ppQueue);
-EXTERN_C void TheForge_RemoveQueue(TheForge_Queue *pQueue);
+EXTERN_C void TheForge_RemoveQueue(TheForge_Renderer *pRenderer, TheForge_Queue *pQueue);
 EXTERN_C void TheForge_AddSwapChain(TheForge_Renderer *pRenderer,
                                     const TheForge_SwapChainDesc *p_desc,
                                     TheForge_SwapChain **pp_swap_chain);
 EXTERN_C void TheForge_RemoveSwapChain(TheForge_Renderer *pRenderer, TheForge_SwapChain *p_swap_chain);
+EXTERN_C void TheForge_AddBuffer(TheForge_Renderer *pRenderer, const TheForge_BufferDesc *pDesc, TheForge_Buffer **pp_buffer);
+EXTERN_C void TheForge_RemoveBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer);
+EXTERN_C void TheForge_AddTexture(TheForge_Renderer *pRenderer, const TheForge_TextureDesc *pDesc, TheForge_Texture **ppTexture);
+EXTERN_C void TheForge_RemoveTexture(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture);
+
 
 // command pool functions
 EXTERN_C void TheForge_AddCmdPool(TheForge_Renderer *pRenderer,
@@ -211,6 +216,8 @@ EXTERN_C void TheForge_CmdExecuteIndirect(TheForge_Cmd *pCmd,
                                           uint64_t counterBufferOffset);
 
 // GPU Query Interface
+EXTERN_C bool TheForge_IsQuerySupported(TheForge_Renderer *pRenderer);
+
 EXTERN_C void TheForge_GetTimestampFrequency(TheForge_Queue *pQueue, double *pFrequency);
 EXTERN_C void TheForge_AddQueryHeap(TheForge_Renderer *pRenderer,
                                     const TheForge_QueryHeapDesc *pDesc,
@@ -236,10 +243,5 @@ EXTERN_C void TheForge_CmdAddDebugMarker(TheForge_Cmd *pCmd, float r, float g, f
 // Resource Debug Naming Interface
 EXTERN_C void TheForge_SetBufferName(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer, const char *pName);
 EXTERN_C void TheForge_SetTextureName(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture, const char *pName);
-
-EXTERN_C void TheForge_AllocBuffer(TheForge_Renderer *pRenderer, const TheForge_BufferDesc *pDesc, TheForge_Buffer **pp_buffer);
-EXTERN_C void TheForge_FreeBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer);
-EXTERN_C void TheForge_AllocTexture(TheForge_Renderer *pRenderer, const TheForge_TextureDesc *pDesc, TheForge_Texture **ppTexture);
-EXTERN_C void TheForge_FreeTexture(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture);
 
 #endif //WYRD_THEFORGE_RENDERER_H

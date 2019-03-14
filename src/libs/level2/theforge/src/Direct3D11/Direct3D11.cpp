@@ -2744,7 +2744,6 @@ void addPipeline(Renderer* pRenderer, const GraphicsPipelineDesc* pDesc, Pipelin
         {
             const VertexAttrib* attrib = &(pVertexLayout->mAttribs[attrib_index]);
 
-#ifdef FORGE_JHABLE_EDITS_V01
             input_elements[input_elementCount].SemanticName = g_hackSemanticList[attrib->mSemanticType];
             input_elements[input_elementCount].SemanticIndex = attrib->mSemanticIndex;
 
@@ -2754,59 +2753,6 @@ void addPipeline(Renderer* pRenderer, const GraphicsPipelineDesc* pDesc, Pipelin
                 strncpy_s(semantic_names[attrib_index], attrib->mSemanticName, name_length);
             }
 
-#else
-            ASSERT(SEMANTIC_UNDEFINED != attrib->mSemantic);
-
-            if (attrib->mSemanticNameLength > 0)
-            {
-                uint32_t name_length = min((uint32_t)MAX_SEMANTIC_NAME_LENGTH, attrib->mSemanticNameLength);
-                strncpy_s(semantic_names[attrib_index], attrib->mSemanticName, name_length);
-            }
-            else
-            {
-                DECLARE_ZERO(char, name[MAX_SEMANTIC_NAME_LENGTH]);
-                switch (attrib->mSemantic)
-                {
-                    case SEMANTIC_POSITION: sprintf_s(name, "POSITION"); break;
-                    case SEMANTIC_NORMAL: sprintf_s(name, "NORMAL"); break;
-                    case SEMANTIC_COLOR: sprintf_s(name, "COLOR"); break;
-                    case SEMANTIC_TANGENT: sprintf_s(name, "TANGENT"); break;
-                    case SEMANTIC_BITANGENT: sprintf_s(name, "BINORMAL"); break;
-                    case SEMANTIC_TEXCOORD0: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD1: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD2: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD3: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD4: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD5: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD6: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD7: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD8: sprintf_s(name, "TEXCOORD"); break;
-                    case SEMANTIC_TEXCOORD9: sprintf_s(name, "TEXCOORD"); break;
-                    default: break;
-                }
-                ASSERT(0 != strlen(name));
-                strncpy_s(semantic_names[attrib_index], name, strlen(name));
-            }
-
-            UINT semantic_index = 0;
-            switch (attrib->mSemantic)
-            {
-                case SEMANTIC_TEXCOORD0: semantic_index = 0; break;
-                case SEMANTIC_TEXCOORD1: semantic_index = 1; break;
-                case SEMANTIC_TEXCOORD2: semantic_index = 2; break;
-                case SEMANTIC_TEXCOORD3: semantic_index = 3; break;
-                case SEMANTIC_TEXCOORD4: semantic_index = 4; break;
-                case SEMANTIC_TEXCOORD5: semantic_index = 5; break;
-                case SEMANTIC_TEXCOORD6: semantic_index = 6; break;
-                case SEMANTIC_TEXCOORD7: semantic_index = 7; break;
-                case SEMANTIC_TEXCOORD8: semantic_index = 8; break;
-                case SEMANTIC_TEXCOORD9: semantic_index = 9; break;
-                default: break;
-            }
-
-            input_elements[input_elementCount].SemanticName = semantic_names[attrib_index];
-            input_elements[input_elementCount].SemanticIndex = semantic_index;
-#endif
             input_elements[input_elementCount].Format = util_to_dx_image_format(attrib->mFormat, false);
             input_elements[input_elementCount].InputSlot = attrib->mBinding;
             input_elements[input_elementCount].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;

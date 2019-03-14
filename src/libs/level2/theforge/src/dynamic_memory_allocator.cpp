@@ -19,7 +19,7 @@ void AddDynamicMemoryAllocator(Renderer *pRenderer, uint64_t size, DynamicMemory
   desc.mMemoryUsage = RESOURCE_MEMORY_USAGE_CPU_TO_GPU;
   desc.mSize = pAllocator->mSize;
   desc.mFlags = BUFFER_CREATION_FLAG_PERSISTENT_MAP_BIT;
-  AllocBuffer(pRenderer, &desc, &pAllocator->pBuffer);
+  AddBuffer(pRenderer, &desc, &pAllocator->pBuffer);
 
   pAllocator->mAlignment = pRenderer->pActiveGpuSettings->mUniformBufferAlignment;
 
@@ -29,7 +29,7 @@ void AddDynamicMemoryAllocator(Renderer *pRenderer, uint64_t size, DynamicMemory
 void RemoveDynamicMemoryAllocator(Renderer *pRenderer, DynamicMemoryAllocator *pAllocator) {
   ASSERT(pAllocator);
 
-  FreeBuffer(pRenderer, pAllocator->pBuffer);
+  RemoveBuffer(pRenderer, pAllocator->pBuffer);
 
   Os_MutexDestroy(&pAllocator->mAllocationMutex);
 

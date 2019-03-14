@@ -13,19 +13,11 @@ using ShaderVariable = TheForge_ShaderVariable;
 using ShaderReflection = TheForge_ShaderReflection;
 using PipelineReflection = TheForge_PipelineReflection;
 
-inline void DestroyShaderReflection(ShaderReflection *pReflection) {
-  TheForge_DestroyShaderReflection(pReflection);
-}
-
-inline void CreatePipelineReflection(ShaderReflection *pReflection,
+void DestroyShaderReflection(ShaderReflection *pReflection);
+void CreatePipelineReflection(ShaderReflection *pReflection,
                               uint32_t stageCount,
-                              PipelineReflection *pOutReflection) {
-  TheForge_CreatePipelineReflection(pReflection, stageCount, pOutReflection);
-}
-
-inline void DestroyPipelineReflection(PipelineReflection *pReflection) {
-  TheForge_DestroyPipelineReflection(pReflection);
-}
+                              PipelineReflection *pOutReflection);
+void DestroyPipelineReflection(PipelineReflection *pReflection);
 
 } // end namespace TheForge
 
