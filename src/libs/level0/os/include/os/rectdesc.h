@@ -10,16 +10,14 @@ typedef struct Os_RectDesc_t
 	int bottom;
 } Os_RectDesc_t;
 
-#if defined(__cplusplus)
-inline int getRectWidth(const Os_RectDesc_t& rect)
+EXTERN_C inline int Os_GetRectWidth(const Os_RectDesc_t* rect)
 {
-	return rect.right - rect.left;
+	return rect->right - rect->left;
 }
 
-inline int getRectHeight(const Os_RectDesc_t& rect)
+EXTERN_C inline int Os_GetRectHeight(const Os_RectDesc_t* rect)
 {
-	return rect.bottom - rect.top;
+	return rect->bottom - rect->top;
 }
-#endif
 
 #endif //WYRD_OS_RECTDESC_H

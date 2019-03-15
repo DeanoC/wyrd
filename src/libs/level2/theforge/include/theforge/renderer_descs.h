@@ -3,7 +3,7 @@
 #define WYRD_THEFORGE_RENDERER_DESC_H
 
 #include "core/core.h"
-#include "os/windowsdesc.h"
+#include "os/window.h"
 #include "theforge/image_enums.h"
 #include "theforge/renderer_enums.h"
 
@@ -371,7 +371,7 @@ typedef struct TheForge_SubresourceDataDesc {
 
 typedef struct TheForge_SwapChainDesc {
   /// Window handle
-  Os_WindowsDesc_t *pWindow;
+  Os_WindowsDesc *pWindow;
   /// Queues which should be allowed to present
   struct TheForge_Queue **ppPresentQueues;
   /// Number of present queues

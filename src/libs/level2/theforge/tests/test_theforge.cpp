@@ -9,7 +9,7 @@
 #include "theforge/renderer.h"
 TheForge_Renderer *renderer;
 
-int Main(int argc, char *argv[]) {
+int Main(int argc, char const *argv[]) {
   LogMan_Handle logManHandle = LogMan_Alloc();
   LogMan_SetInfoQuiet(logManHandle, true);
 
@@ -17,7 +17,7 @@ int Main(int argc, char *argv[]) {
   TheForge_InitRenderer("test", &desc, &renderer);
   ASSERT(renderer);
 
-  int res = Catch::Session().run(argc, argv);
+  int res = Catch::Session().run(argc, (char**)argv);
 
   TheForge_RemoveRenderer(renderer);
   LogMan_Free(logManHandle);

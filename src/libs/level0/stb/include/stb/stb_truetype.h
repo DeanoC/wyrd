@@ -4785,7 +4785,7 @@ STBTT_DEF int stbtt_CompareUTF8toUTF16_bigendian(const char *s1, int len1, const
 //                        non-oversampled; STBTT_POINT_SIZE for packed case only
 //   1.00 (2014-12-06) add new PackBegin etc. API, w/ support for oversampling
 //   0.99 (2014-09-18) fix multiple bugs with subpixel rendering (ryg)
-//   0.9  (2014-08-07) support certain mac/iOS fonts without an MS platformID
+//   0.9  (2014-08-07) support certain macresources/iOS fonts without an MS platformID
 //   0.8b (2014-07-07) fix a warning
 //   0.8  (2014-05-25) fix a few more warnings
 //   0.7  (2013-09-25) bugfix: subpixel glyph bug fixed in 0.5 had come back

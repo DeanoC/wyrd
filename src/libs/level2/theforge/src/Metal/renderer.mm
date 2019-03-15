@@ -4,7 +4,7 @@
 #include "core/core.h"
 #include "math/math.h"
 #include "os/thread.hpp"
-#include "os/windowsdesc.h"
+#include "os/window.h"
 #include "tinystl/unordered_map.h"
 #include "theforge/shader_reflection.hpp"
 #include "structs.hpp"
@@ -653,7 +653,7 @@ void RetrieveSystemProfilerInformation(tinystl::string& outVendorId) {
         CFMutableStringRef outputString;
 
         // Create a mutable CFStringRef with the dictionary value found with key “machine_name”
-        // This is the machine_name of this mac machine.
+        // This is the machine_name of this macresources machine.
         // Here you can give any value in key tag,to get its corresponding content
         outputString = CFStringCreateMutableCopy(
             kCFAllocatorDefault, 0,
@@ -1002,7 +1002,7 @@ void ToggleVSync(Renderer *pRenderer, SwapChain **pSwapchain) {
   //get a copy of the layer for nextDrawables
   CAMetalLayer *layer = (CAMetalLayer *) (*pSwapchain)->pMTKView.layer;
 
-  //only available on mac OS.
+  //only available on macresources OS.
   //VSync seems to be necessary on iOS.
   if (!(*pSwapchain)->mDesc.mEnableVsync) {
     (*pSwapchain)->pMTKView.enableSetNeedsDisplay = YES;
@@ -1025,7 +1025,7 @@ void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *pDesc, SwapChain **p
   pSwapChain->mDesc = *pDesc;
 
   // Assign MTKView to the swapchain.
-  pSwapChain->pMTKView = (MTKView *) CFBridgingRelease(pDesc->pWindow->handle);
+//  pSwapChain->pMTKView = (MTKView *) CFBridgingRelease(pDesc->pWindow->handle);
   pSwapChain->pMTKView.device = pRenderer->pDevice;
   pSwapChain->pMTKView.autoresizesSubviews = TRUE;
   pSwapChain->pMTKView.preferredFramesPerSecond = 60.0;
@@ -1039,7 +1039,7 @@ void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *pDesc, SwapChain **p
   CAMetalLayer *layer = (CAMetalLayer *) pSwapChain->pMTKView.layer;
   pSwapChain->pMTKView.layer = layer;
 
-  //only available on mac OS.
+  //only available on macresources OS.
   //VSync seems to be necessary on iOS.
   if (!pDesc->mEnableVsync) {
     pSwapChain->pMTKView.enableSetNeedsDisplay = YES;

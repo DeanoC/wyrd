@@ -4,7 +4,7 @@ set( CInterface
 		cmdlineshell.h
 		)
 set( CPPInterface
-		)
+		cmdlineshell.hpp)
 
 set( Src
 		cmdlineshell.c
