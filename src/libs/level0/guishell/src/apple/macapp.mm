@@ -13,10 +13,7 @@
 
 int main(int argc, char const* argv[])
 {
-  int appmainres =  NSApplicationMain(argc, argv);
-  if(appmainres) return appmainres;
-
-  return Main(argc, argv);
+  return NSApplicationMain(argc, argv);
 }
 
 /************************************************************************/
@@ -119,6 +116,7 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
                   renderDestinationProvider:(nonnull id <RenderDestinationProvider>)renderDestinationProvider
                                        view:(nonnull MTKView *)view {
   self = [super init];
+
   if (self) {
     Os::FileSystem::SetCurrentDir(Os::FileSystem::GetExePath());
 
@@ -129,22 +127,22 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
 
     @autoreleasepool {
       //if init fails then exit the app
-//      if (!pApp->Init()) {
-//        for (NSWindow *window in [NSApplication sharedApplication].windows) {
-//          [window close];
-//        }
+      if (!GuiShell_Init()) {
+        for (NSWindow *window in [NSApplication sharedApplication].windows) {
+          [window close];
+        }
 
-//        exit(1);
-//      }
+        GuiShell_Terminate();
+      }
 
       //if load fails then exit the app
-//      if (!pApp->Load()) {
-//        for (NSWindow *window in [NSApplication sharedApplication].windows) {
-//          [window close];
-//        }
-//
-//        exit(1);
-//      }
+      if (!GuiShell_Load()) {
+        for (NSWindow *window in [NSApplication sharedApplication].windows) {
+          [window close];
+        }
+
+        GuiShell_Terminate();
+      }
     }
   }
 
@@ -152,28 +150,35 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
 }
 
 - (void)drawRectResized:(CGSize)size {
+  // TODO deano
 //  float newWidth = size.width * gRetinaScale.x;
 //  float newHeight = size.height * gRetinaScale.y;
-
 //  if (newWidth != pApp->mSettings.mWidth || newHeight != pApp->mSettings.mHeight) {
 //    pApp->mSettings.mWidth = newWidth;
 //    pApp->mSettings.mHeight = newHeight;
 //    pApp->Unload();
 //    pApp->Load();
+//  }
+
+  float newWidth = (float)size.width;
+  float newHeight = (float)size.height;
+  GuiShell_Unload();
+  GuiShell_Load();
 }
 
 - (void)updateInput {
 }
 
 - (void)update {
- // float deltaTime = deltaTimer.GetMSec(true) / 1000.0f;
+  // TODO Deano
+  float deltaTimeMS = 33.0f;//deltaTimer.GetMSec(true) / 1000.0f;
   // if framerate appears to drop below about 6, assume we're at a breakpoint and simulate 20fps.
-//  if (deltaTime > 0.15f) {
-  //  deltaTime = 0.05f;
-//  }
+  if (deltaTimeMS > 0.15f) {
+    deltaTimeMS = 0.05f;
+  }
 
-//  pApp->Update(deltaTime);
-//  pApp->Draw();
+  GuiShell_Update(deltaTimeMS);
+  GuiShell_Draw();
 
 #ifdef AUTOMATED_TESTING
   testingCurrentFrameCount++;
@@ -191,8 +196,8 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
 
 - (void)shutdown {
 //  InputSystem::Shutdown();
-//  pApp->Unload();
-//  pApp->Exit();
+  GuiShell_Unload();
+  GuiShell_Exit();
 }
 @end
 

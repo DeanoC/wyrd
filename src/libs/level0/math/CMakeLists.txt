@@ -19,4 +19,5 @@ set(Tests
 		test_math_c.cpp
 		)
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
+ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}")

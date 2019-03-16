@@ -58,7 +58,9 @@ set(Tests
         test_theforge.cpp
         )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "${Tests}")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
+ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}")
+
 if (APPLE)
     add_compile_definitions(${LibName} METAL)
     target_compile_options(${LibName} PRIVATE -fobjc-arc)

@@ -231,12 +231,12 @@ EXTERN_C inline uint32_t Math_FloatRGBToRGBE8(const float r, const float g, cons
     int ex;
     float m = frexpf(v, &ex) * 256.0f / v;
 
-    uint32_t r = (uint32_t)(m * r);
-    uint32_t g = (uint32_t)(m * g);
-    uint32_t b = (uint32_t)(m * b);
-    uint32_t e = (uint32_t)(ex + 128);
+    uint32_t ir = (uint32_t)(m * r);
+    uint32_t ig = (uint32_t)(m * g);
+    uint32_t ib = (uint32_t)(m * b);
+    uint32_t ie = (uint32_t)(ex + 128);
 
-    return r | (g << 8) | (b << 16) | (e << 24);
+    return ir | (ig << 8) | (ib << 16) | (ie << 24);
   }
 }
 
@@ -256,20 +256,20 @@ EXTERN_C inline uint32_t Math_FloatRGBToRGB9E5(const float r, const float g, con
     int ex;
     float m = frexpf(v, &ex) * 512.0f / v;
 
-    uint32_t r = (uint32_t)(m * r);
-    uint32_t g = (uint32_t)(m * g);
-    uint32_t b = (uint32_t)(m * b);
-    uint32_t e = (unsigned int)(ex + 15);
+    uint32_t ir = (uint32_t)(m * r);
+    uint32_t ig = (uint32_t)(m * g);
+    uint32_t ib = (uint32_t)(m * b);
+    uint32_t ie = (unsigned int)(ex + 15);
 
-    return r | (g << 9) | (b << 18) | (e << 27);
+    return ir | (ig << 9) | (ib << 18) | (ie << 27);
   }
   else {
-    uint32_t r = (r < 65536) ? (uint32_t)(r * (1.0f / 128.0f)) : 0x1FF;
-    uint32_t g = (g < 65536) ? (uint32_t)(g * (1.0f / 128.0f)) : 0x1FF;
-    uint32_t b = (b < 65536) ? (uint32_t)(b * (1.0f / 128.0f)) : 0x1FF;
-    uint32_t e = 31;
+    uint32_t ir = (r < 65536) ? (uint32_t)(r * (1.0f / 128.0f)) : 0x1FF;
+    uint32_t ig = (g < 65536) ? (uint32_t)(g * (1.0f / 128.0f)) : 0x1FF;
+    uint32_t ib = (b < 65536) ? (uint32_t)(b * (1.0f / 128.0f)) : 0x1FF;
+    uint32_t ie = 31;
 
-    return r | (g << 9) | (b << 18) | (e << 27);
+    return ir | (ig << 9) | (ib << 18) | (ie << 27);
   }
 }
 EXTERN_C inline uint32_t MathVec3RGBToRGB9E5(const vec3_t rgb) {

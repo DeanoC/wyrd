@@ -28,7 +28,6 @@ EXTERN_C bool Os_ReplaceExtension(char const *path, char const *newExtension, ch
   ASSERT(newExtension);
   ASSERT(dirOut);
 
-  tinystl::string_view extView;
   tinystl::string const p(path);
   tinystl::string const e(newExtension);
   tinystl::string::size_type const extPos = p.find_last('.');

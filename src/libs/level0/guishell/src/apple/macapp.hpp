@@ -31,7 +31,6 @@
 // protocol, which allows our renderer object to get and set drawable properties such as pixel
 // format and sample count
 @interface GameViewController : NSViewController <MTKViewDelegate, RenderDestinationProvider>
-
 @end
 
 #endif //WYRD_GUISHELL_MACAPP_HPP

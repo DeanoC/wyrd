@@ -13,4 +13,4 @@ set( Src stb_impl.c )
 
 set( Deps level0/core )
 
-ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}" "")
+ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
