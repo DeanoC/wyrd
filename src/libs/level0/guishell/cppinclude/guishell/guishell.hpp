@@ -5,7 +5,7 @@
 #include "core/core.h"
 #include "guishell/guishell.h"
 #include "tinystl/string.h"
-#include "os/window.h"
+#include "guishell/window.h"
 
 namespace GuiShell {
 
@@ -37,7 +37,7 @@ class IApp {
 #endif
   } mSettings;
 
-  Os_WindowsDesc *pWindow;
+  GuiShell_WindowDesc *pWindow;
   tinystl::string mCommandLine;
 };
 } // end namespae GuiShell

@@ -2,7 +2,7 @@
 #ifndef WYRD_OS_MONITORDESC_H
 #define WYRD_OS_MONITORDESC_H
 
-#include "os/rectdesc.h"
+#include "os/rect.h"
 
 typedef struct Resolution
 {

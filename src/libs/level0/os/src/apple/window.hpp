@@ -7,11 +7,7 @@
 
 namespace Os {
 
-struct AppleWindow {
-  Os_WindowDesc desc;
-  Os_RectDesc_t windowedRect;
-  MTKView *_Nonnull metalView;
-};
+
 
 } // end namespace Os
 

@@ -6,6 +6,15 @@
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #include <AppKit/NSOpenPanel.h>
+#include "os/rect.h"
+#include "guishell/window.h"
+
+struct AppleWindow {
+  GuiShell_WindowDesc desc;
+  Os_Rect windowedRect;
+  MTKView *_Nonnull metalView;
+};
+
 
 // Protocol abstracting the platform specific view in order to keep the Renderer class independent from platform
 @protocol RenderDestinationProvider

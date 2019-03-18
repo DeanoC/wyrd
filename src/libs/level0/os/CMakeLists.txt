@@ -2,8 +2,7 @@ set( LibName os)
 
 set( CInterface
 		monitordesc.h
-		rectdesc.h
-		window.h
+		rect.h
 		file.h
 		filesystem.h
         atomics.h
@@ -28,8 +27,6 @@ endif()
 
 if(APPLE)
 	list(APPEND Src posix/filesystem.cpp)
-	list(APPEND Src apple/macwindow.mm)
-	list(APPEND Src apple/window.mm)
 	list(APPEND Src apple/filesystem.mm)
 	list(APPEND Src posix/thread.c)
 endif()

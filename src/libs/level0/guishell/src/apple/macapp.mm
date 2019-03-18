@@ -6,13 +6,22 @@
 
 #include "core/core.h"
 #include "core/logger.h"
-#include "os/window.h"
 #include "os/filesystem.hpp"
 #include "guishell/guishell.hpp"
+#include "guishell/window.hpp"
 #include "macapp.hpp"
+
+namespace {
+
+GuiShell_Functions gGuiShellFunctions = {};
+GuiShell::Window::Desc gInitialMainWindowDesc = {};
+AppleWindow gMainWindowHandle = {};
+
+}
 
 int main(int argc, char const* argv[])
 {
+  GuiShell_AppConfig(&gGuiShellFunctions, &gInitialMainWindowDesc);
   return NSApplicationMain(argc, argv);
 }
 
@@ -100,9 +109,6 @@ renderDestinationProvider:self
 }
 
 @end
-void GetRecommendedResolution(Os_RectDesc_t* rect) {
-  *rect = Os_RectDesc_t{ 0, 0, 1920, 1080 };
-}
 
 /************************************************************************/
 // MetalKitApplication implementation
@@ -120,28 +126,53 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
   if (self) {
     Os::FileSystem::SetCurrentDir(Os::FileSystem::GetExePath());
 
-    Os_RectDesc_t rect;
-    GetRecommendedResolution(&rect);
+    int32_t width = gInitialMainWindowDesc.width;
+    int32_t height = gInitialMainWindowDesc.height;
 
-//    window->metalView = (MTKView*) CFBridgingRetain(view);
+    //    window->metalView = (MTKView*) CFBridgingRetain(view);
+    if (width == -1 || height == -1)
+    {
+      gInitialMainWindowDesc.width = width = 1920;
+      gInitialMainWindowDesc.height = height = 1080;
+    }
+    else
+    {
+      //if width and height were set manually in App constructor
+      //then override and set window size to user width/height.
+      //That means we now render at size * gRetinaScale.
+      //TODO: make sure pSettings->mWidth determines window size and not drawable size as on retina displays we need to make sure that's what user wants.
+      NSSize windowSize = CGSizeMake(width, height);
+      [view.window setContentSize:windowSize];
+      [view setFrameSize:windowSize];
+    }
 
     @autoreleasepool {
       //if init fails then exit the app
-      if (!GuiShell_Init()) {
+      if (gGuiShellFunctions.init && !gGuiShellFunctions.init()) {
         for (NSWindow *window in [NSApplication sharedApplication].windows) {
           [window close];
         }
 
-        GuiShell_Terminate();
+        if(gGuiShellFunctions.abort)
+        {
+          gGuiShellFunctions.abort();
+        } else {
+          abort();
+        }
       }
 
       //if load fails then exit the app
-      if (!GuiShell_Load()) {
+      if (gGuiShellFunctions.load && !gGuiShellFunctions.load()) {
         for (NSWindow *window in [NSApplication sharedApplication].windows) {
           [window close];
         }
 
-        GuiShell_Terminate();
+        if(gGuiShellFunctions.abort)
+        {
+          gGuiShellFunctions.abort();
+        } else {
+          abort();
+        }
       }
     }
   }
@@ -153,17 +184,27 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
   // TODO deano
 //  float newWidth = size.width * gRetinaScale.x;
 //  float newHeight = size.height * gRetinaScale.y;
-//  if (newWidth != pApp->mSettings.mWidth || newHeight != pApp->mSettings.mHeight) {
-//    pApp->mSettings.mWidth = newWidth;
-//    pApp->mSettings.mHeight = newHeight;
-//    pApp->Unload();
-//    pApp->Load();
-//  }
-
   float newWidth = (float)size.width;
   float newHeight = (float)size.height;
-  GuiShell_Unload();
-  GuiShell_Load();
+  if (newWidth != gMainWindowHandle.desc.width ||
+      newHeight != gMainWindowHandle.desc.height) {
+    gMainWindowHandle.desc.width = (uint32_t)newWidth;
+    gMainWindowHandle.desc.height = (uint32_t)newHeight;
+
+    if (gGuiShellFunctions.unload) {
+      gGuiShellFunctions.unload();
+    }
+    if (gGuiShellFunctions.load) {
+      gGuiShellFunctions.load();
+    }
+  }
+
+  if (gGuiShellFunctions.unload) {
+    gGuiShellFunctions.unload();
+  }
+  if (gGuiShellFunctions.load) {
+    gGuiShellFunctions.load();
+  }
 }
 
 - (void)updateInput {
@@ -177,8 +218,12 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
     deltaTimeMS = 0.05f;
   }
 
-  GuiShell_Update(deltaTimeMS);
-  GuiShell_Draw();
+  if (gGuiShellFunctions.update) {
+    gGuiShellFunctions.update(deltaTimeMS);
+  }
+  if (gGuiShellFunctions.draw) {
+    gGuiShellFunctions.draw();
+  }
 
 #ifdef AUTOMATED_TESTING
   testingCurrentFrameCount++;
@@ -196,9 +241,23 @@ void GetRecommendedResolution(Os_RectDesc_t* rect) {
 
 - (void)shutdown {
 //  InputSystem::Shutdown();
-  GuiShell_Unload();
-  GuiShell_Exit();
+  if (gGuiShellFunctions.unload) {
+    gGuiShellFunctions.unload();
+  }
+
+  if (gGuiShellFunctions.exit) {
+    gGuiShellFunctions.exit();
+  }
 }
 @end
 
+// GuiShell Window API
+EXTERN_C void GuiShell_WindowGetCurrentDesc(GuiShell_WindowHandle handle, GuiShell_WindowDesc* desc) {
+ ASSERT(desc);
+ memcpy(desc, &gMainWindowHandle.desc, sizeof(GuiShell_WindowDesc));
+}
+
+EXTERN_C void GuiShell_Terminate() {
+  [[NSApplication sharedApplication] terminate:nil];
+}
 
