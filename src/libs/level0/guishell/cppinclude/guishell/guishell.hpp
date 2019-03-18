@@ -5,41 +5,27 @@
 #include "core/core.h"
 #include "guishell/guishell.h"
 #include "tinystl/string.h"
-#include "guishell/window.h"
+#include "guishell/window.hpp"
 
 namespace GuiShell {
 
-class IApp {
- public:
-  virtual bool Init() = 0;
-  virtual void Exit() = 0;
+// Init, Load, Unload, Update, Draw and Exit and InitialWindow must be defined
+// as static function in the users app class
+#define DECLARE_APP(type) static type theApp; \
+EXTERN_C void GuiShell_AppConfig(GuiShell_Functions* functions, GuiShell_WindowDesc* initialWindow) { \
+  functions->init = &theApp.Init; \
+  functions->load = &theApp.Load; \
+  functions->unload = &theApp.Unload; \
+  functions->update = &theApp.Update; \
+  functions->draw = &theApp.Draw; \
+  functions->exit = &theApp.Exit; \
+  memcpy(initialWindow, theApp.InitialWindow(), sizeof(GuiShell_WindowDesc)); \
+}
 
-  virtual bool Load() = 0;
-  virtual void Unload() = 0;
+inline void Terminate() {
+  GuiShell_Terminate();
+}
 
-  virtual void Update(float deltaTime) = 0;
-  virtual void Draw() = 0;
-
-  virtual tinystl::string GetName() = 0;
-
-  struct Settings {
-    /// Window width
-    int32_t mWidth = -1;
-    /// Window height
-    int32_t mHeight = -1;
-    /// Set to true if fullscreen mode has been requested
-    bool mFullScreen = false;
-    /// Set to true if app wants to use an external window
-    bool mExternalWindow = false;
-#if defined(TARGET_IOS)
-    bool mShowStatusBar = false;
-    float mContentScaleFactor = 0.f;
-#endif
-  } mSettings;
-
-  GuiShell_WindowDesc *pWindow;
-  tinystl::string mCommandLine;
-};
-} // end namespae GuiShell
+} // end namespace GuiShell
 
 #endif //WYRD_GUISHELL_GUISHELL_HPP

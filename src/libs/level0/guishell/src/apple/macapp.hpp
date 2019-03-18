@@ -11,8 +11,8 @@
 
 struct AppleWindow {
   GuiShell_WindowDesc desc;
-  Os_Rect windowedRect;
   MTKView *_Nonnull metalView;
+  float retinaScale[2];
 };
 
 

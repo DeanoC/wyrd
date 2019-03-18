@@ -9,11 +9,10 @@
 namespace GuiShell {
 namespace Window {
 
-using Handle = GuiShell_WindowHandle;
 using Desc = GuiShell_WindowDesc;
 
-void GetCurrentDesc(Handle handle, Desc *desc) {
-  GuiShell_WindowGetCurrentDesc(handle, desc);
+inline void GetCurrentDesc(Desc *desc) {
+  GuiShell_WindowGetCurrentDesc(desc);
 }
 
 } } // end namespace GuiShell::Window

@@ -15,12 +15,11 @@ namespace {
 
 GuiShell_Functions gGuiShellFunctions = {};
 GuiShell::Window::Desc gInitialMainWindowDesc = {};
-AppleWindow gMainWindowHandle = {};
+AppleWindow gMainWindow = {};
 
 }
 
-int main(int argc, char const* argv[])
-{
+int main(int argc, char const *argv[]) {
   GuiShell_AppConfig(&gGuiShellFunctions, &gInitialMainWindowDesc);
   return NSApplicationMain(argc, argv);
 }
@@ -50,9 +49,11 @@ int main(int argc, char const* argv[])
   _view.autoresizesSubviews = YES;
 
   // Adjust window size to match retina scaling.
-  float retinaScale[2] = {(float) (_view.drawableSize.width / _view.frame.size.width),
-                          (float) (_view.drawableSize.height / _view.frame.size.height)};
-  NSSize windowSize = CGSizeMake(_view.frame.size.width / retinaScale[0], _view.frame.size.height / retinaScale[1]);
+  gMainWindow.retinaScale[0] = (float) (_view.drawableSize.width / _view.frame.size.width);
+  gMainWindow.retinaScale[1] = (float) (_view.drawableSize.height / _view.frame.size.height);
+
+  NSSize windowSize = CGSizeMake(_view.frame.size.width / gMainWindow.retinaScale[0],
+                                 _view.frame.size.height / gMainWindow.retinaScale[1]);
   [_view.window setContentSize:windowSize];
   [_view.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 
@@ -62,11 +63,9 @@ int main(int argc, char const* argv[])
   }
 
   // Kick-off the MetalKitApplication.
-  _application = [[MetalKitApplication alloc]
-      initWithMetalDevice:_device
-renderDestinationProvider:self
-                     view:_view];
-
+  _application = [[MetalKitApplication alloc] initWithMetalDevice:_device
+                                        renderDestinationProvider:self
+                                                             view:_view];
 
   //register terminate callback
   NSApplication *app = [NSApplication sharedApplication];
@@ -126,22 +125,19 @@ renderDestinationProvider:self
   if (self) {
     Os::FileSystem::SetCurrentDir(Os::FileSystem::GetExePath());
 
-    int32_t width = gInitialMainWindowDesc.width;
-    int32_t height = gInitialMainWindowDesc.height;
+    memcpy(&gMainWindow.desc, &gInitialMainWindowDesc, sizeof(GuiShell_WindowDesc));
+    gMainWindow.metalView = view;
 
-    //    window->metalView = (MTKView*) CFBridgingRetain(view);
-    if (width == -1 || height == -1)
-    {
-      gInitialMainWindowDesc.width = width = 1920;
-      gInitialMainWindowDesc.height = height = 1080;
-    }
-    else
-    {
+    if (gInitialMainWindowDesc.width == -1 ||
+        gInitialMainWindowDesc.height == -1) {
+      gMainWindow.desc.width = 1920;
+      gMainWindow.desc.height = 1080;
+    } else {
       //if width and height were set manually in App constructor
       //then override and set window size to user width/height.
       //That means we now render at size * gRetinaScale.
       //TODO: make sure pSettings->mWidth determines window size and not drawable size as on retina displays we need to make sure that's what user wants.
-      NSSize windowSize = CGSizeMake(width, height);
+      NSSize windowSize = CGSizeMake(gMainWindow.desc.width, gMainWindow.desc.height);
       [view.window setContentSize:windowSize];
       [view setFrameSize:windowSize];
     }
@@ -153,8 +149,7 @@ renderDestinationProvider:self
           [window close];
         }
 
-        if(gGuiShellFunctions.abort)
-        {
+        if (gGuiShellFunctions.abort) {
           gGuiShellFunctions.abort();
         } else {
           abort();
@@ -167,8 +162,7 @@ renderDestinationProvider:self
           [window close];
         }
 
-        if(gGuiShellFunctions.abort)
-        {
+        if (gGuiShellFunctions.abort) {
           gGuiShellFunctions.abort();
         } else {
           abort();
@@ -181,15 +175,14 @@ renderDestinationProvider:self
 }
 
 - (void)drawRectResized:(CGSize)size {
-  // TODO deano
-//  float newWidth = size.width * gRetinaScale.x;
-//  float newHeight = size.height * gRetinaScale.y;
-  float newWidth = (float)size.width;
-  float newHeight = (float)size.height;
-  if (newWidth != gMainWindowHandle.desc.width ||
-      newHeight != gMainWindowHandle.desc.height) {
-    gMainWindowHandle.desc.width = (uint32_t)newWidth;
-    gMainWindowHandle.desc.height = (uint32_t)newHeight;
+  float const newWidth = (float) size.width * gMainWindow.retinaScale[0];
+  float const newHeight = (float) size.height * gMainWindow.retinaScale[1];
+
+  if (newWidth != gMainWindow.desc.width ||
+      newHeight != gMainWindow.desc.height) {
+
+    gMainWindow.desc.width = (uint32_t) newWidth;
+    gMainWindow.desc.height = (uint32_t) newHeight;
 
     if (gGuiShellFunctions.unload) {
       gGuiShellFunctions.unload();
@@ -252,9 +245,9 @@ renderDestinationProvider:self
 @end
 
 // GuiShell Window API
-EXTERN_C void GuiShell_WindowGetCurrentDesc(GuiShell_WindowHandle handle, GuiShell_WindowDesc* desc) {
- ASSERT(desc);
- memcpy(desc, &gMainWindowHandle.desc, sizeof(GuiShell_WindowDesc));
+EXTERN_C void GuiShell_WindowGetCurrentDesc(GuiShell_WindowDesc *desc) {
+  ASSERT(desc);
+  memcpy(desc, &gMainWindow.desc, sizeof(GuiShell_WindowDesc));
 }
 
 EXTERN_C void GuiShell_Terminate() {
