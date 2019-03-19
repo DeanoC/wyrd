@@ -111,9 +111,7 @@ typedef struct TheForge_RootSignature {
   TheForge_PipelineType mPipelineType;
 
   /// Api specific binding manager
-//  using ThreadLocalDescriptorManager = tinystl::unordered_map<ThreadID, struct DescriptorManager *>;
-  typedef stb_ptrmap ThreadLocalDescriptorManager;
-  ThreadLocalDescriptorManager pDescriptorManagerMap;
+  stb_ptrmap pDescriptorManagerMap;
 
   /// Translates hash of descriptor name to descriptor index
   stb_udict32 pDescriptorNameToIndexMap;

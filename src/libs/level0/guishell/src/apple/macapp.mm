@@ -10,18 +10,19 @@
 #include "guishell/guishell.hpp"
 #include "guishell/window.hpp"
 #include "macapp.hpp"
+#include "guishell/platform.hpp"
 
 namespace {
 
 GuiShell_Functions gGuiShellFunctions = {};
 GuiShell::Window::Desc gInitialMainWindowDesc = {};
-AppleWindow gMainWindow = {};
+GuiShell::AppleWindow gMainWindow = {};
 
 }
 
-int main(int argc, char const *argv[]) {
+int Main(int argc, char  *argv[]) {
   GuiShell_AppConfig(&gGuiShellFunctions, &gInitialMainWindowDesc);
-  return NSApplicationMain(argc, argv);
+  return NSApplicationMain(argc, (char const**)argv);
 }
 
 /************************************************************************/
@@ -141,6 +142,8 @@ int main(int argc, char const *argv[]) {
       [view.window setContentSize:windowSize];
       [view setFrameSize:windowSize];
     }
+    NSString *nameNSString = [NSString stringWithUTF8String:gMainWindow.desc.name];
+    [view.window setTitle:nameNSString];
 
     @autoreleasepool {
       //if init fails then exit the app
@@ -254,3 +257,6 @@ EXTERN_C void GuiShell_Terminate() {
   [[NSApplication sharedApplication] terminate:nil];
 }
 
+EXTERN_C void* GuiShell_GetPlatformWindowPtr() {
+  return &gMainWindow;
+}

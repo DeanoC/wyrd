@@ -202,6 +202,9 @@ void CmdBindLocalDescriptors(Cmd *pCmd,
                              RootSignature *pRootSignature,
                              uint32_t numDescriptors,
                              DescriptorData *pDescParams);
+
+ImageFormat GetRecommendedSwapchainFormat(bool hintHDR);
+
 } } // end namespace TheForge::Metal
 
 #endif //WYRD_THEFORGE_METAL_RENDERER_HPP

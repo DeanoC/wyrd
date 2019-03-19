@@ -1,10 +1,11 @@
 #import <simd/simd.h>
 #import <MetalKit/MetalKit.h>
+#import <guishell/platform.hpp>
 
 #include "core/core.h"
 #include "math/math.h"
 #include "os/thread.hpp"
-#include "os/window.h"
+#include "guishell/window.h"
 #include "tinystl/unordered_map.h"
 #include "theforge/shader_reflection.hpp"
 #include "structs.hpp"
@@ -570,11 +571,7 @@ void DestroyDefaultResources(Renderer *pRenderer) {
   RemoveRasterizerState(pRenderer, pRenderer->pDefaultRasterizerState);
 }
 
-// -------------------------------------------------------------------------------------------------
-// API functions
-// -------------------------------------------------------------------------------------------------
 
-ImageFormat getRecommendedSwapchainFormat(bool hintHDR) { return BGRA8; }
 #ifndef TARGET_IOS
 // Returns the CFDictionary that contains the system profiler data type described in inDataType.
 CFDictionaryRef FindDictionaryForDataType(const CFArrayRef inArray, CFStringRef inDataType) {
@@ -1025,7 +1022,8 @@ void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *pDesc, SwapChain **p
   pSwapChain->mDesc = *pDesc;
 
   // Assign MTKView to the swapchain.
-//  pSwapChain->pMTKView = (MTKView *) CFBridgingRelease(pDesc->pWindow->handle);
+  GuiShell::AppleWindow* appleWindow = (GuiShell::AppleWindow*)GuiShell_GetPlatformWindowPtr();
+  pSwapChain->pMTKView = appleWindow->metalView;
   pSwapChain->pMTKView.device = pRenderer->pDevice;
   pSwapChain->pMTKView.autoresizesSubviews = TRUE;
   pSwapChain->pMTKView.preferredFramesPerSecond = 60.0;
@@ -1058,8 +1056,8 @@ void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *pDesc, SwapChain **p
   pSwapChain->mMTKDrawable = nil;
 
   // Set the view pixel format to match the swapchain's pixel format.
-  pSwapChain->pMTKView.colorPixelFormat =
-      Util::ToMtlPixelFormat(pSwapChain->mDesc.mColorFormat, pSwapChain->mDesc.mSrgb);
+  MTLPixelFormat pixelFormat = Util::ToMtlPixelFormat(pSwapChain->mDesc.mColorFormat, pSwapChain->mDesc.mSrgb);
+  pSwapChain->pMTKView.colorPixelFormat = pixelFormat;
 
   // Create present command buffer for the swapchain.
   Queue *q = (Queue *) (pSwapChain->mDesc.ppPresentQueues)[0];
@@ -2383,6 +2381,10 @@ void AddTexture(Renderer *pRenderer,
   }
 
   *ppTexture = pTexture;
+}
+
+ImageFormat GetRecommendedSwapchainFormat(bool hintHDR) {
+  return BGRA8;
 }
 
 }} // end namespace TheForge::Metal

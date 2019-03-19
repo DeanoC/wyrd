@@ -12,6 +12,7 @@ namespace GuiShell {
 // Init, Load, Unload, Update, Draw and Exit and InitialWindow must be defined
 // as static function in the users app class
 #define DECLARE_APP(type) static type theApp; \
+DEFINE_APPLICATION_MAIN \
 EXTERN_C void GuiShell_AppConfig(GuiShell_Functions* functions, GuiShell_WindowDesc* initialWindow) { \
   functions->init = &theApp.Init; \
   functions->load = &theApp.Load; \

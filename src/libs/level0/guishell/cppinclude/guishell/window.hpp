@@ -15,6 +15,10 @@ inline void GetCurrentDesc(Desc *desc) {
   GuiShell_WindowGetCurrentDesc(desc);
 }
 
+inline void* GetPlatformWindowPtr() {
+  return GuiShell_GetPlatformWindowPtr();
+}
+
 } } // end namespace GuiShell::Window
 
 #endif //WYRD_GUISHELL_WINDOW_HPP

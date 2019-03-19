@@ -9,143 +9,121 @@
 #include "renderer.hpp"
 
 namespace TheForge { namespace Metal { namespace Util {
-static MTLPixelFormat const gMtlFormatTranslator[] = {
-    MTLPixelFormatInvalid,
+static MTLPixelFormat PixelFormatConvertor(ImageFormat const fmt) {
+  switch(fmt) {
+    case TheForge_IF_NONE: return MTLPixelFormatInvalid;
 
-    MTLPixelFormatR8Unorm,
-    MTLPixelFormatRG8Unorm,
-    MTLPixelFormatInvalid, //RGB8 not directly supported
-    MTLPixelFormatRGBA8Unorm,
+    case TheForge_IF_R8:    return MTLPixelFormatR8Unorm;
+    case TheForge_IF_RG8:   return MTLPixelFormatRG8Unorm;
+    case TheForge_IF_RGB8:  return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA8: return MTLPixelFormatRGBA8Unorm;
+    case TheForge_IF_R16: return MTLPixelFormatR16Unorm;
+    case TheForge_IF_RG16: return MTLPixelFormatRG16Unorm;
+    case TheForge_IF_RGB16: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA16: return MTLPixelFormatRGBA16Unorm;
+    case TheForge_IF_R8S: return MTLPixelFormatR8Snorm;
+    case TheForge_IF_RG8S: return MTLPixelFormatRG8Snorm;
+    case TheForge_IF_RGB8S: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA8S: return MTLPixelFormatRGBA8Snorm;
+    case TheForge_IF_R16S:    return MTLPixelFormatR16Snorm;
+    case TheForge_IF_RG16S:   return MTLPixelFormatRG16Snorm;
+    case TheForge_IF_RGB16S:  return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA16S: return MTLPixelFormatRGBA16Snorm;
+    case TheForge_IF_R16F:    return MTLPixelFormatR16Float;
+    case TheForge_IF_RG16F:   return MTLPixelFormatRG16Float;
+    case TheForge_IF_RGB16F:  return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA16F: return MTLPixelFormatRGBA16Float;
+    case TheForge_IF_R32F:    return MTLPixelFormatR32Float;
+    case TheForge_IF_RG32F:   return MTLPixelFormatRG32Float;
+    case TheForge_IF_RGB32F:  return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA32F: return MTLPixelFormatRGBA32Float;
+    case TheForge_IF_R16I:    return MTLPixelFormatR16Sint;
+    case TheForge_IF_RG16I:   return MTLPixelFormatRG16Sint;
+    case TheForge_IF_RGB16I:  return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA16I: return MTLPixelFormatRGBA16Sint;
+    case TheForge_IF_R32I:    return MTLPixelFormatR32Sint;
+    case TheForge_IF_RG32I:   return MTLPixelFormatRG32Sint;
+    case TheForge_IF_RGB32I:  return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA32I: return MTLPixelFormatRGBA32Sint;
+    case TheForge_IF_R16UI:   return MTLPixelFormatR16Uint;
+    case TheForge_IF_RG16UI:  return MTLPixelFormatRG16Uint;
+    case TheForge_IF_RGB16UI: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA16UI:return MTLPixelFormatRGBA16Uint;
+    case TheForge_IF_R32UI:   return MTLPixelFormatR32Uint;
+    case TheForge_IF_RG32UI:  return MTLPixelFormatRG32Uint;
+    case TheForge_IF_RGB32UI: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA32UI:return MTLPixelFormatRGBA32Uint;
 
-    MTLPixelFormatR16Unorm,
-    MTLPixelFormatRG16Unorm,
-    MTLPixelFormatInvalid, //RGB16 not directly supported
-    MTLPixelFormatRGBA16Unorm,
 
-    MTLPixelFormatR8Snorm,
-    MTLPixelFormatRG8Snorm,
-    MTLPixelFormatInvalid, //RGB8S not directly supported
-    MTLPixelFormatRGBA8Snorm,
+    case TheForge_IF_RGBE8: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGB9E5: return MTLPixelFormatRGB9E5Float;
+    case TheForge_IF_RG11B10F: return MTLPixelFormatRG11B10Float;
+    case TheForge_IF_RGB565: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGBA4: return MTLPixelFormatInvalid;
+    case TheForge_IF_RGB10A2: return MTLPixelFormatRGB10A2Unorm;
 
-    MTLPixelFormatR16Snorm,
-    MTLPixelFormatRG16Snorm,
-    MTLPixelFormatInvalid, //RGB16S not directly supported
-    MTLPixelFormatRGBA16Snorm,
-
-    MTLPixelFormatR16Float,
-    MTLPixelFormatRG16Float,
-    MTLPixelFormatInvalid, //RGB16F not directly supported
-    MTLPixelFormatRGBA16Float,
-
-    MTLPixelFormatR32Float,
-    MTLPixelFormatRG32Float,
-    MTLPixelFormatInvalid, //RGB32F not directly supported
-    MTLPixelFormatRGBA32Float,
-
-    MTLPixelFormatR16Sint,
-    MTLPixelFormatRG16Sint,
-    MTLPixelFormatInvalid, //RGB16I not directly supported
-    MTLPixelFormatRGBA16Sint,
-
-    MTLPixelFormatR32Sint,
-    MTLPixelFormatRG32Sint,
-    MTLPixelFormatInvalid, //RGG32I not directly supported
-    MTLPixelFormatRGBA32Sint,
-
-    MTLPixelFormatR16Uint,
-    MTLPixelFormatRG16Uint,
-    MTLPixelFormatInvalid, //RGB16UI not directly supported
-    MTLPixelFormatRGBA16Uint,
-
-    MTLPixelFormatR32Uint,
-    MTLPixelFormatRG32Uint,
-    MTLPixelFormatInvalid, //RGB32UI not directly supported
-    MTLPixelFormatRGBA32Uint,
-
-    MTLPixelFormatInvalid, //RGBE8 not directly supported
-    MTLPixelFormatRGB9E5Float,
-    MTLPixelFormatRG11B10Float,
-    MTLPixelFormatInvalid, //B5G6R5 not directly supported
-    MTLPixelFormatInvalid, //RGBA4 not directly supported
-    MTLPixelFormatRGB10A2Unorm,
-
+    case TheForge_IF_D32F: return MTLPixelFormatDepth32Float;
 #ifndef TARGET_IOS
-    MTLPixelFormatDepth16Unorm,
-    MTLPixelFormatDepth24Unorm_Stencil8,
-    MTLPixelFormatDepth24Unorm_Stencil8,
+    case TheForge_IF_D16: return MTLPixelFormatDepth16Unorm;
+    case TheForge_IF_D24: return MTLPixelFormatDepth24Unorm_Stencil8;
+    case TheForge_IF_D24S8: return MTLPixelFormatDepth24Unorm_Stencil8;
+    case TheForge_IF_DXT1: return MTLPixelFormatBC1_RGBA;
+    case TheForge_IF_DXT3: return MTLPixelFormatBC2_RGBA;
+    case TheForge_IF_DXT5: return MTLPixelFormatBC3_RGBA;
+    case TheForge_IF_ATI1N: return MTLPixelFormatBC4_RUnorm;
+    case TheForge_IF_ATI2N: return MTLPixelFormatBC5_RGUnorm;
+    case TheForge_IF_PVR_2BPP: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_2BPPA: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_4BPP: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_4BPPA: return MTLPixelFormatInvalid;
 #else
-// Only 32-bit depth formats are supported on iOS.
-    MTLPixelFormatDepth32Float,
-    MTLPixelFormatDepth32Float,
-    MTLPixelFormatDepth32Float,
-#endif
-    MTLPixelFormatDepth32Float,
-
-#ifndef TARGET_IOS
-    MTLPixelFormatBC1_RGBA,
-    MTLPixelFormatBC2_RGBA,
-    MTLPixelFormatBC3_RGBA,
-    MTLPixelFormatBC4_RUnorm,
-    MTLPixelFormatBC5_RGUnorm,
-
-    // PVR formats
-    MTLPixelFormatInvalid, // PVR_2BPP = 56,
-    MTLPixelFormatInvalid, // PVR_2BPPA = 57,
-    MTLPixelFormatInvalid, // PVR_4BPP = 58,
-    MTLPixelFormatInvalid, // PVR_4BPPA = 59,
-#else
-MTLPixelFormatInvalid,
-    MTLPixelFormatInvalid,
-    MTLPixelFormatInvalid,
-    MTLPixelFormatInvalid,
-    MTLPixelFormatInvalid,
-
-    // PVR formats
-    MTLPixelFormatPVRTC_RGB_2BPP, // PVR_2BPP = 56,
-    MTLPixelFormatPVRTC_RGBA_2BPP, // PVR_2BPPA = 57,
-    MTLPixelFormatPVRTC_RGB_4BPP, // PVR_4BPP = 58,
-    MTLPixelFormatPVRTC_RGBA_4BPP, // PVR_4BPPA = 59,
+    case TheForge_IF_D16: return MTLPixelFormatInvalid;
+    case TheForge_IF_D24: return MTLPixelFormatInvalid;
+    case TheForge_IF_D24S8: return MTLPixelFormatInvalid;
+    case TheForge_IF_DXT1: return MTLPixelFormatInvalid;
+    case TheForge_IF_DXT3: return MTLPixelFormatInvalid;
+    case TheForge_IF_DXT5: return MTLPixelFormatInvalid;
+    case TheForge_IF_ATI1N: return MTLPixelFormatInvalid;
+    case TheForge_IF_ATI2N: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_2BPP: return MTLPixelFormatPVRTC_RGB_2BPP;
+    case TheForge_IF_PVR_2BPPA: return MTLPixelFormatPVRTC_RGBA_2BPP;
+    case TheForge_IF_PVR_4BPP: return MTLPixelFormatPVRTC_RGB_4BPP;
+    case TheForge_IF_PVR_4BPPA: return MTLPixelFormatPVRTC_RGBA_4BPP;
 #endif
 
-    MTLPixelFormatInvalid, // INTZ = 60,	// Nvidia hack. Supported on all DX10+ HW
-    // Compressed mobile forms
-    MTLPixelFormatInvalid, // ETC1 = 65,	//  RGB
-    MTLPixelFormatInvalid, // ATC = 66, //  RGB
-    MTLPixelFormatInvalid, // ATCA = 67,	//  RGBA, explicit alpha
-    MTLPixelFormatInvalid, // ATCI = 68,	//  RGBA, interpolated alpha
-    MTLPixelFormatInvalid, // RAWZ = 69, //depth only, Nvidia (requires recombination of data) //FIX IT: PS3 as well?
-    MTLPixelFormatInvalid, // DF16 = 70, //depth only, Intel/AMD
-    MTLPixelFormatInvalid, // STENCILONLY = 71, // stencil ony usage
-    MTLPixelFormatInvalid, // GNF_BC1 = 72,
-    MTLPixelFormatInvalid, // GNF_BC2 = 73,
-    MTLPixelFormatInvalid, // GNF_BC3 = 74,
-    MTLPixelFormatInvalid, // GNF_BC4 = 75,
-    MTLPixelFormatInvalid, // GNF_BC5 = 76,
-    MTLPixelFormatInvalid, // GNF_BC6 = 77,
-    MTLPixelFormatInvalid, // GNF_BC7 = 78,
-    // Reveser Form
-    MTLPixelFormatBGRA8Unorm, // BGRA8 = 79,
-    // Extend for DXGI
-    MTLPixelFormatInvalid, // X8D24PAX32 = 80,
-    MTLPixelFormatStencil8,// S8 = 81,
-    MTLPixelFormatInvalid, // D16S8 = 82,
-    MTLPixelFormatDepth32Float_Stencil8, // D32S8 = 83,
-
+    case TheForge_IF_ETC1: return MTLPixelFormatInvalid;
+    case TheForge_IF_ATC : return MTLPixelFormatInvalid;
+    case TheForge_IF_ATCA: return MTLPixelFormatInvalid;
+    case TheForge_IF_ATCI: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC1: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC2: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC3: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC4: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC5: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC6: return MTLPixelFormatInvalid;
+    case TheForge_IF_GNF_BC7: return MTLPixelFormatInvalid;
+    case TheForge_IF_BGRA8: return MTLPixelFormatBGRA8Unorm;
+    case TheForge_IF_X8D24PAX32: return MTLPixelFormatInvalid;
+    case TheForge_IF_S8: return MTLPixelFormatStencil8;
+    case TheForge_IF_D16S8: return MTLPixelFormatInvalid;
+    case TheForge_IF_D32S8: return MTLPixelFormatDepth32Float_Stencil8;
 #ifndef TARGET_IOS
-    // PVR formats
-    MTLPixelFormatInvalid, // PVR_2BPP_SRGB = 84,
-    MTLPixelFormatInvalid, // PVR_2BPPA_SRGB = 85,
-    MTLPixelFormatInvalid, // PVR_4BPP_SRGB = 86,
-    MTLPixelFormatInvalid, // PVR_4BPPA_SRGB = 87,
+    case TheForge_IF_PVR_2BPP_SRGB: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_2BPPA_SRGB: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_4BPP_SRGB: return MTLPixelFormatInvalid;
+    case TheForge_IF_PVR_4BPPA_SRGB: return MTLPixelFormatInvalid;
 #else
-// PVR formats
-    MTLPixelFormatPVRTC_RGB_2BPP_sRGB, // PVR_2BPP_SRGB = 84,
-    MTLPixelFormatPVRTC_RGBA_2BPP_sRGB, // PVR_2BPPA_SRGB = 85,
-    MTLPixelFormatPVRTC_RGB_4BPP_sRGB, // PVR_4BPP_SRGB = 86,
-    MTLPixelFormatPVRTC_RGBA_4BPP_sRGB, // PVR_4BPPA_SRGB = 87,
+    // PVR formats
+    case TheForge_IF_PVR_2BPP_SRGB: return MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
+    case TheForge_IF_PVR_2BPPA_SRGB: return MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
+    case TheForge_IF_PVR_4BPP_SRGB: return MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
+    case TheForge_IF_PVR_4BPPA_SRGB: return MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
 #endif
-};
 
+    default:
+      ASSERT(false);
+  }
+}
 
 uint32_t CalculateVertexLayoutStride(const VertexLayout *pVertexLayout) {
   ASSERT(pVertexLayout);
@@ -220,30 +198,25 @@ uint64_t PthreadToUint64(const pthread_t& value) {
 }
 
 MTLPixelFormat ToMtlPixelFormat(const ImageFormat format, const bool& srgb) {
-  MTLPixelFormat result = MTLPixelFormatInvalid;
+  MTLPixelFormat result = PixelFormatConvertor(format);
 
-  if (format >= sizeof(gMtlFormatTranslator) / sizeof(gMtlFormatTranslator[0])) {
-    LOGERROR("Failed to Map from ConfettilFileFromat to MTLPixelFormat, should add map method in gMtlFormatTranslator");
-  } else {
-    result = gMtlFormatTranslator[format];
-    if (srgb) {
-      if (result == MTLPixelFormatRGBA8Unorm) {
-        result = MTLPixelFormatRGBA8Unorm_sRGB;
-      } else if (result == MTLPixelFormatBGRA8Unorm) {
-        result = MTLPixelFormatBGRA8Unorm_sRGB;
-      }
-#ifndef TARGET_IOS
-      else if (result == MTLPixelFormatBC1_RGBA) {
-        result = MTLPixelFormatBC1_RGBA_sRGB;
-      } else if (result == MTLPixelFormatBC2_RGBA) {
-        result = MTLPixelFormatBC2_RGBA_sRGB;
-      } else if (result == MTLPixelFormatBC3_RGBA) {
-        result = MTLPixelFormatBC3_RGBA_sRGB;
-      } else if (result == MTLPixelFormatBC7_RGBAUnorm) {
-        result = MTLPixelFormatBC7_RGBAUnorm_sRGB;
-      }
-#endif
+  if (srgb) {
+    if (result == MTLPixelFormatRGBA8Unorm) {
+      result = MTLPixelFormatRGBA8Unorm_sRGB;
+    } else if (result == MTLPixelFormatBGRA8Unorm) {
+      result = MTLPixelFormatBGRA8Unorm_sRGB;
     }
+#ifndef TARGET_IOS
+    else if (result == MTLPixelFormatBC1_RGBA) {
+      result = MTLPixelFormatBC1_RGBA_sRGB;
+    } else if (result == MTLPixelFormatBC2_RGBA) {
+      result = MTLPixelFormatBC2_RGBA_sRGB;
+    } else if (result == MTLPixelFormatBC3_RGBA) {
+      result = MTLPixelFormatBC3_RGBA_sRGB;
+    } else if (result == MTLPixelFormatBC7_RGBAUnorm) {
+      result = MTLPixelFormatBC7_RGBAUnorm_sRGB;
+    }
+#endif
   }
 
   return result;

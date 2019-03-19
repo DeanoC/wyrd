@@ -3,7 +3,7 @@
 #define WYRD_THEFORGE_RENDERER_DESC_H
 
 #include "core/core.h"
-#include "os/window.h"
+#include "guishell/window.h"
 #include "theforge/image_enums.h"
 #include "theforge/renderer_enums.h"
 
@@ -371,7 +371,7 @@ typedef struct TheForge_SubresourceDataDesc {
 
 typedef struct TheForge_SwapChainDesc {
   /// Window handle
-  Os_WindowsDesc *pWindow;
+  GuiShell_WindowDesc *pWindow;
   /// Queues which should be allowed to present
   struct TheForge_Queue **ppPresentQueues;
   /// Number of present queues
@@ -434,7 +434,7 @@ typedef struct TheForge_IndirectArgumentDescriptor {
 
 typedef struct TheForge_CommandSignatureDesc {
   struct TheForge_CmdPool *pCmdPool;
-  TheForge_RootSignature *pRootSignature;
+  struct TheForge_RootSignature *pRootSignature;
   uint32_t mIndirectArgCount;
   TheForge_IndirectArgumentDescriptor *pArgDescs;
 } TheForge_CommandSignatureDesc;

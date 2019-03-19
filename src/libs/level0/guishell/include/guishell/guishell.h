@@ -33,4 +33,12 @@ EXTERN_C void GuiShell_AppConfig(GuiShell_Functions* functions, GuiShell_WindowD
 // call these to tell the shell various things you want to change
 EXTERN_C void GuiShell_Terminate();
 
+EXTERN_C int Main( int argc_, char* argv[]);
+
+#define DEFINE_APPLICATION_MAIN \
+int main(int argc, char* argv[])					\
+{													\
+	return Main(argc, argv);					    \
+}
+
 #endif //WYRD_GUISHELL_GUISHELL_HPP

@@ -1,28 +1,8 @@
-/*
- * Copyright (c) 2018-2019 Confetti Interactive Inc.
- *
- * This file is part of The-Forge
- * (see https://github.com/ConfettiFX/The-Forge).
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
-*/
-
 #pragma once
+#include "core/core.h"
+#include "core/logger.h"
+#ifndef WYRD_THEFORGE_IMAGE_ENUMS_H
+#define WYRD_THEFORGE_IMAGE_ENUMS_H
 
 #if defined(ORBIS)
 // Indicates the result of a GNF load operation
@@ -125,19 +105,11 @@ enum {
   TheForge_IF_PVR_4BPP = 58,
   TheForge_IF_PVR_4BPPA = 59,
 
-  //http://aras-p.info/texts/D3D9GPUHacks.html
-  TheForge_IF_INTZ = 60,    //  NVidia hack. Supported on all DX10+ HW
-
   // compressed mobile forms
   TheForge_IF_ETC1 = 65,    //  RGB
   TheForge_IF_ATC = 66,     //  RGB
   TheForge_IF_ATCA = 67,    //  RGBA, explicit alpha
   TheForge_IF_ATCI = 68,    //  RGBA, interpolated alpha
-
-  //http://aras-p.info/texts/D3D9GPUHacks.html
-  TheForge_IF_RAWZ = 69,           //depth only, Nvidia (requires recombination of data) //FIX IT: PS3 as well?
-  TheForge_IF_DF16 = 70,           //depth only, Intel/AMD
-  TheForge_IF_STENCILONLY = 71,    // stencil ony usage
 
   // BC1 == DXT1
   // BC2 == DXT2
@@ -183,11 +155,12 @@ enum {
 };
 typedef uint32_t TheForge_ImageFormat;
 
-enum TheForge_BlockSize {
+enum {
   TheForge_BLOCK_SIZE_1x1,
   TheForge_BLOCK_SIZE_4x4,
   TheForge_BLOCK_SIZE_4x8,
 };
+typedef uint8_t TheForge_BlockSize;
 
 EXTERN_C inline bool TheForge_IsIntegerFormat(const TheForge_ImageFormat format) {
   return (format >= TheForge_IF_R16I && format <= TheForge_IF_RGBA32UI);
@@ -384,3 +357,29 @@ EXTERN_C inline int TheForge_GetChannelCount(const TheForge_ImageFormat format)
 
   return channelCount[format];
 }
+
+#endif // WYRD_THEFORGE_IMAGE_ENUMS_H
+/*
+ * Copyright (c) 2018-2019 Confetti Interactive Inc.
+ *
+ * This file is part of The-Forge
+ * (see https://github.com/ConfettiFX/The-Forge).
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+*/
+

@@ -9,12 +9,7 @@
 #include "os/rect.h"
 #include "guishell/window.h"
 
-struct AppleWindow {
-  GuiShell_WindowDesc desc;
-  MTKView *_Nonnull metalView;
-  float retinaScale[2];
-};
-
+#include "guishell/platform.h"
 
 // Protocol abstracting the platform specific view in order to keep the Renderer class independent from platform
 @protocol RenderDestinationProvider

@@ -52,6 +52,7 @@ set(Deps
         level0/stb
         level1/vfile
         level1/logmanager
+        level1/guishell
         )
 
 set(Tests

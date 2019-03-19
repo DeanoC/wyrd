@@ -7,6 +7,7 @@
 #include "theforge/renderer_descs.hpp"
 #include "theforge/renderer_enums.hpp"
 #include "theforge/renderer_structs.hpp"
+#include "theforge/image_enums.hpp"
 
 namespace TheForge {
 
@@ -169,6 +170,7 @@ void CmdEndDebugMarker(Cmd *pCmd);
 void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName);
 void SetBufferName(Renderer *pRenderer, Buffer *pBuffer, const char *pName);
 void SetTextureName(Renderer *pRenderer, Texture *pTexture, const char *pName);
+ImageFormat GetRecommendedSwapchainFormat(bool hintHDR);
 
 } // end namespace TheForge
 

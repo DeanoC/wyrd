@@ -25,5 +25,6 @@ typedef struct GuiShell_WindowDesc {
 } GuiShell_WindowDesc;
 
 EXTERN_C void GuiShell_WindowGetCurrentDesc(GuiShell_WindowDesc* desc);
+EXTERN_C void* GuiShell_GetPlatformWindowPtr();
 
 #endif //WYRD_GUISHELL_WINDOW_H

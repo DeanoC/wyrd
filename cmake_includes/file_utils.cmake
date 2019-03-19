@@ -36,7 +36,7 @@ MACRO(ADD_LIB LibName CHeaders CPPHeaders Src Deps)
 		list(LENGTH _srcs _SrcLength)
 	endif()
 
-    list(TRANSFORM _deps PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/../../)
+    list(TRANSFORM _deps PREPEND ${LIB_BASE_PATH})
     set(_depsc ${_deps})
     list(TRANSFORM _depsc APPEND /include)
     set(_depscpp ${_deps})
@@ -80,8 +80,8 @@ MACRO(ADD_LIB_TESTS LibName CHeaders CPPHeaders Tests)
 		target_include_directories(${LibName}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 		target_include_directories(${LibName}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 		target_include_directories(${LibName}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cppinclude)
-		target_include_directories(${LibName}_tests PRIVATE ${_depsc} ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/catch/include)
-		target_include_directories(${LibName}_tests PRIVATE ${_depscpp} ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/catch/cppinclude)
+		target_include_directories(${LibName}_tests PRIVATE ${_depsc} ${LIB_BASE_PATH}/level0/catch/include)
+		target_include_directories(${LibName}_tests PRIVATE ${_depscpp} ${LIB_BASE_PATH}/level0/catch/cppinclude)
 	endif ()
 ENDMACRO()
 
@@ -99,9 +99,9 @@ MACRO(ADD_LIB_GUITESTS LibName CHeaders CPPHeaders Tests)
 	if (_TestsLength)
 		list(TRANSFORM _tests PREPEND tests/)
 		if(APPLE)
-			list(APPEND _tests ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/appdelegate.h)
-			list(APPEND _tests ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/appdelegate.m)
-			list(APPEND _tests ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/MainMenu.nib)
+			list(APPEND _tests ${LIB_BASE_PATH}/level0/guishell/src/apple/appdelegate.h)
+			list(APPEND _tests ${LIB_BASE_PATH}/level0/guishell/src/apple/appdelegate.m)
+			list(APPEND _tests ${LIB_BASE_PATH}/level0/guishell/src/apple/macresources/MainMenu.nib)
 		endif()
 
 		add_executable(${LibName}_tests WIN32 MACOSX_BUNDLE ${_tests} ${_cheaders} ${_cppheaders})
@@ -109,14 +109,14 @@ MACRO(ADD_LIB_GUITESTS LibName CHeaders CPPHeaders Tests)
 		target_include_directories(${LibName}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 		target_include_directories(${LibName}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 		target_include_directories(${LibName}_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cppinclude)
-		target_include_directories(${LibName}_tests PRIVATE ${_depsc} ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/catch/include)
-		target_include_directories(${LibName}_tests PRIVATE ${_depscpp} ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/catch/cppinclude)
+		target_include_directories(${LibName}_tests PRIVATE ${_depsc} ${LIB_BASE_PATH}/level0/catch/include)
+		target_include_directories(${LibName}_tests PRIVATE ${_depscpp} ${LIB_BASE_PATH}/level0/catch/cppinclude)
 
 		if(APPLE)
 			set_target_properties(${LibName}_tests PROPERTIES
 					MACOSX_BUNDLE_GUI_IDENTIFIER com.wryd.${LibName}_tests
-					MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/Info.plist.in
-					RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/MainMenu.nib
+					MACOSX_BUNDLE_INFO_PLIST ${LIB_BASE_PATH}/level0/guishell/src/apple/macresources/Info.plist.in
+					RESOURCE ${LIB_BASE_PATH}/level0/guishell/src/apple/macresources/MainMenu.nib
 					)
 		endif()
 	endif ()
@@ -138,24 +138,22 @@ MACRO(ADD_GUI_APP AppName Src Deps)
 	set(_deps ${Deps} )
 
 	if(APPLE)
-		list(APPEND _src ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/appdelegate.h)
-		list(APPEND _src ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/appdelegate.m)
-		list(APPEND _src ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/MainMenu.nib)
+		list(APPEND _src ${LIB_BASE_PATH}/level0/guishell/src/apple/appdelegate.h)
+		list(APPEND _src ${LIB_BASE_PATH}/level0/guishell/src/apple/appdelegate.m)
+		list(APPEND _src ${LIB_BASE_PATH}/level0/guishell/src/apple/macresources/MainMenu.nib)
 	endif()
 
-	add_executable(${AppName} ${_src})
+	add_executable(${AppName}  WIN32 MACOSX_BUNDLE ${_src})
 	target_link_libraries(${AppName} ${LibName} core guishell)
 	foreach (_dep ${_deps})
 		get_filename_component(deplibname ${_dep} NAME)
 		target_link_libraries(${AppName} ${deplibname})
 	endforeach ()
 	if(APPLE)
-		set(RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/MainMenu.xib)
-		target_sources(${AppName}_tests PRIVATE "${RESOURCE_FILES}")
-		set_target_properties(${LibName}_tests PROPERTIES
+		set_target_properties(${AppName} PROPERTIES
 				MACOSX_BUNDLE_GUI_IDENTIFIER com.wryd.${AppName}
-				MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/Info.plist.in
-				RESOURCE ${CMAKE_CURRENT_SOURCE_DIR}/../../level0/guishell/src/apple/macresources/MainMenu.nib
+				MACOSX_BUNDLE_INFO_PLIST ${LIB_BASE_PATH}/level0/guishell/src/apple/macresources/Info.plist.in
+				RESOURCE ${LIB_BASE_PATH}/level0/guishell/src/apple/macresources/MainMenu.nib
 				)
 	endif()
 

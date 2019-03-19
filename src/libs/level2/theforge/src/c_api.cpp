@@ -467,6 +467,11 @@ EXTERN_C void TheForge_DestroyPipelineReflection(TheForge_PipelineReflection *pR
   DestroyPipelineReflection(pReflection);
 }
 
+EXTERN_C ImageFormat TheForge_GetRecommendedSwapchainFormat(bool hintHDR) {
+  return GetRecommendedSwapchainFormat(hintHDR);
+}
+
+
 struct TheForge_ImageFormatString {
   TheForge_ImageFormat format;
   const char *string;
@@ -511,8 +516,6 @@ const TheForge_ImageFormatString *GetFormatStrings() {
        {PVR_2BPPA, "PVR_2BPPA"},
        {PVR_4BPP, "PVR_4BPP"},
        {PVR_4BPPA, "PVR_4BPPA"},
-
-       {INTZ, "INTZ"},
 
        {ETC1, "ETC1"},
        {ATC, "ATC"},
@@ -559,3 +562,4 @@ EXTERN_C TheForge_ImageFormat TheForge_GetFormatFromString(char const *string) {
   }
   return NONE;
 }
+

@@ -27,9 +27,9 @@ typedef struct mat3_t { vec3_t col0; vec3_t col1; vec3_t col2; } mat3_t;
 typedef struct mat4_t { vec4_t col0; vec4_t col1; vec4_t col2; vec4_t col3; } mat4_t;
 
 #define MATH_FUNC_MACRO_CREATE(postfix, type)\
-EXTERN_C inline type Math_Min##postfix(type const v, type const a) { return (v < a) ? a : v; } \
-EXTERN_C inline type Math_Max##postfix(type const v, type const a) { return (v > a) ? a : v; } \
-EXTERN_C inline type Math_Clamp##postfix(type const v, type const a, type const b) { return Math_Max##postfix(Math_Min##postfix(v, a), b); }
+EXTERN_C inline type Math_Min##postfix(type const v, type const a) { return (v < a) ? v : a; } \
+EXTERN_C inline type Math_Max##postfix(type const v, type const a) { return (v > a) ? v : a; } \
+EXTERN_C inline type Math_Clamp##postfix(type const v, type const a, type const b) { return Math_Min##postfix(Math_Max##postfix(v, a), b); }
 
 MATH_FUNC_MACRO_CREATE(F, float)
 MATH_FUNC_MACRO_CREATE(D, double)
