@@ -189,21 +189,27 @@ const DescriptorInfo *GetDescriptor(const RootSignature *pRootSignature, const c
 
 void GetRawTextureHandle(Renderer *pRenderer, Texture *pTexture, void **ppHandle);
 
-void AddTexture(Renderer *pRenderer,
-                const TextureDesc *pDesc,
-                Texture **ppTexture,
-                const bool isRT,
-                const bool forceNonPrivate);
-void RemoveTexture(Renderer *pRenderer, Texture *pTexture);
-void AddBuffer(Renderer *pRenderer, const BufferDesc *pDesc, Buffer **ppBuffer);
-void RemoveBuffer(Renderer *pRenderer, Buffer *pBuffer);
-
 void CmdBindLocalDescriptors(Cmd *pCmd,
                              RootSignature *pRootSignature,
                              uint32_t numDescriptors,
                              DescriptorData *pDescParams);
 
 ImageFormat GetRecommendedSwapchainFormat(bool hintHDR);
+
+void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange);
+void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer);
+void CmdUpdateBuffer(Cmd *p_cmd, uint64_t srcOffset,
+                     uint64_t dstOffset,
+                     uint64_t size,
+                     Buffer *p_src_buffer,
+                     Buffer *p_buffer);
+void CmdUpdateSubresources(Cmd *pCmd,
+                           uint32_t startSubresource,
+                           uint32_t numSubresources,
+                           SubresourceDataDesc *pSubresources,
+                           Buffer *pIntermediate,
+                           uint64_t intermediateOffset,
+                           Texture *pTexture);
 
 } } // end namespace TheForge::Metal
 

@@ -719,16 +719,14 @@ void CmdBindRenderTargets(
       pCmd->mBoundDepthStencilFormat = NONE;
     }
 
-    SampleCount
-        sampleCount = renderTargetCount ? ppRenderTargets[0]->mDesc.mSampleCount : pDepthStencil->mDesc.mSampleCount;
+    SampleCount sampleCount = renderTargetCount ? ppRenderTargets[0]->mDesc.mSampleCount : pDepthStencil->mDesc.mSampleCount;
     pCmd->mBoundWidth = renderTargetCount ? ppRenderTargets[0]->mDesc.mWidth : pDepthStencil->mDesc.mWidth;
     pCmd->mBoundHeight = renderTargetCount ? ppRenderTargets[0]->mDesc.mHeight : pDepthStencil->mDesc.mHeight;
     pCmd->mBoundSampleCount = sampleCount;
     pCmd->mBoundRenderTargetCount = renderTargetCount;
 
-    bool switchedEncoders =
-        Util::SyncEncoders(pCmd,
-                           CMD_POOL_DIRECT);    // Check if we need to sync different types of encoders (only on direct cmds).
+    // Check if we need to sync different types of encoders (only on direct cmds).
+    bool switchedEncoders = Util::SyncEncoders(pCmd, CMD_POOL_DIRECT);
     Util::EndCurrentEncoders(pCmd);
     pCmd->mtlRenderEncoder = [pCmd->mtlCommandBuffer renderCommandEncoderWithDescriptor:pCmd->pRenderPassDesc];
     if (switchedEncoders) {

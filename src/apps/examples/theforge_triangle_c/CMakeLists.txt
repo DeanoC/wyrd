@@ -7,6 +7,7 @@ set(Src
 set(Deps
         level0/core
         level0/guishell
+        level0/spirvtools
         level2/theforge
         )
 

@@ -471,6 +471,30 @@ EXTERN_C ImageFormat TheForge_GetRecommendedSwapchainFormat(bool hintHDR) {
   return GetRecommendedSwapchainFormat(hintHDR);
 }
 
+EXTERN_C void TheForge_MapBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer, TheForge_ReadRange *pRange) {
+  return MapBuffer(pRenderer, pBuffer, pRange);
+}
+EXTERN_C void TheForge_UnmapBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer) {
+  return UnmapBuffer(pRenderer, pBuffer);
+}
+EXTERN_C void TheForge_CmdUpdateBuffer(TheForge_Cmd *p_cmd,
+                                       uint64_t srcOffset,
+                                       uint64_t dstOffset,
+                                       uint64_t size,
+                                       TheForge_Buffer *p_src_buffer,
+                                       TheForge_Buffer *p_buffer) {
+  CmdUpdateBuffer(p_cmd, srcOffset, dstOffset, size, p_src_buffer, p_buffer);
+}
+EXTERN_C void TheForge_CmdUpdateSubresources(TheForge_Cmd *pCmd,
+                                             uint32_t startSubresource,
+                                             uint32_t numSubresources,
+                                             TheForge_SubresourceDataDesc *pSubresources,
+                                             TheForge_Buffer *pIntermediate,
+                                             uint64_t intermediateOffset,
+                                             TheForge_Texture *pTexture) {
+
+  CmdUpdateSubresources(pCmd, startSubresource, numSubresources, pSubresources, pIntermediate, intermediateOffset, pTexture );
+}
 
 struct TheForge_ImageFormatString {
   TheForge_ImageFormat format;

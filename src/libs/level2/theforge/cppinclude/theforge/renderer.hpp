@@ -18,7 +18,7 @@ void RemoveFence(Renderer *pRenderer, Fence *p_fence);
 void AddSemaphore(Renderer *pRenderer, Semaphore **pp_semaphore);
 void RemoveSemaphore(Renderer *pRenderer, Semaphore *p_semaphore);
 void AddQueue(Renderer *pRenderer, QueueDesc *pQDesc, Queue **ppQueue);
-void RemoveQueue(Renderer* pRenderer, Queue *pQueue);
+void RemoveQueue(Renderer *pRenderer, Queue *pQueue);
 void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *p_desc, SwapChain **pp_swap_chain);
 void RemoveSwapChain(Renderer *pRenderer, SwapChain *p_swap_chain);
 void AddCmdPool(Renderer *pRenderer, Queue *p_queue, bool transient, CmdPool **pp_CmdPool);
@@ -171,7 +171,20 @@ void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName);
 void SetBufferName(Renderer *pRenderer, Buffer *pBuffer, const char *pName);
 void SetTextureName(Renderer *pRenderer, Texture *pTexture, const char *pName);
 ImageFormat GetRecommendedSwapchainFormat(bool hintHDR);
-
+void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange);
+void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer);
+void CmdUpdateBuffer(Cmd *p_cmd, uint64_t srcOffset,
+                     uint64_t dstOffset,
+                     uint64_t size,
+                     Buffer *p_src_buffer,
+                     Buffer *p_buffer);
+void CmdUpdateSubresources(Cmd *pCmd,
+                           uint32_t startSubresource,
+                           uint32_t numSubresources,
+                           SubresourceDataDesc *pSubresources,
+                           Buffer *pIntermediate,
+                           uint64_t intermediateOffset,
+                           Texture *pTexture);
 } // end namespace TheForge
 
 #endif //WYRD_THEFORGE_RENDERER_HPP

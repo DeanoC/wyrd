@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 project(wyrd)
 
+include(FetchContent)
 include (cmake_includes/file_utils.cmake)
+include (cmake_includes/fetch_utils.cmake)
 
 option(BUILD_TESTS "Build Test executubles" ON)
 

@@ -114,6 +114,15 @@ static bool Init() {
   };
   TheForge_AddSampler(pRenderer, &samplerDesc, &pSamplerSkyBox);
 
+//  TheForge_ShaderLoadDesc skyShader = {0};
+//  skyShader.mStages[0] = { "skybox.vert", NULL, 0, FSR_SrcShaders };
+//  skyShader.mStages[1] = { "skybox.frag", NULL, 0, FSR_SrcShaders };
+//  ShaderLoadDesc basicShader = {};
+//  basicShader.mStages[0] = { "basic.vert", NULL, 0, FSR_SrcShaders };
+//  basicShader.mStages[1] = { "basic.frag", NULL, 0, FSR_SrcShaders };
+
+//  TheForge_AddShader(pRenderer, &skyShader, &pSkyBoxDrawShader);
+//  TheForge_AddShader(pRenderer, &basicShader, &pSphereShader);
   /*
   Shader* shaders[] = { pSphereShader, pSkyBoxDrawShader };
   const char* pStaticSamplers[] = { "uSampler0" };

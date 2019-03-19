@@ -2013,6 +2013,7 @@ void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange) {
   ASSERT(pBuffer->mDesc.mMemoryUsage != RESOURCE_MEMORY_USAGE_GPU_ONLY && "Trying to map non-cpu accessible resource");
   pBuffer->pCpuMappedAddress = pBuffer->mtlBuffer.contents;
 }
+
 void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer) {
   ASSERT(
       pBuffer->mDesc.mMemoryUsage != RESOURCE_MEMORY_USAGE_GPU_ONLY && "Trying to unmap non-cpu accessible resource");

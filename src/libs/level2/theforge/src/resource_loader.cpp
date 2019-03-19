@@ -51,31 +51,7 @@ extern unsigned getSystemTime();
 #endif
 
 namespace TheForge {
-// buffer functions
-extern void AddBuffer(Renderer *pRenderer, const BufferDesc *desc, Buffer **pp_buffer);
-extern void RemoveBuffer(Renderer *pRenderer, Buffer *p_buffer);
-extern void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange);
-extern void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer);
-extern void AddTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **pp_texture);
-extern void RemoveTexture(Renderer *pRenderer, Texture *p_texture);
-extern void CmdUpdateBuffer(Cmd *p_cmd,
-                            uint64_t srcOffset,
-                            uint64_t dstOffset,
-                            uint64_t size,
-                            Buffer *p_src_buffer,
-                            Buffer *p_buffer);
-extern void CmdUpdateSubresources(
-    Cmd *pCmd,
-    uint32_t startSubresource,
-    uint32_t numSubresources,
-    SubresourceDataDesc *pSubresources,
-    Buffer *pIntermediate,
-    uint64_t intermediateOffset,
-    Texture *pTexture);
 extern const RendererShaderDefinesDesc get_renderer_shaderdefines(Renderer *pRenderer);
-
-/************************************************************************/
-/************************************************************************/
 
 //////////////////////////////////////////////////////////////////////////
 // Resource CopyEngine Structures

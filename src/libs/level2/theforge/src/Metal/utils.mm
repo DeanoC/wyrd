@@ -122,6 +122,7 @@ static MTLPixelFormat PixelFormatConvertor(ImageFormat const fmt) {
 
     default:
       ASSERT(false);
+      return MTLPixelFormatInvalid;
   }
 }
 

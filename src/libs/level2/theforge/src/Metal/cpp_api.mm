@@ -137,7 +137,7 @@ void RemoveBuffer(Renderer *pRenderer, Buffer *pBuffer) {
 }
 
 void AddTexture(Renderer *pRenderer, const TextureDesc *pDesc, Texture **ppTexture) {
-  Metal::AddTexture((Metal::Renderer *) pRenderer, pDesc, (Metal::Texture **) ppTexture, false, false );
+  Metal::AddTexture((Metal::Renderer *) pRenderer, pDesc, (Metal::Texture **) ppTexture, false, false);
 }
 
 void RemoveTexture(Renderer *pRenderer, Texture *pTexture) {
@@ -215,7 +215,7 @@ void RemoveIndirectCommandSignature(Renderer *pRenderer,
   Metal::RemoveIndirectCommandSignature((Metal::Renderer *) pRenderer, (Metal::CommandSignature *) pCommandSignature);
 }
 
-bool IsQuerySupported(Renderer* pRenderer) {
+bool IsQuerySupported(Renderer *pRenderer) {
   return false;
 }
 
@@ -450,6 +450,36 @@ void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName) 
 
 ImageFormat GetRecommendedSwapchainFormat(bool hintHDR) {
   return Metal::GetRecommendedSwapchainFormat(hintHDR);
+}
+void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange) {
+  Metal::MapBuffer((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer, pRange);
+}
+void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer) {
+  Metal::UnmapBuffer((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer);
+}
+void CmdUpdateBuffer(Cmd *p_cmd, uint64_t srcOffset,
+                     uint64_t dstOffset,
+                     uint64_t size,
+                     Buffer *p_src_buffer,
+                     Buffer *p_buffer) {
+  Metal::CmdUpdateBuffer((Metal::Cmd *) p_cmd, srcOffset,
+                         dstOffset, size,
+                         (Metal::Buffer *) p_src_buffer,
+                         (Metal::Buffer *) p_buffer);
+}
+void CmdUpdateSubresources(Cmd *pCmd,
+                           uint32_t startSubresource,
+                           uint32_t numSubresources,
+                           SubresourceDataDesc *pSubresources,
+                           Buffer *pIntermediate,
+                           uint64_t intermediateOffset,
+                           Texture *pTexture) {
+  Metal::CmdUpdateSubresources((Metal::Cmd *) pCmd,
+                               startSubresource,
+                               numSubresources, pSubresources,
+                               (Metal::Buffer *) pIntermediate,
+                               intermediateOffset,
+                               (Metal::Texture *) pTexture);
 }
 
 } // end namespace TheForge
