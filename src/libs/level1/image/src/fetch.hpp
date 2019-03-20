@@ -1,6 +1,6 @@
 #pragma once
-#ifndef WYRD_IMAGE_FETCH_HPP
-#define WYRD_IMAGE_FETCH_HPP
+#ifndef WYRD_FETCH_HPP
+#define WYRD_FETCH_HPP
 
 #include "core/core.h"
 #include "core/logger.h"
@@ -14,32 +14,32 @@ auto FetchRaw(uint8_t const *ptr_) -> type_ {
 }
 
 template<typename type_>
-auto FetchHomoChannel(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchHomoChannel(Image_Channel channel_, uint8_t const *ptr_) -> double {
   return (double) FetchRaw<type_>(ptr_ + (sizeof(type_) * channel_));
 }
 
 template<typename type_>
-auto FetchHomoChannel_NORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchHomoChannel_NORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   return FetchHomoChannel<type_>(channel_, ptr_) / (double) std::numeric_limits<type_>::max();
 }
 
 template<typename type_>
-auto FetchHomoChannel_sRGB(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchHomoChannel_sRGB(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   return Math_SRGB2Float(FetchRaw<type_>(ptr_ + sizeof(type_) * channel_));
 }
 
-auto FetchHomoChannel_nibble(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchHomoChannel_nibble(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   uint8_t bite = *(ptr_ + ((int) channel_ / 2));
   return (double) (channel_ & 0x1) ?
          ((bite >> 0) & 0xF) :
          ((bite >> 4) & 0xF);
 }
 
-auto FetchHomoChannel_nibble_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchHomoChannel_nibble_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   return FetchHomoChannel_nibble(channel_, ptr_) / 15.0;
 }
 
-auto FetchChannel_R5G6B5_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_R5G6B5_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   uint16_t pixel = FetchRaw<uint16_t>(ptr_);
   if (channel_ == 0) { return ((double) ((pixel >> 11) & 0x1F)) / 31.0; }
   else if (channel_ == 1) { return ((double) ((pixel >> 5) & 0x3F)) / 63.0; }
@@ -50,7 +50,7 @@ auto FetchChannel_R5G6B5_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr
   }
 }
 
-auto FetchChannel_R5G5B5A1_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_R5G5B5A1_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   uint16_t pixel = FetchRaw<uint16_t>(ptr_);
   uint32_t x = 0;
   if (channel_ == 0) { x = (pixel >> 11) & 0x1F; }
@@ -61,7 +61,7 @@ auto FetchChannel_R5G5B5A1_UNORM(enum Image_Channel_t channel_, uint8_t const *p
   return ((double) (x)) / 31.0;
 }
 
-auto FetchChannel_A1R5G5B5_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_A1R5G5B5_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   uint16_t pixel = FetchRaw<uint16_t>(ptr_);
 
   uint32_t x = 0;
@@ -73,11 +73,11 @@ auto FetchChannel_A1R5G5B5_UNORM(enum Image_Channel_t channel_, uint8_t const *p
   return ((double) (x)) / 31.0;
 }
 
-auto FetchHomoChannel_FP16(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchHomoChannel_FP16(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   return (double) Math_Half2Float(FetchRaw<uint16_t>(ptr_ + (sizeof(uint16_t) * channel_)));
 }
 
-auto FetchChannel_A2R10G10B10(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_A2R10G10B10(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   // fake fetch a single 32 bit format
   uint32_t pixel = FetchRaw<uint32_t>(ptr_);
 
@@ -90,7 +90,7 @@ auto FetchChannel_A2R10G10B10(enum Image_Channel_t channel_, uint8_t const *ptr_
   return ((double) (x));
 }
 
-auto FetchChannel_A2R10G10B10_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_A2R10G10B10_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   if (channel_ == 0) {
     return FetchChannel_A2R10G10B10(Image_Red, ptr_) / 3.0;
   } else {
@@ -98,20 +98,20 @@ auto FetchChannel_A2R10G10B10_UNORM(enum Image_Channel_t channel_, uint8_t const
   }
 }
 
-auto FetchChannel_X8D24_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_X8D24_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   // fake fetch a single 32 bit format
   uint32_t pixel = FetchRaw<uint32_t>(ptr_);
   if (channel_ == 0) { return ((double) ((pixel & 0xFF000000) >> 24) / 255.0); }
   else { return ((double) (pixel & 0x00FFFFFF) / 16777215.0); }
 }
 
-auto FetchChannel_D24X8_UNORM(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_D24X8_UNORM(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   uint32_t pixel = FetchRaw<uint32_t>(ptr_);
   if (channel_ == 0) { return ((double) (pixel & 0x000000FF) / 255.0); }
   else { return ((double) ((pixel & 0xFFFFFF00) >> 8) / 16777215.0); }
 }
 
-auto FetchChannel_D16S8_UNORM_UINT(enum Image_Channel_t channel_, uint8_t const *ptr_) -> double {
+auto FetchChannel_D16S8_UNORM_UINT(enum Image_Channel channel_, uint8_t const *ptr_) -> double {
   if (channel_ == 0) {
     return FetchHomoChannel_NORM<uint16_t>(channel_, ptr_);
   } else {
@@ -119,13 +119,13 @@ auto FetchChannel_D16S8_UNORM_UINT(enum Image_Channel_t channel_, uint8_t const 
   }
 }
 
-auto CompressedChannelAt(Image_Header_t const *image, enum Image_Channel_t channel_, size_t index_) -> double {
+auto CompressedChannelAt(Image_ImageHeader const *image, enum Image_Channel channel_, size_t index_) -> double {
   ASSERT(false);
   return 0.0;
 }
 
-auto BitWidth256ChannelAt(enum Image_Channel_t const channel_,
-                          enum Image_Format_t const fmt_,
+auto BitWidth256ChannelAt(enum Image_Channel const channel_,
+                          enum Image_Format const fmt_,
                           uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R64G64B64A64_UINT:
@@ -140,8 +140,8 @@ auto BitWidth256ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth192ChannelAt(enum Image_Channel_t const channel_,
-                          enum Image_Format_t const fmt_,
+auto BitWidth192ChannelAt(enum Image_Channel const channel_,
+                          enum Image_Format const fmt_,
                           uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R64G64B64_UINT:
@@ -156,8 +156,8 @@ auto BitWidth192ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth128ChannelAt(enum Image_Channel_t const channel_,
-                          enum Image_Format_t const fmt_,
+auto BitWidth128ChannelAt(enum Image_Channel const channel_,
+                          enum Image_Format const fmt_,
                           uint8_t const *ptr_) -> double {
 
   switch (fmt_) {
@@ -176,8 +176,8 @@ auto BitWidth128ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth96ChannelAt(enum Image_Channel_t const channel_,
-                         enum Image_Format_t const fmt_,
+auto BitWidth96ChannelAt(enum Image_Channel const channel_,
+                         enum Image_Format const fmt_,
                          uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R32G32B32_UINT:return FetchHomoChannel<uint32_t>(Image_Channel_Swizzle(fmt_, channel_), ptr_);
@@ -188,8 +188,8 @@ auto BitWidth96ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth64ChannelAt(enum Image_Channel_t const channel_,
-                         enum Image_Format_t const fmt_,
+auto BitWidth64ChannelAt(enum Image_Channel const channel_,
+                         enum Image_Format const fmt_,
                          uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R64_UINT:
@@ -228,8 +228,8 @@ auto BitWidth64ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth48ChannelAt(enum Image_Channel_t const channel_,
-                         enum Image_Format_t const fmt_,
+auto BitWidth48ChannelAt(enum Image_Channel const channel_,
+                         enum Image_Format const fmt_,
                          uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R16G16B16_UNORM:
@@ -248,8 +248,8 @@ auto BitWidth48ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth32ChannelAt(enum Image_Channel_t const channel_,
-                         enum Image_Format_t const fmt_,
+auto BitWidth32ChannelAt(enum Image_Channel const channel_,
+                         enum Image_Format const fmt_,
                          uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R32_UINT:return FetchHomoChannel<uint32_t>(Image_Channel_Swizzle(fmt_, channel_), ptr_);
@@ -330,8 +330,8 @@ auto BitWidth32ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth24ChannelAt(enum Image_Channel_t const channel_,
-                         enum Image_Format_t const fmt_,
+auto BitWidth24ChannelAt(enum Image_Channel const channel_,
+                         enum Image_Format const fmt_,
                          uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R8G8B8_UNORM:return FetchHomoChannel_NORM<uint8_t>(Image_Channel_Swizzle(fmt_, channel_), ptr_);
@@ -357,8 +357,8 @@ auto BitWidth24ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth16ChannelAt(enum Image_Channel_t const channel_,
-                         enum Image_Format_t const fmt_,
+auto BitWidth16ChannelAt(enum Image_Channel const channel_,
+                         enum Image_Format const fmt_,
                          uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R4G4B4A4_UNORM_PACK16:
@@ -399,8 +399,8 @@ auto BitWidth16ChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth8ChannelAt(enum Image_Channel_t const channel_,
-                        enum Image_Format_t const fmt_,
+auto BitWidth8ChannelAt(enum Image_Channel const channel_,
+                        enum Image_Format const fmt_,
                         uint8_t const *ptr_) -> double {
   switch (fmt_) {
     case Image_Format_R4G4_UNORM_PACK8:
@@ -422,4 +422,4 @@ auto BitWidth8ChannelAt(enum Image_Channel_t const channel_,
 
 } // end image namespace
 
-#endif //WYRD_IMAGE_FETCH_HPP
+#endif //WYRD_FETCH_HPP

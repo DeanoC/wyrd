@@ -12,7 +12,7 @@ TEST_CASE("Format Cracker IsDepth (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_D16_UNORM:
       case Image_Format_X8_D24_UNORM_PACK32:
@@ -37,7 +37,7 @@ TEST_CASE("Format Cracker IsStencil (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_S8_UINT:
       case Image_Format_D16_UNORM_S8_UINT:
@@ -61,7 +61,7 @@ TEST_CASE("Format Cracker IsDepthStencil (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_D16_UNORM_S8_UINT:
       case Image_Format_D24_UNORM_S8_UINT:
@@ -84,7 +84,7 @@ TEST_CASE("Format Cracker IsFloat (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_R16_SFLOAT:
       case Image_Format_R16G16_SFLOAT:
@@ -120,7 +120,7 @@ TEST_CASE("Format Cracker IsNormalised (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_R4G4_UNORM_PACK8:
       case Image_Format_R4G4B4A4_UNORM_PACK16:
@@ -166,7 +166,11 @@ TEST_CASE("Format Cracker IsNormalised (C)", "[Image]") {
       case Image_Format_BC4_SNORM_BLOCK:
       case Image_Format_BC5_UNORM_BLOCK:
       case Image_Format_BC5_SNORM_BLOCK:
-      case Image_Format_BC7_UNORM_BLOCK: {
+      case Image_Format_BC7_UNORM_BLOCK:
+      case Image_Format_PVR_2BPP_BLOCK:
+      case Image_Format_PVR_2BPPA_BLOCK:
+      case Image_Format_PVR_4BPP_BLOCK:
+      case Image_Format_PVR_4BPPA_BLOCK: {
         REQUIRE(Image_Format_IsNormalised(fmt));
         break;
       };
@@ -185,7 +189,7 @@ TEST_CASE("Format Cracker IsSigned (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_R8_SNORM:
       case Image_Format_R8_SSCALED:
@@ -263,7 +267,7 @@ TEST_CASE("Format Cracker IsSRGB (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_R8_SRGB:
       case Image_Format_R8G8_SRGB:
@@ -276,7 +280,11 @@ TEST_CASE("Format Cracker IsSRGB (C)", "[Image]") {
       case Image_Format_BC1_RGBA_SRGB_BLOCK:
       case Image_Format_BC2_SRGB_BLOCK:
       case Image_Format_BC3_SRGB_BLOCK:
-      case Image_Format_BC7_SRGB_BLOCK: {
+      case Image_Format_BC7_SRGB_BLOCK:
+      case Image_Format_PVR_2BPP_SRGB_BLOCK:
+      case Image_Format_PVR_2BPPA_SRGB_BLOCK:
+      case Image_Format_PVR_4BPP_SRGB_BLOCK:
+      case Image_Format_PVR_4BPPA_SRGB_BLOCK: {
         REQUIRE(Image_Format_IsSRGB(fmt));
         break;
       };
@@ -295,7 +303,7 @@ TEST_CASE("Format Cracker IsCompressed (C)", "[Image]") {
 #include "image/format.h"
 
   for (int i = 0; i < formatCount; ++i) {
-    enum Image_Format_t fmt = (Image_Format_t) i;
+    enum Image_Format fmt = (Image_Format) i;
     switch (fmt) {
       case Image_Format_BC1_RGB_UNORM_BLOCK:
       case Image_Format_BC1_RGB_SRGB_BLOCK:
@@ -312,7 +320,15 @@ TEST_CASE("Format Cracker IsCompressed (C)", "[Image]") {
       case Image_Format_BC6H_UFLOAT_BLOCK:
       case Image_Format_BC6H_SFLOAT_BLOCK:
       case Image_Format_BC7_UNORM_BLOCK:
-      case Image_Format_BC7_SRGB_BLOCK: {
+      case Image_Format_BC7_SRGB_BLOCK:
+      case Image_Format_PVR_2BPP_BLOCK:
+      case Image_Format_PVR_2BPPA_BLOCK:
+      case Image_Format_PVR_4BPP_BLOCK:
+      case Image_Format_PVR_4BPPA_BLOCK:
+      case Image_Format_PVR_2BPP_SRGB_BLOCK:
+      case Image_Format_PVR_2BPPA_SRGB_BLOCK:
+      case Image_Format_PVR_4BPP_SRGB_BLOCK:
+      case Image_Format_PVR_4BPPA_SRGB_BLOCK: {
         REQUIRE(Image_Format_IsCompressed(fmt));
         break;
       };

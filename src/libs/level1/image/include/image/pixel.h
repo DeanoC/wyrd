@@ -5,14 +5,14 @@
 #include "core/core.h"
 #include "math/math.h"
 
-typedef struct Image_Pixel_t {
+typedef struct Image_PixelD {
   double r;
   double g;
   double b;
   double a;
-} Image_Pixel_t;
+} Image_PixelD;
 
-EXTERN_C inline void Image_PixelClamp(Image_Pixel_t *pixel, double const min[4], double const max[4]) {
+EXTERN_C inline void Image_PixelClamp(Image_PixelD *pixel, double const min[4], double const max[4]) {
   pixel->r = Math_ClampD(pixel->r, min[0], max[0]);
   pixel->g = Math_ClampD(pixel->g, min[1], max[1]);
   pixel->b = Math_ClampD(pixel->b, min[2], max[2]);

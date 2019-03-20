@@ -20,8 +20,6 @@ set(CPPInterface
 
 set(Src
         c_api.cpp
-        resource_loader.h
-        resource_loader.cpp
         shader_reflection.cpp
         Image/image.cpp
         Image/image.h
@@ -50,9 +48,9 @@ set(Deps
         level0/os
         level0/tinystl
         level0/stb
-        level1/vfile
-        level1/logmanager
         level1/guishell
+        level1/vfile
+        level1/image
         )
 
 set(Tests

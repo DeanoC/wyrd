@@ -17,83 +17,6 @@
 
 namespace TheForge {
 
-struct BufferLoadDesc {
-  Buffer **ppBuffer;
-  const void *pData;
-  BufferDesc mDesc;
-  /// Force Reset buffer to NULL
-  bool mForceReset;
-};
-
-struct TextureLoadDesc {
-  Texture **ppTexture;
-  /// Load texture from image
-  Image *pImage;
-  /// Load empty texture
-  TextureDesc *pDesc;
-  /// Load texture from disk
-  const char *pFilename;
-  uint32_t mNodeIndex;
-  bool mUseMipmaps;
-  bool mSrgb;
-
-  // Following is ignored if pDesc != NULL.  pDesc->mFlags will be considered instead.
-  TextureCreationFlags mCreationFlag;
-};
-
-struct BufferUpdateDesc {
-  BufferUpdateDesc(TheForge_Buffer *buf = NULL,
-                   const void *data = NULL,
-                   uint64_t srcOff = 0,
-                   uint64_t dstOff = 0,
-                   uint64_t size = 0) :
-      pBuffer(buf),
-      pData(data),
-      mSrcOffset(srcOff),
-      mDstOffset(dstOff),
-      mSize(size) {
-  }
-
-  Buffer *pBuffer;
-  const void *pData;
-  uint64_t mSrcOffset;
-  uint64_t mDstOffset;
-  uint64_t mSize;    // If 0, uses size of pBuffer
-};
-
-struct TextureUpdateDesc {
-  Texture *pTexture;
-  Image *pImage;
-  bool freeImage;
-};
-
-enum ResourceType {
-  RESOURCE_TYPE_BUFFER = 0,
-  RESOURCE_TYPE_TEXTURE,
-};
-
-struct ResourceLoadDesc {
-  ResourceLoadDesc(BufferLoadDesc& buffer) : mType(RESOURCE_TYPE_BUFFER), buf(buffer) {}
-  ResourceLoadDesc(TextureLoadDesc& texture) : mType(RESOURCE_TYPE_TEXTURE), tex(texture) {}
-
-  ResourceType mType;
-  union {
-    BufferLoadDesc buf;
-    TextureLoadDesc tex;
-  };
-};
-
-struct ResourceUpdateDesc {
-  ResourceUpdateDesc(BufferUpdateDesc& buffer) : mType(RESOURCE_TYPE_BUFFER), buf(buffer) {}
-  ResourceUpdateDesc(TextureUpdateDesc& texture) : mType(RESOURCE_TYPE_TEXTURE), tex(texture) {}
-
-  ResourceType mType;
-  union {
-    BufferUpdateDesc buf;
-    TextureUpdateDesc tex;
-  };
-};
-
 struct ShaderStageLoadDesc {
   tinystl::string mFileName;
   ShaderMacro *pMacros;
@@ -132,11 +55,12 @@ void WaitTokenCompleted(SyncToken token);
 void RemoveResource(Buffer *pBuffer);
 void RemoveResource(Texture *pTexture);
 
-/// Either loads the cached shader bytecode or compiles the shader to create new bytecode depending on whether source is newer than binary
-void AddShader(Renderer *pRenderer, const ShaderLoadDesc *pDesc, Shader **ppShader);
-
 void FlushResourceUpdates();
 void FinishResourceLoading();
+
+/// Either loads the cached shader bytecode or compiles the shader to create new bytecode depending on whether source is newer than binary
+//void AddShader(Renderer *pRenderer, const ShaderLoadDesc *pDesc, Shader **ppShader);
+
 
 } // end namespace TheForge
 

@@ -28,30 +28,16 @@
 #include "os/file.hpp"
 #include "os/filesystem.hpp"
 #include "os/thread.hpp"
-#include "vfile/vfile.hpp"
-#include "theforge/renderer.hpp"
 #include "tinystl/vector.h"
 
 #include "resource_loader.h"
 
-// TODO
-extern unsigned getSystemTime();
-
-
-//this is needed for unix as PATH_MAX is defined instead of MAX_PATH
-#ifndef _WIN32
-//linux needs limits.h for PATH_MAX
-#ifdef __linux__
-#include <limits.h>
-#endif
 #if defined(__ANDROID__)
 #include <shaderc/shaderc.h>
 #endif
-#define MAX_PATH PATH_MAX
-#endif
 
 namespace TheForge {
-extern const RendererShaderDefinesDesc get_renderer_shaderdefines(Renderer *pRenderer);
+//extern const RendererShaderDefinesDesc get_renderer_shaderdefines(Renderer *pRenderer);
 
 //////////////////////////////////////////////////////////////////////////
 // Resource CopyEngine Structures
@@ -845,7 +831,7 @@ void flushResourceUpdates() {
 void finishResourceLoading() {
   waitBatchCompleted();
 }
-
+#if 0
 /************************************************************************/
 // Shader loading
 /************************************************************************/
@@ -1522,5 +1508,7 @@ void addShader(Renderer *pRenderer, const ShaderLoadDesc *pDesc, Shader **ppShad
   addShader(pRenderer, &desc, ppShader);
 #endif
 }
+
+# endif // TODO Deano shader loader
 
 } // end namespace

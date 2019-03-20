@@ -1,11 +1,11 @@
 #pragma once
-#ifndef WYRD_IMAGE_PUT_HPP
-#define WYRD_IMAGE_PUT_HPP
+#ifndef WYRD_PUT_HPP
+#define WYRD_PUT_HPP
 
 #include "core/core.h"
 #include "core/logger.h"
 #include "math/math.hpp"
-#include "image_fetch.hpp"
+#include "fetch.hpp"
 #include <numeric>
 
 namespace Image {
@@ -180,8 +180,8 @@ auto PutChannel_D16S8_UNORM_UINT(uint8_t channel_, uint8_t *ptr_, double const v
 
 }
 
-auto BitWidth256SetChannelAt(enum Image_Channel_t const channel_,
-                             enum Image_Format_t const fmt_,
+auto BitWidth256SetChannelAt(enum Image_Channel const channel_,
+                             enum Image_Format const fmt_,
                              uint8_t *ptr_,
                              double const value_) -> void {
   switch (fmt_) {
@@ -195,8 +195,8 @@ auto BitWidth256SetChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth192SetChannelAt(enum Image_Channel_t const channel_,
-                             enum Image_Format_t const fmt_,
+auto BitWidth192SetChannelAt(enum Image_Channel const channel_,
+                             enum Image_Format const fmt_,
                              uint8_t *ptr_,
                              double const value_) -> void {
   switch (fmt_) {
@@ -210,8 +210,8 @@ auto BitWidth192SetChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth128SetChannelAt(enum Image_Channel_t const channel_,
-                             enum Image_Format_t const fmt_,
+auto BitWidth128SetChannelAt(enum Image_Channel const channel_,
+                             enum Image_Format const fmt_,
                              uint8_t *ptr_,
                              double const value_) -> void {
 
@@ -232,8 +232,8 @@ auto BitWidth128SetChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth96SetChannelAt(enum Image_Channel_t const channel_,
-                            enum Image_Format_t const fmt_,
+auto BitWidth96SetChannelAt(enum Image_Channel const channel_,
+                            enum Image_Format const fmt_,
                             uint8_t *ptr_,
                             double const value_) -> void {
   switch (fmt_) {
@@ -248,8 +248,8 @@ auto BitWidth96SetChannelAt(enum Image_Channel_t const channel_,
 
 }
 
-auto BitWidth64SetChannelAt(enum Image_Channel_t const channel_,
-                            enum Image_Format_t const fmt_,
+auto BitWidth64SetChannelAt(enum Image_Channel const channel_,
+                            enum Image_Format const fmt_,
                             uint8_t *ptr_,
                             double const value_) -> void {
   switch (fmt_) {
@@ -307,8 +307,8 @@ auto BitWidth64SetChannelAt(enum Image_Channel_t const channel_,
 
 }
 
-auto BitWidth48SetChannelAt(enum Image_Channel_t const channel_,
-                            enum Image_Format_t const fmt_,
+auto BitWidth48SetChannelAt(enum Image_Channel const channel_,
+                            enum Image_Format const fmt_,
                             uint8_t *ptr_,
                             double const value_) -> void {
   switch (fmt_) {
@@ -334,8 +334,8 @@ auto BitWidth48SetChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth32SetChannelAt(enum Image_Channel_t const channel_,
-                            enum Image_Format_t const fmt_,
+auto BitWidth32SetChannelAt(enum Image_Channel const channel_,
+                            enum Image_Format const fmt_,
                             uint8_t *ptr_,
                             double const value_) -> void {
   switch (fmt_) {
@@ -448,8 +448,8 @@ auto BitWidth32SetChannelAt(enum Image_Channel_t const channel_,
   }
 }
 
-auto BitWidth24SetChannelAt(enum Image_Channel_t const channel_,
-                            enum Image_Format_t const fmt_,
+auto BitWidth24SetChannelAt(enum Image_Channel const channel_,
+                            enum Image_Format const fmt_,
                             uint8_t *ptr_,
                             double const value_) -> void {
   switch (fmt_) {
@@ -486,8 +486,8 @@ auto BitWidth24SetChannelAt(enum Image_Channel_t const channel_,
 
 }
 
-auto BitWidth16SetChannelAt(enum Image_Channel_t const channel_,
-                            enum Image_Format_t const fmt_,
+auto BitWidth16SetChannelAt(enum Image_Channel const channel_,
+                            enum Image_Format const fmt_,
                             uint8_t *ptr_,
                             double const value_) -> void {
   switch (fmt_) {
@@ -551,8 +551,8 @@ auto BitWidth16SetChannelAt(enum Image_Channel_t const channel_,
 
 }
 
-auto BitWidth8SetChannelAt(enum Image_Channel_t const channel_,
-                           enum Image_Format_t const fmt_,
+auto BitWidth8SetChannelAt(enum Image_Channel const channel_,
+                           enum Image_Format const fmt_,
                            uint8_t *ptr_,
                            double const value_) -> void {
   switch (fmt_) {
@@ -581,4 +581,4 @@ auto BitWidth8SetChannelAt(enum Image_Channel_t const channel_,
 
 } // end Image namespace
 
-#endif //WYRD_IMAGE_PUT_HPP
+#endif //WYRD_PUT_HPP

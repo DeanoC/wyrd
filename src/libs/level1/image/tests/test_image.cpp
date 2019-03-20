@@ -12,7 +12,7 @@ int Main(int argc, char const *argv[]) {
 #include "image/format_cracker.h"
 
 TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
-  Image_Header_t *image0 = Image_Create1D(256, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image0 = Image_Create1D(256, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0);
   REQUIRE(image0->format == Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0->width == 256);
@@ -24,7 +24,7 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image0->nextType == Image_IT_None);
   Image_Destroy(image0);
 
-  Image_Header_t *image1 = Image_Create1DNoClear(64, Image_Format_R5G5B5A1_UNORM_PACK16);
+  Image_ImageHeader *image1 = Image_Create1DNoClear(64, Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image1);
   REQUIRE(image1->format == Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image1->width == 64);
@@ -36,7 +36,7 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image1->nextType == Image_IT_None);
   Image_Destroy(image1);
 
-  Image_Header_t *image2 = Image_Create1DArray(256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image2 = Image_Create1DArray(256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2);
   REQUIRE(image2->format == Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2->width == 256);
@@ -48,7 +48,7 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   REQUIRE(image2->nextType == Image_IT_None);
   Image_Destroy(image2);
 
-  Image_Header_t *image3 = Image_Create1DArrayNoClear(64, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
+  Image_ImageHeader *image3 = Image_Create1DArrayNoClear(64, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image3);
   REQUIRE(image3->format == Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image3->width == 64);
@@ -63,7 +63,7 @@ TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
 }
 
 TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
-  Image_Header_t *image0 = Image_Create2D(256, 256, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image0 = Image_Create2D(256, 256, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0);
   REQUIRE(image0->format == Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0->width == 256);
@@ -75,7 +75,7 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image0->nextType == Image_IT_None);
   Image_Destroy(image0);
 
-  Image_Header_t *image1 = Image_Create2DNoClear(64, 128, Image_Format_R5G5B5A1_UNORM_PACK16);
+  Image_ImageHeader *image1 = Image_Create2DNoClear(64, 128, Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image1);
   REQUIRE(image1->format == Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image1->width == 64);
@@ -87,7 +87,7 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image1->nextType == Image_IT_None);
   Image_Destroy(image1);
 
-  Image_Header_t *image2 = Image_Create2DArray(256, 256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image2 = Image_Create2DArray(256, 256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2);
   REQUIRE(image2->format == Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2->width == 256);
@@ -99,7 +99,7 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image2->nextType == Image_IT_None);
   Image_Destroy(image2);
 
-  Image_Header_t *image3 = Image_Create2DArrayNoClear(64, 32, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
+  Image_ImageHeader *image3 = Image_Create2DArrayNoClear(64, 32, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image3);
   REQUIRE(image3->format == Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image3->width == 64);
@@ -111,7 +111,7 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
 }
 
 TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
-  Image_Header_t *image0 = Image_Create3D(256, 256, 16, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image0 = Image_Create3D(256, 256, 16, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0);
   REQUIRE(image0->format == Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image0->width == 256);
@@ -123,7 +123,7 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image0->nextType == Image_IT_None);
   Image_Destroy(image0);
 
-  Image_Header_t *image1 = Image_Create3DNoClear(64, 128, 256, Image_Format_R5G5B5A1_UNORM_PACK16);
+  Image_ImageHeader *image1 = Image_Create3DNoClear(64, 128, 256, Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image1);
   REQUIRE(image1->format == Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image1->width == 64);
@@ -135,7 +135,7 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image1->nextType == Image_IT_None);
   Image_Destroy(image1);
 
-  Image_Header_t *image2 = Image_Create3DArray(256, 256, 256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image2 = Image_Create3DArray(256, 256, 256, 20, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2);
   REQUIRE(image2->format == Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image2->width == 256);
@@ -147,7 +147,7 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   REQUIRE(image2->nextType == Image_IT_None);
   Image_Destroy(image2);
 
-  Image_Header_t *image3 = Image_Create3DArrayNoClear(64, 32, 16, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
+  Image_ImageHeader *image3 = Image_Create3DArrayNoClear(64, 32, 16, 100, Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image3);
   REQUIRE(image3->format == Image_Format_R5G5B5A1_UNORM_PACK16);
   REQUIRE(image3->width == 64);
@@ -160,7 +160,7 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
   Image_Destroy(image3);
 
   // HUGE test
-  Image_Header_t *image4 = Image_Create3DArrayNoClear(1024, 1024, 16, 10, Image_Format_R64G64B64A64_SFLOAT);
+  Image_ImageHeader *image4 = Image_Create3DArrayNoClear(1024, 1024, 16, 10, Image_Format_R64G64B64A64_SFLOAT);
   REQUIRE(image4);
   REQUIRE(image4->format == Image_Format_R64G64B64A64_SFLOAT);
   REQUIRE(image4->width == 1024);
@@ -174,7 +174,7 @@ TEST_CASE("Image create/destroy 3D (C)", "[Image]") {
 }
 
 TEST_CASE("Calculate Index (C)", "[Image]") {
-  Image_Header_t *image = Image_Create3DArray(17, 17, 17, 17, Image_Format_A8B8G8R8_UNORM_PACK32);
+  Image_ImageHeader *image = Image_Create3DArray(17, 17, 17, 17, Image_Format_A8B8G8R8_UNORM_PACK32);
   REQUIRE(image);
   uint64_t const pixelSize = Image_Format_BitWidth(image->format);
   REQUIRE(image->dataSize == (17 * 17 * 17 * 17 * pixelSize) / 8);
@@ -211,7 +211,7 @@ TEST_CASE("Calculate Index (C)", "[Image]") {
   Image_Destroy(image);
 }
 
-void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_Format_t fmt_, bool doLog_) {
+void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_Format fmt_, bool doLog_) {
   using namespace Catch::literals;
   if (fmt_ == Image_Format_UNDEFINED) { return; }
 
@@ -254,7 +254,7 @@ void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_
     for (auto z = 0u; z < img->depth; ++z) {
       for (auto y = 0u; y < img->height; ++y) {
         for (auto x = 0u; x < img->width; ++x) {
-          Image_Pixel_t pixel = {double(x), double(y), double(z), double(s)};
+          Image_PixelD pixel = {double(x), double(y), double(z), double(s)};
           if (Image_Format_IsSigned(img->format)) {
             pixel.r = mins[0] + pixel.r;
             pixel.g = mins[1] + pixel.g;
@@ -285,7 +285,7 @@ void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_
     for (auto z = 0u; z < img->depth; ++z) {
       for (auto y = 0u; y < img->height; ++y) {
         for (auto x = 0u; x < img->width; ++x) {
-          Image_Pixel_t pixel;
+          Image_PixelD pixel;
 
           size_t const index = Image_CalculateIndex(img, x, y, z, s);
           Image_GetPixelAt(img, &pixel, index);
@@ -294,7 +294,7 @@ void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_
                      x, y, z, s,
                      pixel.r, pixel.g, pixel.b, pixel.a);
           }
-          Image_Pixel_t expected = {double(x), double(y), double(z), double(s)};
+          Image_PixelD expected = {double(x), double(y), double(z), double(s)};
 
           if (Image_Format_IsSigned(img->format)) {
             expected.r = mins[0] + expected.r;
@@ -327,7 +327,7 @@ void ImageTester(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_
   Image_Destroy(img);
 }
 
-void ImageTesterFiltered(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_Format_t fmt_, bool doLog_) {
+void ImageTesterFiltered(uint32_t w_, uint32_t h_, uint32_t d_, uint32_t s_, enum Image_Format fmt_, bool doLog_) {
   // Filter the known failures for the generic test runs
   // this formats will emit failures due to 'lossy'ness over the range
 

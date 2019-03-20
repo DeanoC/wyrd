@@ -12,9 +12,11 @@ set(CPPInterface
 
 set(Src
         format_cracker.c
+        block.c
         image.cpp
-        image_fetch.hpp
-        image_put.hpp
+        fetch.hpp
+        put.hpp
+        loader.cpp
         )
 
 set(Deps
@@ -22,6 +24,8 @@ set(Deps
         level0/math
         level0/os
         level0/tinystl
+        level0/stb
+        level1/vfile
         )
 
 set(Tests

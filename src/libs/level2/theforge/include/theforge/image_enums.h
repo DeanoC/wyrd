@@ -99,11 +99,6 @@ enum {
   TheForge_IF_ATI1N = 54,
   TheForge_IF_ATI2N = 55,
 
-  // PVR formats
-  TheForge_IF_PVR_2BPP = 56,
-  TheForge_IF_PVR_2BPPA = 57,
-  TheForge_IF_PVR_4BPP = 58,
-  TheForge_IF_PVR_4BPPA = 59,
 
   // compressed mobile forms
   TheForge_IF_ETC1 = 65,    //  RGB
@@ -135,6 +130,11 @@ enum {
   TheForge_IF_D32S8 = 83,
 
   // PVR SRGB extensions
+  // PVR formats
+  TheForge_IF_PVR_2BPP = 56,
+  TheForge_IF_PVR_2BPPA = 57,
+  TheForge_IF_PVR_4BPP = 58,
+  TheForge_IF_PVR_4BPPA = 59,
   TheForge_IF_PVR_2BPP_SRGB = 84,
   TheForge_IF_PVR_2BPPA_SRGB = 85,
   TheForge_IF_PVR_4BPP_SRGB = 86,
