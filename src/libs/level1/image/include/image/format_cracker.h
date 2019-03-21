@@ -115,8 +115,7 @@ EXTERN_C inline bool Image_Format_IsNormalised(enum Image_Format const fmt) {
     case Image_Format_PVR_2BPP_BLOCK:
     case Image_Format_PVR_2BPPA_BLOCK:
     case Image_Format_PVR_4BPP_BLOCK:
-    case Image_Format_PVR_4BPPA_BLOCK:
-      return true;
+    case Image_Format_PVR_4BPPA_BLOCK:return true;
     default:return false;
   }
 }
@@ -202,8 +201,7 @@ EXTERN_C inline bool Image_Format_IsSRGB(enum Image_Format const fmt) {
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
     case Image_Format_PVR_2BPPA_SRGB_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return true;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return true;
 
     default: return false;
   }
@@ -235,13 +233,14 @@ EXTERN_C inline bool Image_Format_IsCompressed(enum Image_Format const fmt) {
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
     case Image_Format_PVR_2BPPA_SRGB_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return true;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return true;
     default:return false;
   }
 }
 
-EXTERN_C inline uint32_t Image_Format_PixelPerCompressedBlock(enum Image_Format const fmt) {
+EXTERN_C inline uint32_t Image_Format_WidthOfBlock(Image_Format const fmt) {
+  ASSERT(Image_Format_IsCompressed(fmt));
+
   switch (fmt) {
     case Image_Format_BC1_RGB_UNORM_BLOCK:
     case Image_Format_BC1_RGB_SRGB_BLOCK:
@@ -262,14 +261,52 @@ EXTERN_C inline uint32_t Image_Format_PixelPerCompressedBlock(enum Image_Format 
     case Image_Format_PVR_4BPP_BLOCK:
     case Image_Format_PVR_4BPPA_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return 16;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
     case Image_Format_PVR_2BPP_BLOCK:
     case Image_Format_PVR_2BPPA_BLOCK:
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
-    case Image_Format_PVR_2BPPA_SRGB_BLOCK:return 32;
+    case Image_Format_PVR_2BPPA_SRGB_BLOCK:return 4;
+      return 4;
     default:ASSERT(false);
       return 0;
   }
+}
+
+EXTERN_C inline uint32_t Image_Format_HeightOfBlock(Image_Format const fmt) {
+  ASSERT(Image_Format_IsCompressed(fmt));
+
+  switch (fmt) {
+    case Image_Format_BC1_RGB_UNORM_BLOCK:
+    case Image_Format_BC1_RGB_SRGB_BLOCK:
+    case Image_Format_BC1_RGBA_UNORM_BLOCK:
+    case Image_Format_BC1_RGBA_SRGB_BLOCK:
+    case Image_Format_BC2_UNORM_BLOCK:
+    case Image_Format_BC2_SRGB_BLOCK:
+    case Image_Format_BC3_UNORM_BLOCK:
+    case Image_Format_BC3_SRGB_BLOCK:
+    case Image_Format_BC4_UNORM_BLOCK:
+    case Image_Format_BC4_SNORM_BLOCK:
+    case Image_Format_BC5_UNORM_BLOCK:
+    case Image_Format_BC5_SNORM_BLOCK:
+    case Image_Format_BC6H_UFLOAT_BLOCK:
+    case Image_Format_BC6H_SFLOAT_BLOCK:
+    case Image_Format_BC7_UNORM_BLOCK:
+    case Image_Format_BC7_SRGB_BLOCK:
+    case Image_Format_PVR_4BPP_BLOCK:
+    case Image_Format_PVR_4BPPA_BLOCK:
+    case Image_Format_PVR_4BPP_SRGB_BLOCK:
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return 4;
+    case Image_Format_PVR_2BPP_BLOCK:
+    case Image_Format_PVR_2BPPA_BLOCK:
+    case Image_Format_PVR_2BPP_SRGB_BLOCK:
+    case Image_Format_PVR_2BPPA_SRGB_BLOCK:return 8;
+    default:ASSERT(false);
+      return 0;
+  }
+}
+
+EXTERN_C inline uint32_t Image_Format_PixelCountOfBlock(Image_Format const fmt) {
+  return Image_Format_WidthOfBlock(fmt) * Image_Format_HeightOfBlock(fmt);
 }
 
 //! returns the number of channels per gl format
@@ -331,8 +368,7 @@ EXTERN_C inline uint32_t Image_Format_ChannelCount(enum Image_Format const fmt) 
     case Image_Format_PVR_2BPPA_BLOCK:
     case Image_Format_PVR_4BPPA_BLOCK:
     case Image_Format_PVR_2BPPA_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return 4;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return 4;
 
     case Image_Format_R5G6B5_UNORM_PACK16:
     case Image_Format_B5G6R5_UNORM_PACK16:
@@ -370,8 +406,7 @@ EXTERN_C inline uint32_t Image_Format_ChannelCount(enum Image_Format const fmt) 
     case Image_Format_PVR_2BPP_BLOCK:
     case Image_Format_PVR_4BPP_BLOCK:
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPP_SRGB_BLOCK:
-      return 3;
+    case Image_Format_PVR_4BPP_SRGB_BLOCK:return 3;
 
     case Image_Format_R4G4_UNORM_PACK8:
     case Image_Format_R8G8_UNORM:
@@ -600,14 +635,12 @@ EXTERN_C inline uint32_t Image_Format_ChannelBitWidth(enum Image_Format const fm
     case Image_Format_PVR_4BPP_BLOCK:
     case Image_Format_PVR_4BPPA_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return 4;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return 4;
 
     case Image_Format_PVR_2BPP_BLOCK:
     case Image_Format_PVR_2BPPA_BLOCK:
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
-    case Image_Format_PVR_2BPPA_SRGB_BLOCK:
-      return 2;
+    case Image_Format_PVR_2BPPA_SRGB_BLOCK:return 2;
 
     case Image_Format_UNDEFINED:return 0;
 
@@ -656,7 +689,7 @@ EXTERN_C inline uint32_t Image_Format_BitWidth(enum Image_Format const fmt) {
     case Image_Format_R16G16B16A16_SINT:
     case Image_Format_R16G16B16A16_SFLOAT:return 64;
 
-    // best case 40 bits worse case 64, be a pessimist
+      // best case 40 bits worse case 64, be a pessimist
     case Image_Format_D32_SFLOAT_S8_UINT:return 64;
 
     case Image_Format_R16G16B16_UNORM:
@@ -773,15 +806,13 @@ EXTERN_C inline uint32_t Image_Format_BitWidth(enum Image_Format const fmt) {
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
     case Image_Format_PVR_2BPPA_SRGB_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return 8;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return 8;
     case Image_Format_BC1_RGB_UNORM_BLOCK:
     case Image_Format_BC1_RGB_SRGB_BLOCK:
     case Image_Format_BC1_RGBA_UNORM_BLOCK:
     case Image_Format_BC1_RGBA_SRGB_BLOCK:
     case Image_Format_BC4_UNORM_BLOCK:
-    case Image_Format_BC4_SNORM_BLOCK:
-      return 4;
+    case Image_Format_BC4_SNORM_BLOCK:return 4;
 
     default: LOGWARNINGF("bitWidth: %s not handled", Image_Format_Name(fmt));
       return 0;
@@ -1160,8 +1191,7 @@ EXTERN_C inline double Image_Format_Min(enum Image_Format const fmt, int channel
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
     case Image_Format_PVR_2BPPA_SRGB_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return 0.0;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return 0.0;
 
     case Image_Format_BC4_SNORM_BLOCK:
     case Image_Format_BC5_SNORM_BLOCK: return INT8_MIN;
@@ -1334,11 +1364,9 @@ EXTERN_C inline Image_Swizzle Image_Format_Swizzle(enum Image_Format fmt_) {
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
     case Image_Format_PVR_2BPPA_SRGB_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      return Image_Format_Swizzle_RGBA;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:return Image_Format_Swizzle_RGBA;
 
-      default:
-      LOGERRORF("swizzleFormat %s not handled", Image_Format_Name(fmt_));
+    default:LOGERRORF("swizzleFormat %s not handled", Image_Format_Name(fmt_));
       return Image_Format_Swizzle_RGBA;
   }
 }

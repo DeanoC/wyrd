@@ -22,8 +22,6 @@ set(Src
 set(Deps
         level0/core
         level0/math
-        level0/os
-        level0/tinystl
         level0/stb
         level1/vfile
         )

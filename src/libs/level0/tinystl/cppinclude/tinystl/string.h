@@ -36,6 +36,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdio>
+#include "inttypes.h"
 
 namespace tinystl {
 
@@ -56,6 +57,7 @@ class basic_string {
   basic_string(basic_string&& other);
   basic_string(const char *sz);
   basic_string(const char *sz, size_t len);
+  basic_string(const char *begin, const char *end);
   basic_string(const string_view& other);
   ~basic_string();
 
@@ -171,6 +173,16 @@ inline basic_string<allocator>::basic_string(const char *sz, size_t len)
 }
 
 template<typename allocator>
+inline basic_string<allocator>::basic_string(const char *begin, const char *end)
+    : m_first(m_buffer), m_last(m_buffer), m_capacity(m_buffer + c_nbuffer) {
+  if (end - begin < 0) {
+    return;
+  }
+  reserve(end - begin);
+  append(begin, end);
+}
+
+template<typename allocator>
 inline basic_string<allocator>::basic_string(const tinystl::string_view& other) {
   basic_string(other.data(), other.size());
 }
@@ -282,9 +294,10 @@ inline void basic_string<allocator>::shrink_to_fit() {
     const size_t size = (size_t) (m_last - m_first);
     char *newfirst = (pointer) allocator::static_allocate(size + 1);
     for (pointer in = m_first, out = newfirst;
-    in != m_last + 1;
-    ++in, ++out)
-    *out = *in;
+         in != m_last + 1;
+         ++in, ++out) {
+           *out = *in;
+    }
     if (m_first != m_capacity) {
       allocator::static_deallocate(m_first, m_capacity + 1 - m_first);
     }
@@ -314,9 +327,10 @@ inline void basic_string<allocator>::swap(basic_string& other) {
     other.m_capacity = other.m_buffer + c_nbuffer;
 
     for (pointer it = other.m_first, end = other.m_last, in = m_buffer;
-    it != end;
-    ++it, ++in)
-    *it = *in;
+         it != end;
+         ++it, ++in) {
+           *it = *in;
+    }
     *other.m_last = 0;
   }
 
@@ -326,9 +340,10 @@ inline void basic_string<allocator>::swap(basic_string& other) {
     m_capacity = m_buffer + c_nbuffer;
 
     for (pointer it = m_first, end = m_last, in = tbuffer;
-    it != end;
-    ++it, ++in)
-    *it = *in;
+         it != end;
+         ++it, ++in) {
+           *it = *in;
+    }
     *m_last = 0;
   }
 }
@@ -544,21 +559,21 @@ basic_string<allocator> basic_string<allocator>::format(const char *fmt, ...) {
 }
 
 template<typename allocator>
-inline basic_string<allocator> basic_string<allocator>::to_lower() const
-{
+inline basic_string<allocator> basic_string<allocator>::to_lower() const {
   basic_string ret = *this;
-  for (unsigned i = 0; i < (unsigned)ret.size(); ++i)
-    ret.m_first[i] = (char)tolower(m_first[i]);
+  for (unsigned i = 0; i < (unsigned) ret.size(); ++i) {
+    ret.m_first[i] = (char) tolower(m_first[i]);
+  }
 
   return ret;
 }
 
 template<typename allocator>
-inline basic_string<allocator> basic_string<allocator>::to_upper() const
-{
+inline basic_string<allocator> basic_string<allocator>::to_upper() const {
   basic_string ret = *this;
-  for (unsigned i = 0; i < (unsigned)ret.size(); ++i)
-    ret.m_first[i] = (char)toupper(m_first[i]);
+  for (unsigned i = 0; i < (unsigned) ret.size(); ++i) {
+    ret.m_first[i] = (char) toupper(m_first[i]);
+  }
 
   return ret;
 }
@@ -659,6 +674,13 @@ inline basic_string<allocator> operator+(const basic_string<allocator>& lhs, con
 }
 
 template<typename allocator>
+inline basic_string<allocator> operator+(const char* lhs, const basic_string<allocator>& rhs) {
+  basic_string<allocator> ret(lhs);
+  ret.append(rhs.begin(), rhs.end());
+  return ret;
+}
+
+template<typename allocator>
 inline basic_string<allocator>& operator+=(basic_string<allocator>& lhs, const basic_string<allocator>& rhs) {
   lhs.append(rhs.begin(), rhs.end());
   return lhs;
@@ -686,6 +708,29 @@ static inline size_t hash(const basic_string<allocator>& value) {
 }
 
 typedef basic_string<TINYSTL_ALLOCATOR> string;
+
+// basic to_string support, probably slow etc.
+#define TO_STRING_GEN(TYPE, FMT) \
+static inline string to_string(TYPE const t) { \
+  char tmp[1024]; \
+  sprintf(tmp, FMT, t); \
+  return string(tmp); \
+}
+
+TO_STRING_GEN(uint8_t, "%" PRIu8)
+TO_STRING_GEN(uint16_t, "%" PRIu16)
+TO_STRING_GEN(uint32_t, "%" PRIu32)
+TO_STRING_GEN(uint64_t, "%" PRIu64)
+TO_STRING_GEN(int8_t, "%" PRIi8)
+TO_STRING_GEN(int16_t, "%" PRIi16)
+TO_STRING_GEN(int32_t, "%" PRIi32)
+TO_STRING_GEN(int64_t, "%" PRIi64)
+TO_STRING_GEN(float, "%f")
+TO_STRING_GEN(double, "%f")
+TO_STRING_GEN(size_t, "%zu")
+
+#undef TO_STRING_GEN
+
 }
 
 #endif

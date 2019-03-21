@@ -21,6 +21,9 @@ struct File {
   static File *FromMemory(void *memory, size_t size, bool takeOwnership) {
     return (File *) VFile_FromMemory(memory, size, takeOwnership);
   }
+  static File * FromHandle(VFile_Handle handle) {
+    return (File*)handle;
+  }
 
   // frees the memory as well (same as C interface)
   void Close() { VFile_Close((VFile_Handle) this); }

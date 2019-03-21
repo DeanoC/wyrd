@@ -121,31 +121,6 @@ EXTERN_C inline void *Image_RawDataPtr(Image_ImageHeader const *image) {
   return (void *) (image + 1);
 }
 
-EXTERN_C size_t Image_CalculateIndex(Image_ImageHeader const *image,
-                                     uint32_t x,
-                                     uint32_t y,
-                                     uint32_t z,
-                                     uint32_t slice);
-EXTERN_C inline size_t Image_Calculate1DSize(Image_ImageHeader const *image) {
-  return image->width;
-}
-EXTERN_C inline size_t Image_Calculate2DSize(Image_ImageHeader const *image) {
-  return image->width * image->height;
-}
-EXTERN_C inline size_t Image_Calculate3DSize(Image_ImageHeader const *image) {
-  return image->width * image->height * image->depth;
-}
-
-EXTERN_C inline size_t Image_Calculate1DPitch(Image_ImageHeader const *image) {
-  return (Image_Calculate1DSize(image) * Image_Format_BitWidth(image->format)) / 8;
-}
-EXTERN_C inline size_t Image_Calculate2DPitch(Image_ImageHeader const *image) {
-  return (Image_Calculate2DSize(image) * Image_Format_BitWidth(image->format)) / 8;
-}
-EXTERN_C inline size_t Image_Calculate3DPitch(Image_ImageHeader const *image) {
-  return (Image_Calculate3DSize(image) * Image_Format_BitWidth(image->format)) / 8;
-}
-
 EXTERN_C void Image_GetPixelAt(Image_ImageHeader const *image, Image_PixelD *pixel, size_t index);
 EXTERN_C void Image_SetPixelAt(Image_ImageHeader const *image, Image_PixelD const *pixel, size_t index);
 EXTERN_C double Image_GetChannelAt(Image_ImageHeader const *image, enum Image_Channel channel, size_t index);
@@ -177,6 +152,51 @@ EXTERN_C void Image_CopyPixel(Image_ImageHeader *dst,
                                      uint32_t sx, uint32_t sy, uint32_t sz, uint32_t sw);
 
 
+EXTERN_C inline size_t Image_PixelCountPerRowOf(Image_ImageHeader const *image) {
+  return image->width;
+}
+EXTERN_C inline size_t Image_PixelCountPerPageOf(Image_ImageHeader const *image) {
+  return image->width * image->height;
+}
+EXTERN_C inline size_t Image_PixelCountPerSliceOf(Image_ImageHeader const *image) {
+  return image->width * image->height * image->depth;
+}
+EXTERN_C inline size_t Image_PixelCountOf(Image_ImageHeader const *image) {
+  return image->width * image->height * image->depth * image->slices;
+}
+EXTERN_C inline size_t Image_PixelCountOfImageChainOf(Image_ImageHeader const *image);
+
+EXTERN_C inline size_t Image_CalculateIndex(Image_ImageHeader const *image,
+                                            uint32_t x,
+                                            uint32_t y,
+                                            uint32_t z,
+                                            uint32_t slice) {
+  ASSERT(image);
+  ASSERT(x < image->width);
+  ASSERT(y < image->height);
+  ASSERT(z < image->depth);
+  ASSERT(slice < image->slices);
+  size_t const size1D = Image_PixelCountPerRowOf(image);
+  size_t const size2D = Image_PixelCountPerPageOf(image);
+  size_t const size3D = Image_PixelCountPerSliceOf(image);
+  size_t const index = (slice * size3D) + (z * size2D) + (y * size1D) + x;
+  return index;
+}
+
+EXTERN_C inline size_t Image_ByteCountPerRowOf(Image_ImageHeader const *image) {
+  return (Image_PixelCountPerRowOf(image) * Image_Format_BitWidth(image->format)) / 8;
+}
+EXTERN_C inline size_t Image_ByteCountPerPageOf(Image_ImageHeader const *image) {
+  return (Image_PixelCountPerPageOf(image) * Image_Format_BitWidth(image->format)) / 8;
+}
+EXTERN_C inline size_t Image_ByteCountPerSlice(Image_ImageHeader const *image) {
+  return (Image_PixelCountPerSliceOf(image) * Image_Format_BitWidth(image->format)) / 8;
+}
+EXTERN_C inline size_t Image_ByteCountOf(Image_ImageHeader const *image) {
+  return (Image_PixelCountOf(image) * Image_Format_BitWidth(image->format)) / 8;
+}
+
+EXTERN_C size_t Image_BytesForImageAndMipMaps(Image_ImageHeader const *image);
 
 
 

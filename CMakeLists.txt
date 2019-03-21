@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 project(wyrd)
+set(CMAKE_MACOSX_RPATH 1)
 
 include(FetchContent)
 include (cmake_includes/file_utils.cmake)

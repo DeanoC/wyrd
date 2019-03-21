@@ -47,4 +47,10 @@ EXTERN_C char const *VFile_GetName(VFile_Handle handle) {
   return interface->nameFunc(interface);
 }
 
+EXTERN_C bool VFile_IsEOF(VFile_Handle handle) {
+  VFILE_FUNC_HEADER
+
+  return interface->isEofFunc(interface);
+}
+
 #undef VFILE_FUNC_HEADER

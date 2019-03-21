@@ -97,8 +97,7 @@ typedef struct PVR_Header_Texture_TAG {
   uint32_t mFlags; //!< Various format flags.
   uint64_t mPixelFormat; //!< The pixel format, 8cc value storing the 4 channel identifiers and their respective sizes.
   uint32_t mColorSpace; //!< The Color Space of the texture, currently either linear RGB or sRGB.
-  uint32_t
-      mChannelType; //!< Variable type that the channel is stored in. Supports signed/unsigned int/short/char/float.
+  uint32_t mChannelType; //!< Variable type that the channel is stored in. Supports signed/unsigned int/short/char/float.
   uint32_t mHeight; //!< Height of the texture.
   uint32_t mWidth; //!< Width of the texture.
   uint32_t mDepth; //!< Depth of the texture. (Z-slices)
@@ -236,19 +235,14 @@ enum DDS_DXGI_FORMAT {
 };
 // Load Image Data form mData functions
 
-bool Image_LoadDDSFromMemory(
-    const char *memory, uint64_t memSize, void *pUserData) {
+Image_ImageHeader* Image_LoadDDS(VFile_Handle handle) {
   DDSHeader header;
 
-  if (memory == NULL || memSize == 0) {
-    return false;
-  }
-
-  VFile::ScopedFile file = VFile::File::FromMemory((void *) memory, memSize, false);
+  VFile::File *file = VFile::File::FromHandle(handle);
   file->Read(&header, sizeof(header));
 
   if (header.mDWMagic != MAKE_CHAR4('D', 'D', 'S', ' ')) {
-    return false;
+    return nullptr;
   }
 
   Image_ImageHeader *image = nullptr;
@@ -393,7 +387,7 @@ bool Image_LoadDDSFromMemory(
         break;
       case DDS_DXGI_FORMAT_B4G4R4A4_UNORM: format = Image_Format_B4G4R4A4_UNORM_PACK16;
         break;
-      default: break;
+      default: return nullptr;
     }
   } else {
     switch (header.mPixelFormat.mDWFourCC) {
@@ -453,20 +447,25 @@ bool Image_LoadDDSFromMemory(
                      Image_Format_A2R10G10B10_UNORM_PACK32 :
                      Image_Format_R8G8B8A8_UNORM;
             break;
-          default:break;
+          default:return nullptr;
         }
     }
   }
-  if (format == Image_Format_UNDEFINED) { return false; }
+  if (format == Image_Format_UNDEFINED) { return nullptr; }
 
   image = Image_Create(header.mDWWidth,
                        header.mDWHeight,
                        (header.mDWDepth == 0) ? 1 : header.mDWDepth,
                        (header.mCaps.mDWCaps2 & DDSCAPS2_CUBEMAP) ? 6 : 1,
                        format);
-/*
-//  int size = GetMipMappedSize(0, mMipMapCount);
+  file->Read(Image_RawDataPtr(image), Image_ByteCountOf(image));
 
+  if(header.mDWMipMapCount != 1) {
+    Image_CreateMipMapChain(image, true);
+  }
+
+  /*TODO Deano use DDS mipmaps if store in file!
+  size_t size = Image_BytesForImageAndMipMaps(image);
   if (header.mCaps.mDWCaps2 & DDSCAPS2_CUBEMAP) {
     for (int face = 0; face < 6; face++) {
       for (uint32_t mipMapLevel = 0; mipMapLevel < mMipMapCount; mipMapLevel++) {
@@ -475,10 +474,6 @@ bool Image_LoadDDSFromMemory(
 
         file->Read(src, faceSize);
         //MemFopen::FileRead(src, 1, faceSize, file);
-      }
-      // skip mipmaps if needed
-      if (useMipMaps == false && header.mDWMipMapCount > 1) {
-        file->Seek(GetMipMappedSize(1, header.mDWMipMapCount - 1) / 6, VFile_SD_Current);
       }
     }
   } else {
@@ -490,101 +485,103 @@ bool Image_LoadDDSFromMemory(
     swapPixelChannels(pData, size / nChannels, nChannels, 0, 2);
   }
 */
-  return true;
-}
-/*
-bool Image::iLoadPVRFromMemory(const char *memory,
-                               uint32_t size,
-                               const bool useMipmaps,
-                               memoryAllocationFunc pAllocator,
-                               void *pUserData) {
-#ifndef TARGET_IOS
-  LOGERRORF("Load PVR failed: Only supported on iOS targets.");
-  return 0;
-#else
-
-  UNREF_PARAM(useMipmaps);
-    UNREF_PARAM(pAllocator);
-    UNREF_PARAM(pUserData);
-    // TODO: Image
-    // - no support for PVRTC2 at the moment since it isn't supported on iOS devices.
-    // - only new PVR header V3 is supported at the moment.  Should we add legacy for V2 and V1?
-    // - metadata is ignored for now.  Might be useful to implement it if the need for metadata arises (eg. padding, atlas coordinates, orientations, border data, etc...).
-    // - flags are also ignored for now.  Currently a flag of 0x02 means that the color have been pre-multiplied byt the alpha values.
-
-    // Assumptions:
-    // - it's assumed that the texture is already twiddled (ie. Morton).  This should always be the case for PVRTC V3.
-
-    PVR_Texture_Header* psPVRHeader = (PVR_Texture_Header*)memory;
-
-    if (psPVRHeader->mVersion != gPvrtexV3HeaderVersion)
-    {
-        LOGERRORF("Load PVR failed: Not a valid PVR V3 header.");
-        return 0;
-    }
-
-    if (psPVRHeader->mPixelFormat > 3)
-    {
-        LOGERRORF("Load PVR failed: Not a supported PVR pixel format.  Only PVRTC is supported at the moment.");
-        return 0;
-    }
-
-    if (psPVRHeader->mNumSurfaces > 1 && psPVRHeader->mNumFaces > 1)
-    {
-        LOGERRORF("Load PVR failed: Loading arrays of cubemaps isn't supported.");
-        return 0;
-    }
-
-    mArrayCount = psPVRHeader->mNumSurfaces * psPVRHeader->mNumFaces;
-    mWidth = psPVRHeader->mWidth;
-    mHeight = psPVRHeader->mHeight;
-    mDepth = psPVRHeader->mDepth;
-    mMipMapCount = psPVRHeader->mNumMipMaps;
-
-    bool isSrgb = (psPVRHeader->mColorSpace == 1);
-
-    switch (psPVRHeader->mPixelFormat)
-    {
-        case 0:
-            mFormat = isSrgb ? ImageFormat::PVR_2BPP_SRGB : ImageFormat::PVR_2BPP;
-            break;
-        case 1:
-            mFormat = isSrgb ? ImageFormat::PVR_2BPPA_SRGB : ImageFormat::PVR_2BPPA;
-            break;
-        case 2:
-            mFormat = isSrgb ? ImageFormat::PVR_4BPP_SRGB : ImageFormat::PVR_4BPP;
-            break;
-        case 3:
-            mFormat = isSrgb ? ImageFormat::PVR_4BPPA_SRGB : ImageFormat::PVR_4BPPA;
-            break;
-        default:    // NOT SUPPORTED
-            LOGERRORF("Load PVR failed: pixel type not supported. ");
-            ASSERT(0);
-            return 0;
-    }
-
-    // Extract the pixel data
-    size_t totalHeaderSizeWithMetadata = sizeof(PVR_Texture_Header) + psPVRHeader->mMetaDataSize;
-    size_t pixelDataSize = GetMipMappedSize(0, mMipMapCount, mFormat);
-    pData = (unsigned char*)conf_malloc(sizeof(unsigned char) * pixelDataSize);
-    memcpy(pData, (unsigned char*)psPVRHeader + totalHeaderSizeWithMetadata, pixelDataSize);
-
-    return true;
-#endif
+  return image;
 }
 
-bool Image::iLoadSTBIFromMemory(
-    const char *buffer, uint32_t memSize, const bool useMipmaps, memoryAllocationFunc pAllocator, void *pUserData) {
-  // stbi does not generate or load mipmaps. (useMipmaps is ignored)
-  if (buffer == 0 || memSize == 0) {
-    return false;
+Image_ImageHeader* Image_LoadPVR(VFile_Handle handle) {
+  // TODO: Image
+  // - no support for PVRTC2 at the moment since it isn't supported on iOS devices.
+  // - only new PVR header V3 is supported at the moment.  Should we add legacy for V2 and V1?
+  // - metadata is ignored for now.  Might be useful to implement it if the need for metadata arises (eg. padding, atlas coordinates, orientations, border data, etc...).
+  // - flags are also ignored for now.  Currently a flag of 0x02 means that the color have been pre-multiplied byt the alpha values.
+
+  // Assumptions:
+  // - it's assumed that the texture is already twiddled (ie. Morton).  This should always be the case for PVRTC V3.
+
+  PVR_Texture_Header header;
+  VFile::File *file = VFile::File::FromHandle(handle);
+  file->Read(&header, sizeof(header));
+
+  if (header.mVersion != gPvrtexV3HeaderVersion) {
+    LOGERRORF("Load PVR failed: Not a valid PVR V3 header.");
+    return nullptr;
   }
 
+  if (header.mPixelFormat > 3) {
+    LOGERRORF("Load PVR failed: Not a supported PVR pixel format.  Only PVRTC is supported at the moment.");
+    return nullptr;
+  }
+
+  if (header.mNumSurfaces > 1 && header.mNumFaces > 1) {
+    LOGERRORF("Load PVR failed: Loading arrays of cubemaps isn't supported.");
+    return nullptr;
+  }
+
+  uint32_t width = header.mWidth;
+  uint32_t height = header.mHeight;
+  uint32_t depth = header.mDepth;
+  uint32_t slices = header.mNumSurfaces * header.mNumFaces;
+  uint32_t mipMapCount =header.mNumMipMaps;
+  Image_Format format = Image_Format_UNDEFINED;
+
+  bool isSrgb = (header.mColorSpace == 1);
+
+  switch (header.mPixelFormat) {
+    case 0:format = isSrgb ? Image_Format_PVR_2BPP_SRGB_BLOCK : Image_Format_PVR_2BPP_BLOCK;
+      break;
+    case 1:format = isSrgb ? Image_Format_PVR_2BPPA_SRGB_BLOCK : Image_Format_PVR_2BPPA_BLOCK;
+      break;
+    case 2:format = isSrgb ? Image_Format_PVR_4BPP_SRGB_BLOCK : Image_Format_PVR_4BPP_BLOCK;
+      break;
+    case 3:format = isSrgb ? Image_Format_PVR_4BPPA_SRGB_BLOCK : Image_Format_PVR_4BPPA_BLOCK;
+      break;
+    default:    // NOT SUPPORTED
+      LOGERRORF("Load PVR failed: pixel type not supported. ");
+      return nullptr;
+  }
+
+  // TODO Dean load mipmaps
+  // TODO read pvr data so no mipmaps at all for now :(
+
+  // skip the meta data
+  file->Seek(header.mMetaDataSize, VFile_SD_Current);
+
+  // Create and extract the pixel data
+  Image_ImageHeader* image = Image_Create(width, height, depth, slices, format);
+
+  file->Read(Image_RawDataPtr(image), Image_ByteCountOf(image));
+  // TODO we should skip to the end here, but we
+  // don't have pack or streams files so no harm yet
+
+  return image;
+}
+
+static int stbIoCallbackRead(void* user, char* data, int size) {
+  VFile_Handle handle = (VFile_Handle)user;
+  return (int) VFile_Read(handle, data, size);
+}
+static void stbIoCallbackSkip(void* user, int n) {
+  VFile_Handle handle = (VFile_Handle)user;
+  VFile_Seek(handle, n, VFile_SD_Current);
+}
+static int stbIoCallbackEof(void* user) {
+  VFile_Handle handle = (VFile_Handle)user;
+  return VFile_IsEOF(handle);
+}
+
+Image_ImageHeader* Image_LoadSTBI(VFile_Handle handle) {
+
+  stbi_io_callbacks callbacks{
+      &stbIoCallbackRead,
+      &stbIoCallbackSkip,
+      &stbIoCallbackEof
+  };
+
   int w = 0, h = 0, cmp = 0, requiredCmp = 0;
-  stbi_info_from_memory((stbi_uc *) buffer, memSize, &w, &h, &cmp);
+  stbi_info_from_callbacks(&callbacks, handle, &w, &h, &cmp);
 
   if (w == 0 || h == 0 || cmp == 0) {
-    return false;
+    return nullptr;
   }
 
   requiredCmp = cmp;
@@ -592,127 +589,77 @@ bool Image::iLoadSTBIFromMemory(
     requiredCmp = 4;
   }
 
-  mWidth = w;
-  mHeight = h;
-  mDepth = 1;
-  mMipMapCount = 1;
-  mArrayCount = 1;
-
-  uint64_t memoryRequirement = sizeof(stbi_uc) * mWidth * mHeight * requiredCmp;
+  Image_Format format = Image_Format_UNDEFINED;
+  uint64_t memoryRequirement = sizeof(stbi_uc) * w * h * requiredCmp;
 
   switch (requiredCmp) {
-    case 1: mFormat = R8;
+    case 1: format = Image_Format_R8_UNORM;
       break;
-    case 2: mFormat = RG8;
+    case 2: format = Image_Format_R8G8_UNORM;
       break;
-    case 3: mFormat = RGB8;
+    case 3: format = Image_Format_R8G8B8_UNORM;
       break;
-    case 4: mFormat = RGBA8;
+    case 4: format = Image_Format_R8G8B8A8_UNORM;
       break;
   }
 
-  stbi_uc *uncompressed = stbi_load_from_memory((stbi_uc *) buffer, (int) memSize, &w, &h, &cmp, requiredCmp);
-
-  if (uncompressed == NULL) {
-    return false;
+  stbi_uc *uncompressed = stbi_load_from_callbacks(&callbacks, handle, &w, &h, &cmp, requiredCmp);
+  if (uncompressed == nullptr) {
+    return nullptr;
   }
 
-  if (pAllocator && !useMipmaps) {
-    //uint32_t mipMapCount = GetMipMapCountFromDimensions(); //unused
-    pData = (stbi_uc *) pAllocator(this, memoryRequirement, pUserData);
-    if (pData == NULL) {
-      LOGERRORF("Allocator returned NULL", mLoadFileName.c_str());
-      return false;
-    }
+  // Create and extract the pixel data
+  Image_ImageHeader* image = Image_Create(w, h, 1, 1, format);
+  ASSERT(memoryRequirement == Image_ByteCountOf(image));
 
-    memcpy(pData, uncompressed, memoryRequirement);
-
-    mOwnsMemory = false;
-  } else {
-    pData = (unsigned char *) malloc(memoryRequirement);
-    memcpy(pData, uncompressed, memoryRequirement);
-    if (useMipmaps) {
-      GenerateMipMaps(GetMipMapCountFromDimensions());
-    }
-  }
-
+  memcpy(Image_RawDataPtr(image), uncompressed, memoryRequirement);
   stbi_image_free(uncompressed);
-
-  return true;
+  return image;
 }
 
-bool Image::iLoadSTBIFP32FromMemory(
-    const char *buffer, uint32_t memSize, const bool useMipmaps, memoryAllocationFunc pAllocator, void *pUserData) {
-  // stbi does not generate or load mipmaps. (useMipmaps is ignored)
-  if (buffer == 0 || memSize == 0) {
-    return false;
-  }
+Image_ImageHeader* Image_LoadSTBIFP32(VFile_Handle handle) {
+
+  stbi_io_callbacks callbacks{
+      &stbIoCallbackRead,
+      &stbIoCallbackSkip,
+      &stbIoCallbackEof
+  };
 
   int w = 0, h = 0, cmp = 0, requiredCmp = 0;
-  stbi_info_from_memory((stbi_uc *) buffer, memSize, &w, &h, &cmp);
+  stbi_info_from_callbacks(&callbacks, handle, &w, &h, &cmp);
 
   if (w == 0 || h == 0 || cmp == 0) {
-    return false;
+    return nullptr;
   }
 
   requiredCmp = cmp;
 
-  if (cmp == 3) {
-    requiredCmp = 4;
-  }
-
-  mWidth = w;
-  mHeight = h;
-  mDepth = 1;
-  mMipMapCount = 1;
-  mArrayCount = 1;
-
+  Image_Format format = Image_Format_UNDEFINED;
   switch (requiredCmp) {
-    case 1: mFormat = R32F;
+    case 1: format = Image_Format_R32_SFLOAT;
       break;
-    case 2: mFormat = RG32F;
+    case 2: format = Image_Format_R32G32_SFLOAT;
       break;
-    case 3: mFormat = RGB32F;
+    case 3: format = Image_Format_R32G32B32_SFLOAT;
       break;
-    case 4: mFormat = RGBA32F;
+    case 4: format = Image_Format_R32G32B32A32_SFLOAT;
       break;
   }
 
-  uint64_t memoryRequirement = sizeof(float) * mWidth * mHeight * requiredCmp;
+  uint64_t memoryRequirement = sizeof(float) * w * h * requiredCmp;
 
-  // stbi does not generate or load mipmaps. (useMipmaps is ignored)
-  if (buffer == 0 || memSize == 0) {
-    return false;
+  float *uncompressed = stbi_loadf_from_callbacks(&callbacks, handle, &w, &h, &cmp, requiredCmp);
+  if (uncompressed == nullptr) {
+    return nullptr;
   }
 
-  float *uncompressed = stbi_loadf_from_memory((stbi_uc *) buffer, (int) memSize, &w, &h, &cmp, requiredCmp);
+  // Create and extract the pixel data
+  Image_ImageHeader* image = Image_Create(w, h, 1, 1, format);
+  ASSERT(memoryRequirement == Image_ByteCountOf(image));
 
-  if (uncompressed == 0) {
-    return false;
-  }
-
-  if (pAllocator) {
-    //uint32_t mipMapCount = GetMipMapCountFromDimensions(); //unused
-    pData = (stbi_uc *) pAllocator(this, memoryRequirement, pUserData);
-    if (pData == NULL) {
-      LOGERRORF("Allocator returned NULL", mLoadFileName.c_str());
-      return false;
-    }
-
-    memcpy(pData, uncompressed, memoryRequirement);
-
-    mOwnsMemory = false;
-  } else {
-    pData = (unsigned char *) malloc(memoryRequirement);
-    memcpy(pData, uncompressed, memoryRequirement);
-    if (useMipmaps) {
-      GenerateMipMaps(GetMipMapCountFromDimensions());
-    }
-  }
-
+  memcpy(Image_RawDataPtr(image), uncompressed, memoryRequirement);
   stbi_image_free(uncompressed);
-
-  return true;
+  return image;
 }
 
 // TODO Deano
@@ -820,353 +767,8 @@ bool Image::iLoadEXRFP32FromMemory(
 }
 #endif
 
-#if defined(ORBIS)
 
-// loads GNF header from memory
-static GnfError iLoadGnfHeaderFromMemory(struct sce::Gnf::Header* outHeader, MemoryBuffer* mp)
-{
-    if (outHeader == NULL)    //  || gnfFile == NULL)
-    {
-        return kGnfErrorInvalidPointer;
-    }
-    outHeader->m_magicNumber = 0;
-    outHeader->m_contentsSize = 0;
-
-    mp->Read(outHeader, sizeof(sce::Gnf::Header));
-    //MemFopen::fread(outHeader, sizeof(sce::Gnf::Header), 1, mp);
-
-    //	fseek(gnfFile, 0, SEEK_SET);
-    //	fread(outHeader, sizeof(sce::Gnf::Header), 1, gnfFile);
-    if (outHeader->m_magicNumber != sce::Gnf::kMagic)
-    {
-        return kGnfErrorNotGnfFile;
-    }
-    return kGnfErrorNone;
-}
-
-// content size is sizeof(sce::Gnf::Contents)+gnfContents->m_numTextures*sizeof(sce::Gnm::Texture)+ paddings which is a variable of: gnfContents->alignment
-static uint32_t iComputeContentSize(const sce::Gnf::Contents* gnfContents)
-{
-    // compute the size of used bytes
-    uint32_t headerSize = sizeof(sce::Gnf::Header) + sizeof(sce::Gnf::Contents) + gnfContents->m_numTextures * sizeof(sce::Gnm::Texture);
-    // add the paddings
-    uint32_t align = 1 << gnfContents->m_alignment;    // actual alignment
-    size_t   mask = align - 1;
-    uint32_t missAligned = (headerSize & mask);    // number of bytes after the alignemnet point
-    if (missAligned)                               // if none zero we have to add paddings
-    {
-        headerSize += align - missAligned;
-    }
-    return headerSize - sizeof(sce::Gnf::Header);
-}
-
-// loads GNF content from memory
-static GnfError iReadGnfContentsFromMemory(sce::Gnf::Contents* outContents, uint32_t contentsSizeInBytes, MemoryBuffer* memstart)
-{
-    // now read the content data ...
-    memstart->Read(outContents, contentsSizeInBytes);
-    //MemFopen::fread(outContents, contentsSizeInBytes, 1, memstart);
-
-    if (outContents->m_alignment > 31)
-    {
-        return kGnfErrorAlignmentOutOfRange;
-    }
-
-    if (outContents->m_version == 1)
-    {
-        if ((outContents->m_numTextures * sizeof(sce::Gnm::Texture) + sizeof(sce::Gnf::Contents)) != contentsSizeInBytes)
-        {
-            return kGnfErrorContentsSizeMismatch;
-        }
-    }
-    else
-    {
-        if (outContents->m_version != sce::Gnf::kVersion)
-        {
-            return kGnfErrorVersionMismatch;
-        }
-        else
-        {
-            if (iComputeContentSize(outContents) != contentsSizeInBytes)
-                return kGnfErrorContentsSizeMismatch;
-        }
-    }
-
-    return kGnfErrorNone;
-}
-
-//------------------------------------------------------------------------------
-//  Loads a GNF file from memory.
-//
-bool Image::iLoadGNFFromMemory(const char* memory, size_t memSize, const bool useMipMaps)
-{
-    GnfError result = kGnfErrorNone;
-
-    MemoryBuffer m1(memory, memSize);
-
-    sce::Gnf::Header header;
-    result = iLoadGnfHeaderFromMemory(&header, m1);
-    if (result != 0)
-    {
-        return false;
-    }
-
-    char*               memoryArray = (char*)conf_calloc(header.m_contentsSize, sizeof(char));
-    sce::Gnf::Contents* gnfContents = NULL;
-    gnfContents = (sce::Gnf::Contents*)memoryArray;
-
-    // move the pointer behind the header
-    const char*  mp = memory + sizeof(sce::Gnf::Header);
-    MemoryBuffer m2(mp, memSize - sizeof(sce::Gnf::Header));
-
-    result = iReadGnfContentsFromMemory(gnfContents, header.m_contentsSize, m2);
-
-    mWidth = gnfContents->m_textures[0].getWidth();
-    mHeight = gnfContents->m_textures[0].getHeight();
-    mDepth = gnfContents->m_textures[0].getDepth();
-
-    mMipMapCount =
-        ((!useMipMaps) || (gnfContents->m_textures[0].getLastMipLevel() == 0)) ? 1 : gnfContents->m_textures[0].getLastMipLevel();
-    mArrayCount = (gnfContents->m_textures[0].getLastArraySliceIndex() > 1) ? gnfContents->m_textures[0].getLastArraySliceIndex() : 1;
-
-    uint32 dataFormat = gnfContents->m_textures[0].getDataFormat().m_asInt;
-
-    if (dataFormat == sce::Gnm::kDataFormatBc1Unorm.m_asInt || dataFormat == sce::Gnm::kDataFormatBc1UnormSrgb.m_asInt)
-        mFormat = ImageFormat::GNF_BC1;
-    //	else if(dataFormat == sce::Gnm::kDataFormatBc2Unorm.m_asInt || dataFormat == sce::Gnm::kDataFormatBc2UnormSrgb.m_asInt)
-    //		format = ImageFormat::GNF_BC2;
-    else if (dataFormat == sce::Gnm::kDataFormatBc3Unorm.m_asInt || dataFormat == sce::Gnm::kDataFormatBc3UnormSrgb.m_asInt)
-        mFormat = ImageFormat::GNF_BC3;
-    //	else if(dataFormat == sce::Gnm::kDataFormatBc4Unorm.m_asInt || dataFormat == sce::Gnm::kDataFormatBc4UnormSrgb.m_asInt)
-    //		format = ImageFormat::GNF_BC4;
-    // it seems in the moment there is no kDataFormatBc5UnormSrgb .. so I just check for the SRGB flag
-    else if (
-        dataFormat == sce::Gnm::kDataFormatBc5Unorm.m_asInt ||
-        ((dataFormat == sce::Gnm::kDataFormatBc5Unorm.m_asInt) &&
-         (gnfContents->m_textures[0].getDataFormat().getTextureChannelType() == sce::Gnm::kTextureChannelTypeSrgb)))
-        mFormat = ImageFormat::GNF_BC5;
-    //	else if(dataFormat == sce::Gnm::kDataFormatBc6Unorm.m_asInt || dataFormat == sce::Gnm::kDataFormatBc6UnormSrgb.m_asInt)
-    //		format = ImageFormat::GNF_BC6;
-    else if (dataFormat == sce::Gnm::kDataFormatBc7Unorm.m_asInt || dataFormat == sce::Gnm::kDataFormatBc7UnormSrgb.m_asInt)
-        mFormat = ImageFormat::GNF_BC7;
-    else
-    {
-        LOGERRORF("Couldn't find the data format of the texture");
-        return false;
-    }
-
-    //
-    // storing the GNF header in the extra data
-    //
-    // we do this because on the addTexture level, we would like to have all this data to allocate and load the data
-    //
-    pAdditionalData = (unsigned char*)conf_calloc(header.m_contentsSize, sizeof(unsigned char));
-    memcpy(pAdditionalData, gnfContents, header.m_contentsSize);
-
-    // storing all the pixel data in pixels
-    //
-    // unfortunately that means we have the data twice in pixels and then in VRAM ...
-    //
-    sce::Gnm::SizeAlign pixelsSa = getTexturePixelsSize(gnfContents, 0);
-
-    // move pointer forward
-    const char*  memPoint = mp + header.m_contentsSize + getTexturePixelsByteOffset(gnfContents, 0);
-    MemoryBuffer m3(memPoint, memSize - (sizeof(sce::Gnf::Header) + header.m_contentsSize + getTexturePixelsByteOffset(gnfContents, 0)));
-
-    // dealing with mip-map stuff ... ???
-    int size = pixelsSa.m_size;    //getMipMappedSize(0, nMipMaps);
-    pData = (unsigned char*)conf_malloc(sizeof(unsigned char) * size);
-
-    m3.Read(pData, size);
-    //MemFopen::fread(pData, 1, size, m3);
-
-    //
-  if (isCube()){
-  for (int face = 0; face < 6; face++)
-  {
-  for (uint mipMapLevel = 0; mipMapLevel < nMipMaps; mipMapLevel++)
-  {
-  int faceSize = getMipMappedSize(mipMapLevel, 1) / 6;
-  unsigned char *src = getPixels(mipMapLevel) + face * faceSize;
-
-  memread(src, 1, faceSize, mp);
-  }
-  if ((useMipMaps ) && header.dwMipMapCount > 1)
-  {
-  memseek(mp, memory, getMipMappedSize(1, header.dwMipMapCount - 1) / 6, SEEK_CUR);
-  }
-  }
-  }
-  else
-  {
-  memread(pixels, 1, size, mpoint);
-  }
-  //
-    conf_free(gnfContents);
-
-    return !result;
-}
-#endif
-
-// Image loading
-// struct of table for file format to loading function
-struct ImageLoaderDefinition {
-  tinystl::string Extension;
-  Image::ImageLoaderFunction Loader;
-};
-
-static tinystl::vector<ImageLoaderDefinition> gImageLoaders;
-
-struct StaticImageLoader {
-  StaticImageLoader() {
-#if !defined(NO_STBI)
-    gImageLoaders.push_back({".hdr", &Image::iLoadSTBIFP32FromMemory});
-    gImageLoaders.push_back({".jpg", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".jpeg", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".png", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".tga", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".bmp", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".gif", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".psd", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".pic", &Image::iLoadSTBIFromMemory});
-    gImageLoaders.push_back({".ppm", &Image::iLoadSTBIFromMemory});
-#endif
-//#if !defined(TARGET_IOS)
-    gImageLoaders.push_back({".dds", &Image::iLoadDDSFromMemory});
-//#endif
-    gImageLoaders.push_back({".pvr", &Image::iLoadPVRFromMemory});
-    // #TODO: Add KTX loader
-#ifdef _WIN32
-    gImageLoaders.push_back({ ".ktx", NULL });
-#endif
-// TODO deano
-    //    gImageLoaders.push_back({ ".exr", &Image::iLoadEXRFP32FromMemory });
-#if defined(ORBIS)
-    gImageLoaders.push_back({ ".gnf", &Image::iLoadGNFFromMemory });
-#endif
-  }
-} gImageLoaderInst;
-
-void Image::AddImageLoader(const char *pExtension, ImageLoaderFunction pFunc) {
-  gImageLoaders.push_back({pExtension, pFunc});
-}
-
-void Image::loadFromMemoryXY(
-    const void *mem,
-    const int topLeftX,
-    const int topLeftY,
-    const int bottomRightX,
-    const int bottomRightY,
-    const int pitch) {
-  if (IsPlainFormat(getFormat()) == false) {
-    return;
-  }    // unsupported
-
-  int bpp_dest = GetBytesPerPixel(getFormat());
-  int rowOffset_dest = bpp_dest * mWidth;
-  int subHeight = bottomRightY - topLeftY;
-  int subWidth = bottomRightX - topLeftX;
-  int subRowSize = subWidth * GetBytesPerPixel(getFormat());
-
-  unsigned char *start = pData;
-  start = start + topLeftY * rowOffset_dest + topLeftX * bpp_dest;
-
-  unsigned char *from = (unsigned char *) mem;
-
-  for (int i = 0; i < subHeight; i++) {
-    memcpy(start, from, subRowSize);
-    start += rowOffset_dest;
-    from += pitch;
-  }
-}
-
-bool Image::loadFromMemory(
-    void const *mem,
-    uint32_t size,
-    bool useMipmaps,
-    char const *extension,
-    memoryAllocationFunc pAllocator,
-    void *pUserData) {
-  // try loading the format
-  bool loaded = false;
-  for (uint32_t i = 0; i < (uint32_t) gImageLoaders.size(); ++i) {
-    ImageLoaderDefinition const& def = gImageLoaders[i];
-    if (stricmp(extension, def.Extension.c_str()) == 0) {
-      loaded = (this->*(def.Loader))((char const *) mem, size, useMipmaps, pAllocator, pUserData);
-      break;
-    }
-  }
-  return loaded;
-}
-
-bool Image::loadImage(const char *fileName, bool useMipmaps, memoryAllocationFunc pAllocator, void *pUserData) {
-  // clear current image
-  Clear();
-
-  const char *extension = strrchr(fileName, '.');
-  if (extension == NULL) {
-    return false;
-  }
-
-  // open file
-  VFile::ScopedFile file = VFile::File::FromFile(fileName, Os_FM_ReadBinary);
-  if (!file) {
-    LOGERRORF("\"%s\": Image file not found.", fileName);
-    return false;
-  }
-
-  // load file into memory
-  uint32_t length = file->Size();
-  if (length == 0) {
-    //char output[256];
-    //sprintf(output, "\"%s\": Image file is empty.", fileName);
-    LOGERRORF("\"%s\": Image is an empty file.", fileName);
-    return false;
-  }
-
-  // read and close file.
-  char *data = (char *) malloc(length * sizeof(char));
-  file->Read(data, (unsigned) length);
-
-  // try loading the format
-  bool loaded = false;
-  bool support = false;
-  for (int i = 0; i < (int) gImageLoaders.size(); i++) {
-    if (stricmp(extension, gImageLoaders[i].Extension.c_str()) == 0) {
-      support = true;
-      loaded = (this->*(gImageLoaders[i].Loader))(data, length, useMipmaps, pAllocator, pUserData);
-      if (loaded) {
-        break;
-      }
-    }
-  }
-  if (!support) {
-#if !defined(TARGET_IOS)
-    LOGERRORF("Can't load this file format for image  :  %s", fileName);
-#else
-    // Try fallback with uncompressed textures: TODO: this shouldn't be here
-        char* uncompressedFileName = strdup(fileName);
-        char* uncompressedExtension = strrchr(uncompressedFileName, '.');
-        uncompressedExtension[0] = '.';
-        uncompressedExtension[1] = 't';
-        uncompressedExtension[2] = 'g';
-        uncompressedExtension[3] = 'a';
-        uncompressedExtension[4] = '\0';
-        loaded = loadImage(uncompressedFileName, useMipmaps, pAllocator, pUserData, root);
-        conf_free(uncompressedFileName);
-        if (!loaded)
-        {
-            LOGERRORF("Can't load this file format for image  :  %s", fileName);
-        }
-#endif
-  } else {
-    mLoadFileName = fileName;
-  }
-  // cleanup the compressed data
-  free(data);
-
-  return loaded;
-}
+/*
 
 bool Image::Convert(const ImageFormat newFormat) {
   uint8_t *newPixels;
@@ -1421,7 +1023,7 @@ bool Image::iSwap(const int c0, const int c1) {
 
 // -- IMAGE SAVING --
 
-bool Image::iSaveDDS(const char *fileName) {
+bool Image_SaveDDS(const char *fileName) {
   DDSHeader header;
   DDSHeaderDX10 headerDX10;
   memset(&header, 0, sizeof(header));
@@ -1574,7 +1176,7 @@ bool convertAndSaveImage(const Image& image, bool (Image::*saverFunction)(const 
   return bSaveImageSuccess;
 }
 
-bool Image::iSaveTGA(const char *fileName) {
+bool Image_SaveTGA(const char *fileName) {
   switch (mFormat) {
     case R8: return 0 != stbi_write_tga(fileName, mWidth, mHeight, 1, pData);
       break;
@@ -1593,7 +1195,7 @@ bool Image::iSaveTGA(const char *fileName) {
   //return false; //Unreachable
 }
 
-bool Image::iSaveBMP(const char *fileName) {
+bool Image_SaveBMP(const char *fileName) {
   switch (mFormat) {
     case R8: stbi_write_bmp(fileName, mWidth, mHeight, 1, pData);
       break;
@@ -1611,7 +1213,7 @@ bool Image::iSaveBMP(const char *fileName) {
   return true;
 }
 
-bool Image::iSavePNG(const char *fileName) {
+bool Image_SavePNG(const char *fileName) {
   switch (mFormat) {
     case R8: stbi_write_png(fileName, mWidth, mHeight, 1, pData, 0);
       break;
@@ -1630,7 +1232,7 @@ bool Image::iSavePNG(const char *fileName) {
   return true;
 }
 
-bool Image::iSaveHDR(const char *fileName) {
+bool Image_SaveHDR(const char *fileName) {
   switch (mFormat) {
     case R32F: stbi_write_hdr(fileName, mWidth, mHeight, 1, (float *) pData);
       break;
@@ -1649,7 +1251,7 @@ bool Image::iSaveHDR(const char *fileName) {
   return true;
 }
 
-bool Image::iSaveJPG(const char *fileName) {
+bool Image_SaveJPG(const char *fileName) {
   switch (mFormat) {
     case R8: stbi_write_jpg(fileName, mWidth, mHeight, 1, pData, 0);
       break;
@@ -1667,35 +1269,4 @@ bool Image::iSaveJPG(const char *fileName) {
 
   return true;
 }
-
-struct ImageSaverDefinition {
-  typedef bool (Image::*ImageSaverFunction)(const char *);
-  const char *Extension;
-  ImageSaverFunction Loader;
-};
-
-static ImageSaverDefinition gImageSavers[] = {
-#if !defined(NO_STBI)
-    {".bmp", &Image::iSaveBMP}, {".hdr", &Image::iSaveHDR}, {".png", &Image::iSavePNG},
-    {".tga", &Image::iSaveTGA}, {".jpg", &Image::iSaveJPG},
-#endif
-    {".dds", &Image::iSaveDDS}
-};
-
-bool Image::SaveImage(const char *fileName) {
-  const char *extension = strrchr(fileName, '.');
-  bool support = false;;
-  for (int i = 0; i < sizeof(gImageSavers) / sizeof(gImageSavers[0]); i++) {
-    if (stricmp(extension, gImageSavers[i].Extension) == 0) {
-      support = true;
-      return (this->*gImageSavers[i].Loader)(fileName);
-    }
-  }
-  if (!support) {
-    LOGERRORF("Can't save this file format for image  :  %s", fileName);
-  }
-
-  return false;
-}
-
 */

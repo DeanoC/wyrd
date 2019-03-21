@@ -6,10 +6,10 @@
 #include "hq_resample.hpp"
 
 EXTERN_C Image_ImageHeader *Image_Create(uint32_t width,
-                                      uint32_t height,
-                                      uint32_t depth,
-                                      uint32_t slices,
-                                      enum Image_Format format) {
+                                         uint32_t height,
+                                         uint32_t depth,
+                                         uint32_t slices,
+                                         enum Image_Format format) {
   Image_ImageHeader *image = Image_CreateNoClear(width, height, depth, slices, format);
   if (image) {
     memset(image + 1, 0, image->dataSize);
@@ -19,10 +19,10 @@ EXTERN_C Image_ImageHeader *Image_Create(uint32_t width,
 }
 
 EXTERN_C Image_ImageHeader *Image_CreateNoClear(uint32_t width,
-                                             uint32_t height,
-                                             uint32_t depth,
-                                             uint32_t slices,
-                                             enum Image_Format format) {
+                                                uint32_t height,
+                                                uint32_t depth,
+                                                uint32_t slices,
+                                                enum Image_Format format) {
   // block compression can't be less than 4x4
   if ((width < 4 || height < 4) && Image_Format_IsCompressed(format)) {
     return nullptr;
@@ -64,22 +64,6 @@ EXTERN_C void Image_Destroy(Image_ImageHeader *image) {
   free(image);
 }
 
-EXTERN_C size_t Image_CalculateIndex(Image_ImageHeader const *image, uint32_t x, uint32_t y, uint32_t z, uint32_t slice) {
-  ASSERT(image);
-
-  ASSERT(x < image->width);
-  ASSERT(y < image->height);
-  ASSERT(z < image->depth);
-  ASSERT(slice < image->slices);
-
-  size_t const size1D = Image_Calculate1DSize(image);
-  size_t const size2D = Image_Calculate2DSize(image);
-  size_t const size3D = Image_Calculate3DSize(image);
-  size_t const index = (slice * size3D) + (z * size2D) + (y * size1D) + x;
-
-  return index;
-}
-
 EXTERN_C Image_ImageHeader *Image_Create1D(uint32_t width, enum Image_Format format) {
   return Image_Create(width, 1, 1, 1, format);
 }
@@ -100,15 +84,15 @@ EXTERN_C Image_ImageHeader *Image_Create2DNoClear(uint32_t width, uint32_t heigh
   return Image_CreateNoClear(width, height, 1, 1, format);
 }
 EXTERN_C Image_ImageHeader *Image_Create2DArray(uint32_t width,
-                                             uint32_t height,
-                                             uint32_t slices,
-                                             enum Image_Format format) {
+                                                uint32_t height,
+                                                uint32_t slices,
+                                                enum Image_Format format) {
   return Image_Create(width, height, 1, slices, format);
 }
 EXTERN_C Image_ImageHeader *Image_Create2DArrayNoClear(uint32_t width,
-                                                    uint32_t height,
-                                                    uint32_t slices,
-                                                    enum Image_Format format) {
+                                                       uint32_t height,
+                                                       uint32_t slices,
+                                                       enum Image_Format format) {
   return Image_CreateNoClear(width, height, 1, slices, format);
 }
 
@@ -116,23 +100,23 @@ EXTERN_C Image_ImageHeader *Image_Create3D(uint32_t width, uint32_t height, uint
   return Image_Create(width, height, depth, 1, format);
 }
 EXTERN_C Image_ImageHeader *Image_Create3DNoClear(uint32_t width,
-                                               uint32_t height,
-                                               uint32_t depth,
-                                               enum Image_Format format) {
+                                                  uint32_t height,
+                                                  uint32_t depth,
+                                                  enum Image_Format format) {
   return Image_CreateNoClear(width, height, depth, 1, format);
 }
 EXTERN_C Image_ImageHeader *Image_Create3DArray(uint32_t width,
-                                             uint32_t height,
-                                             uint32_t depth,
-                                             uint32_t slices,
-                                             enum Image_Format format) {
+                                                uint32_t height,
+                                                uint32_t depth,
+                                                uint32_t slices,
+                                                enum Image_Format format) {
   return Image_Create(width, height, depth, slices, format);
 }
 EXTERN_C Image_ImageHeader *Image_Create3DArrayNoClear(uint32_t width,
-                                                    uint32_t height,
-                                                    uint32_t depth,
-                                                    uint32_t slices,
-                                                    enum Image_Format format) {
+                                                       uint32_t height,
+                                                       uint32_t depth,
+                                                       uint32_t slices,
+                                                       enum Image_Format format) {
   return Image_CreateNoClear(width, height, depth, slices, format);
 }
 
@@ -143,15 +127,15 @@ EXTERN_C Image_ImageHeader *Image_CreateCubemapNoClear(uint32_t width, uint32_t 
   return Image_CreateNoClear(width, height, 1, 6, format);
 }
 EXTERN_C Image_ImageHeader *Image_CreateCubemapArray(uint32_t width,
-                                                  uint32_t height,
-                                                  uint32_t slices,
-                                                  enum Image_Format format) {
+                                                     uint32_t height,
+                                                     uint32_t slices,
+                                                     enum Image_Format format) {
   return Image_Create(width, height, 1, slices * 6, format);
 }
 EXTERN_C Image_ImageHeader *Image_CreateCubemapArrayNoClear(uint32_t width,
-                                                         uint32_t height,
-                                                         uint32_t slices,
-                                                         enum Image_Format format) {
+                                                            uint32_t height,
+                                                            uint32_t slices,
+                                                            enum Image_Format format) {
   return Image_CreateNoClear(width, height, 1, slices * 6, format);
 }
 
@@ -273,7 +257,7 @@ EXTERN_C void Image_SetPixelAt(Image_ImageHeader const *image, Image_PixelD cons
 
 EXTERN_C void Image_CopyImage(Image_ImageHeader const *dst,
                               Image_ImageHeader const *src) {
-  if(src == dst) return;
+  if (src == dst) { return; }
 
   ASSERT(dst->slices == src->slices);
   ASSERT(dst->depth == src->depth);
@@ -281,9 +265,9 @@ EXTERN_C void Image_CopyImage(Image_ImageHeader const *dst,
   ASSERT(dst->width == src->width);
 
   for (auto w = 0u; w < src->slices; ++w) {
-    for(auto z = 0u; z < src->depth; ++z) {
-      for(auto y = 0u; y < src->height; ++y) {
-        for(auto x = 0u; x < src->width; ++x) {
+    for (auto z = 0u; z < src->depth; ++z) {
+      for (auto y = 0u; y < src->height; ++y) {
+        for (auto x = 0u; x < src->width; ++x) {
           size_t const index = Image_CalculateIndex(src, x, y, z, w);
           Image_PixelD pixel;
           Image_GetPixelAt(src, &pixel, index);
@@ -300,13 +284,13 @@ EXTERN_C void Image_CopySlice(Image_ImageHeader const *dst,
   ASSERT(dst->depth == src->depth);
   ASSERT(dst->height == src->height);
   ASSERT(dst->width == src->width);
-  if(dst == src) {
+  if (dst == src) {
     ASSERT(dw != sw);
   }
 
-  for(auto z = 0u; z < src->depth; ++z) {
-    for(auto y = 0u; y < src->height; ++y) {
-      for(auto x = 0u; x < src->width; ++x) {
+  for (auto z = 0u; z < src->depth; ++z) {
+    for (auto y = 0u; y < src->height; ++y) {
+      for (auto x = 0u; x < src->width; ++x) {
         size_t const srcIndex = Image_CalculateIndex(src, x, y, z, sw);
         size_t const dstIndex = Image_CalculateIndex(src, x, y, z, dw);
         Image_PixelD pixel;
@@ -323,12 +307,12 @@ EXTERN_C void Image_CopyPage(Image_ImageHeader const *dst,
                              uint32_t sz, uint32_t sw) {
   ASSERT(dst->height == src->height);
   ASSERT(dst->width == src->width);
-  if(dst == src) {
+  if (dst == src) {
     ASSERT(dz != sz || dw != sw);
   }
 
-  for(auto y = 0u; y < src->height; ++y) {
-    for(auto x = 0u; x < src->width; ++x) {
+  for (auto y = 0u; y < src->height; ++y) {
+    for (auto x = 0u; x < src->width; ++x) {
       size_t const srcIndex = Image_CalculateIndex(src, x, y, sz, sw);
       size_t const dstIndex = Image_CalculateIndex(src, x, y, dz, dw);
       Image_PixelD pixel;
@@ -340,14 +324,14 @@ EXTERN_C void Image_CopyPage(Image_ImageHeader const *dst,
 
 EXTERN_C void Image_CopyRow(Image_ImageHeader *dst,
                             uint32_t dy, uint32_t dz, uint32_t dw,
-                            Image_ImageHeader const* src,
+                            Image_ImageHeader const *src,
                             uint32_t sy, uint32_t sz, uint32_t sw) {
   ASSERT(dst->width == src->width);
-  if(dst == src) {
+  if (dst == src) {
     ASSERT(dy != sy || dz != sz || dw != sw);
   }
 
-  for(auto x = 0u; x < src->width; ++x) {
+  for (auto x = 0u; x < src->width; ++x) {
     size_t const srcIndex = Image_CalculateIndex(src, x, sy, sz, sw);
     size_t const dstIndex = Image_CalculateIndex(src, x, dy, dz, dw);
     Image_PixelD pixel;
@@ -358,18 +342,18 @@ EXTERN_C void Image_CopyRow(Image_ImageHeader *dst,
 
 EXTERN_C void Image_CopyPixel(Image_ImageHeader *dst,
                               uint32_t dx, uint32_t dy, uint32_t dz, uint32_t dw,
-                              Image_ImageHeader const* src,
+                              Image_ImageHeader const *src,
                               uint32_t sx, uint32_t sy, uint32_t sz, uint32_t sw) {
-    size_t const srcIndex = Image_CalculateIndex(src, sx, sy, sz, sw);
-    size_t const dstIndex = Image_CalculateIndex(src, dx, dy, dz, dw);
-    Image_PixelD pixel;
-    Image_GetPixelAt(src, &pixel, srcIndex);
-    Image_SetPixelAt(dst, &pixel, dstIndex);
+  size_t const srcIndex = Image_CalculateIndex(src, sx, sy, sz, sw);
+  size_t const dstIndex = Image_CalculateIndex(src, dx, dy, dz, dw);
+  Image_PixelD pixel;
+  Image_GetPixelAt(src, &pixel, srcIndex);
+  Image_SetPixelAt(dst, &pixel, dstIndex);
 }
 
 
 // TODO optimise or have option for faster mipmap chain generation
-EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader* image, bool generateFromImage) {
+EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader *image, bool generateFromImage) {
   // start from the image provided and create successive mip images
   ASSERT(image->nextType == Image_IT_None);
   ASSERT(Math_IsPowerOf2U32(image->width));
@@ -382,14 +366,35 @@ EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader* image, bool generateFro
   Image_ImageHeader *curImage = image;
   uint32_t curWidth = image->width;
   uint32_t curHeight = image->height;
-  if (curWidth <= 1 || curHeight <= 1) return;
+  if (curWidth <= 1 || curHeight <= 1) { return; }
 
   Image_ImageHeader *doubleImage = nullptr;
   Image_ImageHeader *scratchImage = nullptr;
+
+  uint32_t const numChans = Image_Format_ChannelCount(image->format);
   if (generateFromImage) {
-    doubleImage = Image_Create(image->width, image->height, image->depth, image->slices, Image_Format_R64G64B64A64_SFLOAT);
+    Image_Format dblFmt = Image_Format_R32G32B32A32_SFLOAT;
+    switch (numChans) {
+      case 1:dblFmt = Image_Format_R32_SFLOAT;
+        break;
+      case 2:dblFmt = Image_Format_R32G32_SFLOAT;
+        break;
+      case 3:dblFmt = Image_Format_R32G32B32_SFLOAT;
+        break;
+      case 4:dblFmt = Image_Format_R32G32B32A32_SFLOAT;
+        break;
+      default:
+      case 0: {
+        ASSERT(false);
+      }
+    }
+    doubleImage = Image_Create(image->width, image->height,
+                               image->depth, image->slices,
+                               dblFmt);
     Image_CopyImage(doubleImage, image);
-    scratchImage = Image_Create(image->width / 2, image->height / 2, 1, 1, image->format);
+
+    scratchImage = Image_Create(image->width / 2, image->height / 2,
+                                1, 1, dblFmt);
   }
 
   do {
@@ -399,14 +404,15 @@ EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader* image, bool generateFro
     Image_ImageHeader *newImage = Image_Create(curWidth, curHeight, 1, image->slices, image->format);
 
     if (generateFromImage) {
-      double *const scratch = (double *const) Image_RawDataPtr(scratchImage);
+      float *const scratch = (float *const) Image_RawDataPtr(scratchImage);
 
       for (auto w = 0u; w < image->slices; ++w) {
-        double const
-            *origSlice = (double const *) (((uint8_t *) Image_RawDataPtr(image)) + w * Image_Calculate3DSize(image));
-        hq_resample<double>(4,
-                            origSlice, image->width, image->height,
-                            scratch, curWidth, curHeight);
+        float const *origSlice = (float const *)
+            (((uint8_t *) Image_RawDataPtr(image)) + w * Image_ByteCountPerSlice(image));
+
+        hq_resample<float>(numChans,
+                           origSlice, image->width, image->height,
+                           scratch, curWidth, curHeight);
 
         Image_CopySlice(newImage, w, scratchImage, 0);
       }
@@ -417,10 +423,72 @@ EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader* image, bool generateFro
     curImage = newImage;
   } while (curWidth > 1 || curHeight > 1);
 
-  if(doubleImage) {
+  if (doubleImage) {
     Image_Destroy(doubleImage);
   }
-  if(scratchImage) {
+  if (scratchImage) {
     Image_Destroy(scratchImage);
   }
+}
+
+EXTERN_C size_t Image_BytesForImageAndMipMaps(Image_ImageHeader const *image) {
+
+  int const maxMipLevels =
+      Math_Log2(Math_MaxI32(image->depth,
+                            Math_MaxI32(image->width, image->height)));
+  uint32_t minWidth = 1;
+  uint32_t minHeight = 1;
+  uint32_t minDepth = 1;
+  if (Image_Format_IsCompressed(image->format)) {
+    minWidth = Image_Format_WidthOfBlock(image->format);
+    minHeight = Image_Format_HeightOfBlock(image->format);
+  }
+
+  switch (image->format) {
+    case Image_Format_PVR_4BPP_BLOCK:
+    case Image_Format_PVR_4BPPA_BLOCK:
+    case Image_Format_PVR_4BPP_SRGB_BLOCK:
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
+      minWidth = 8;
+      minHeight = 8;
+      break;
+    case Image_Format_PVR_2BPP_BLOCK:
+    case Image_Format_PVR_2BPPA_BLOCK:
+    case Image_Format_PVR_2BPP_SRGB_BLOCK:
+    case Image_Format_PVR_2BPPA_SRGB_BLOCK:
+      minWidth = 16;
+      minHeight = 8;
+      break;
+    default:break;
+  }
+
+  int size = 0;
+  int level = maxMipLevels;
+
+  Image_ImageHeader scratch;
+  scratch.format = image->format;
+  scratch.width = image->width;
+  scratch.height = image->height;
+  scratch.depth = image->depth;
+  scratch.slices = image->slices;
+
+  while (level > 0) {
+    size += Image_ByteCountOf(&scratch);
+
+    scratch.width >>= 1;
+    scratch.height >>= 1;
+    scratch.depth >>= 1;
+
+    if (scratch.width + scratch.height + scratch.depth == 0) {
+      break;
+    }
+    scratch.width = Math_MaxI32(scratch.width, minWidth);
+    scratch.height = Math_MaxI32(scratch.height, minHeight);
+    scratch.depth = Math_MaxI32(scratch.depth, minDepth);
+
+    level--;
+  }
+
+  return size;
+
 }
