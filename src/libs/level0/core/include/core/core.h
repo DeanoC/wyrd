@@ -13,5 +13,6 @@
 #define EXTERN_C
 #endif
 
+#include "core/logger.h"
 
 #endif //CORE_CORE_H

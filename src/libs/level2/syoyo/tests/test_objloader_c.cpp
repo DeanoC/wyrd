@@ -1,17 +1,9 @@
 #include "core/core.h"
-#include "cmdlineshell/cmdlineshell.h"
-
-#define CATCH_CONFIG_RUNNER
-#include "catch/catch.hpp"
-
-int Main(int argc, char const *argv[]) {
-  return Catch::Session().run(argc, (char **) argv);
-}
-
-#include "syoyo/tiny_objloader.h"
 #include "os/filesystem.h"
 #include "vfile/vfile.hpp"
+#include "catch/catch.hpp"
 
+#include "syoyo/tiny_objloader.h"
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>

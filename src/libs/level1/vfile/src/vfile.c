@@ -3,7 +3,7 @@
 #include "os/file.h"
 #include "vfile/vfile.h"
 #include "vfile/interface.h"
-#include "osfile.h"
+#include "vfile/osfile.h"
 
 #define VFILE_FUNC_HEADER  \
 struct VFile_Interface_t* interface = (VFile_Interface_t*)handle; \
@@ -51,6 +51,17 @@ EXTERN_C bool VFile_IsEOF(VFile_Handle handle) {
   VFILE_FUNC_HEADER
 
   return interface->isEofFunc(interface);
+}
+EXTERN_C uint32_t VFile_GetType(VFile_Handle handle) {
+  VFILE_FUNC_HEADER
+
+  return interface->type;
+
+}
+EXTERN_C void* VFile_GetTypeSpecificData(VFile_Handle handle) {
+  VFILE_FUNC_HEADER
+
+  return (interface + 1);
 }
 
 #undef VFILE_FUNC_HEADER

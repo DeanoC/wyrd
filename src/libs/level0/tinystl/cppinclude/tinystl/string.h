@@ -104,6 +104,8 @@ class basic_string {
   bool rfind(const char ch, size_t pos, unsigned int *index) const;
   size_type find_last(char c, size_type startPos = npos, bool caseSensitive = true) const;
   size_type find_last(basic_string const& str, size_type startPos = npos, bool caseSensitive = true) const;
+  int compare(char const*) const;
+  int compare(basic_string const& str) const;
   static basic_string format(const char *fmt, ...);
 
   basic_string<allocator> to_lower() const;
@@ -527,6 +529,16 @@ inline bool basic_string<allocator>::rfind(const char ch, size_type pos, unsigne
   }
 
   return false;
+}
+
+template<typename allocator>
+inline int basic_string<allocator>::compare(char const* str) const {
+  return strcmp(c_str(), str);
+}
+
+template<typename allocator>
+inline int basic_string<allocator>::compare(basic_string const& str) const {
+  return strcmp(c_str(), str.c_str());
 }
 
 template<typename allocator>

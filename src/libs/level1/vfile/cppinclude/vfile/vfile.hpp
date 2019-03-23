@@ -101,6 +101,9 @@ struct ScopedFile {
   operator bool() const {
     return owned;
   }
+  operator File *() const { return owned;}
+  operator VFile_Handle() const { return (VFile_Handle)owned;}
+
   File *operator->() {
     return owned;
   }

@@ -4,7 +4,7 @@
 #include "os/file.h"
 #include "vfile/vfile.h"
 #include "vfile/interface.h"
-#include "memfile.h"
+#include "vfile/memory.h"
 
 static void VFile_MemFile_Close(VFile_Interface_t *vif) {
   VFile_MemFile_t *vof = (VFile_MemFile_t *) (vif + 1);
@@ -37,11 +37,18 @@ static size_t VFile_MemFile_Write(VFile_Interface_t *vif, void const *buffer, si
   size_t size = byteCount;
 
   if (vof->offset + byteCount >= vof->size) {
-    size = vof->size - vof->offset;
-    if (size < 0 || size > vof->size) {
-      return 0;
+    if (!vof->takeOwnership) {
+      size = vof->size - vof->offset;
+      if (size < 0 || size > vof->size) {
+        return 0;
+      }
+    } else {
+      // grow the memory to fit
+      vof->size = vof->offset + byteCount;
+      vof->memory = realloc(vof->memory, vof->size);
     }
   }
+
   memcpy(((uint8_t *) vof->memory) + vof->offset, buffer, size);
   vof->offset += size;
   return size;
@@ -102,6 +109,7 @@ EXTERN_C VFile_Handle VFile_FromMemory(void *memory, size_t size, bool takeOwner
   VFile_Interface_t *vif = (VFile_Interface_t *) malloc(mallocSize);
   VFile_MemFile_t *vof = (VFile_MemFile_t *) (vif + 1);
   vif->magic = InterfaceMagic;
+  vif->type = VFile_Type_Memory;
   vif->closeFunc = &VFile_MemFile_Close;
   vif->flushFunc = &VFile_MemFile_Flush;
   vif->readFunc = &VFile_MemFile_Read;
@@ -117,4 +125,9 @@ EXTERN_C VFile_Handle VFile_FromMemory(void *memory, size_t size, bool takeOwner
   vof->offset = 0;
 
   return (VFile_Handle) vif;
+}
+
+EXTERN_C VFile_Handle VFile_ToBuffer(size_t initialSize) {
+  void* memory = malloc(initialSize);
+  return VFile_FromMemory(memory, initialSize, true);
 }

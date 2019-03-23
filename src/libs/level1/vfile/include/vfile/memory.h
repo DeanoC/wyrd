@@ -2,6 +2,8 @@
 #ifndef WYRD_VFILE_MEMFILE_H
 #define WYRD_VFILE_MEMFILE_H
 
+#include "core/core.h"
+
 typedef struct VFile_MemFile_t {
   void *memory;
   size_t size;

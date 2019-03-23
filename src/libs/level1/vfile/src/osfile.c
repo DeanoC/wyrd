@@ -4,7 +4,7 @@
 #include "os/file.h"
 #include "vfile/vfile.h"
 #include "vfile/interface.h"
-#include "osfile.h"
+#include "vfile/osfile.h"
 
 static void VFile_OsFile_Close(VFile_Interface_t *vif) {
   VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
@@ -63,6 +63,7 @@ EXTERN_C VFile_Handle VFile_FromFile(char const *filename, enum Os_FileMode mode
 
   VFile_Interface_t *vif = (VFile_Interface_t *) malloc(mallocSize);
   vif->magic = InterfaceMagic;
+  vif->type = VFile_Type_OsFile;
   vif->closeFunc = &VFile_OsFile_Close;
   vif->flushFunc = &VFile_OsFile_Flush;
   vif->readFunc = &VFile_OsFile_Read;

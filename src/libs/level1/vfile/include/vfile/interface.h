@@ -22,6 +22,7 @@ static const uint32_t InterfaceMagic = 0xDEA0DEA0;
 typedef struct VFile_Interface_t {
 
   uint32_t magic;
+  uint32_t type;
 
   VFile_CloseFunc closeFunc;
   VFile_FlushFunc flushFunc;
