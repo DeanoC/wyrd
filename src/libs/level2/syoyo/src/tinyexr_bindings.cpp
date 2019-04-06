@@ -157,7 +157,7 @@ EXTERN_C int TinyExr_ParseEXRHeader(TinyExr_EXRHeader *header,
     buf = (uint8_t * )malloc(filesize);
     size_t ret;
     ret = VFile_Read(handle, buf, filesize);
-    ASSERT(ret == filesize);
+    ASSERT(ret <= filesize);
   }
 
   int rete = ParseEXRHeaderFromMemory(header, version, buf, filesize);
@@ -199,7 +199,7 @@ EXTERN_C int TinyExr_ParseEXRMultipartHeader(TinyExr_EXRHeader ***headers,
     buf = (uint8_t * )malloc(filesize);
     size_t ret;
     ret = VFile_Read(handle, buf, filesize);
-    ASSERT(ret == filesize);
+    ASSERT(ret <= filesize);
   }
 
   int rete = ParseEXRMultipartHeaderFromMemory(headers, num_headers, version, buf, filesize);
@@ -241,7 +241,7 @@ EXTERN_C int TinyExr_LoadEXRImage(TinyExr_EXRImage *exr_image,
     buf = (uint8_t * )malloc(filesize);
     size_t ret;
     ret = VFile_Read(handle, buf, filesize);
-    ASSERT(ret == filesize);
+    ASSERT(ret <= filesize);
   }
 
   int rete = tinyexr::LoadEXRImageFromMemory(exr_image, exr_header, buf, filesize);
@@ -274,7 +274,7 @@ EXTERN_C int TinyExr_LoadEXRMultipartImage(
     buf = (uint8_t * )malloc(filesize);
     size_t ret;
     ret = VFile_Read(handle, buf, filesize);
-    ASSERT(ret == filesize);
+    ASSERT(ret <= filesize);
   }
 
   return tinyexr::LoadEXRMultipartImageFromMemory(exr_images, exr_headers, num_parts,

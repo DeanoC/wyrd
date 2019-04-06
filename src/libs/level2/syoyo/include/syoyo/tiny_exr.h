@@ -22,7 +22,7 @@ enum {
   TINYEXR_ERROR_SERIALZATION_FAILED = (-11),
 
   // pixel type: possible values are: UINT = 0 HALF = 1 FLOAT = 2
-      TINYEXR_PIXELTYPE_UINT = (0),
+  TINYEXR_PIXELTYPE_UINT = (0),
   TINYEXR_PIXELTYPE_HALF = (1),
   TINYEXR_PIXELTYPE_FLOAT = (2),
 

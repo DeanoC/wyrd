@@ -41,6 +41,7 @@ EXTERN_C Image_ImageHeader *Image_CreateNoClear(uint32_t width,
   image->depth = depth;
   image->slices = slices;
   image->format = format;
+  image->flags = 0;
   image->nextType = Image_IT_None;
   image->nextImage = nullptr;
 
@@ -52,15 +53,15 @@ EXTERN_C void Image_Destroy(Image_ImageHeader *image) {
   // recursively free next chain
   switch (image->nextType) {
     case Image_IT_MipMaps:
-    case IMAGE_IT_Layers:
-      if (image->nextImage != nullptr) {
+    case IMAGE_IT_Layers: {
+      if(image->nextImage != nullptr) {
         Image_Destroy(image->nextImage);
       }
-      break;
+    } break;
     default:
-    case Image_IT_None:break;
+    case Image_IT_None:
+      break;
   }
-
   free(image);
 }
 
@@ -121,22 +122,37 @@ EXTERN_C Image_ImageHeader *Image_Create3DArrayNoClear(uint32_t width,
 }
 
 EXTERN_C Image_ImageHeader *Image_CreateCubemap(uint32_t width, uint32_t height, enum Image_Format format) {
-  return Image_Create(width, height, 1, 6, format);
-}
+  Image_ImageHeader* image = Image_Create(width, height, 1, 6, format);
+  if(image) {
+    image->flags = Image_Flag_Cubemap;
+  }
+  return image;}
 EXTERN_C Image_ImageHeader *Image_CreateCubemapNoClear(uint32_t width, uint32_t height, enum Image_Format format) {
-  return Image_CreateNoClear(width, height, 1, 6, format);
+  Image_ImageHeader* image = Image_CreateNoClear(width, height, 1, 6, format);
+  if(image) {
+    image->flags = Image_Flag_Cubemap;
+  }
+  return image;
 }
 EXTERN_C Image_ImageHeader *Image_CreateCubemapArray(uint32_t width,
                                                      uint32_t height,
                                                      uint32_t slices,
                                                      enum Image_Format format) {
-  return Image_Create(width, height, 1, slices * 6, format);
+  Image_ImageHeader* image = Image_Create(width, height, 1, slices * 6, format);
+  if(image) {
+    image->flags = Image_Flag_Cubemap;
+  }
+  return image;
 }
 EXTERN_C Image_ImageHeader *Image_CreateCubemapArrayNoClear(uint32_t width,
                                                             uint32_t height,
                                                             uint32_t slices,
                                                             enum Image_Format format) {
-  return Image_CreateNoClear(width, height, 1, slices * 6, format);
+  Image_ImageHeader* image = Image_CreateNoClear(width, height, 1, slices * 6, format);
+  if(image) {
+    image->flags = Image_Flag_Cubemap;
+  }
+  return image;
 }
 
 
@@ -179,6 +195,29 @@ EXTERN_C double Image_GetChannelAt(Image_ImageHeader const *image, enum Image_Ch
       return 0.0;
   }
 
+}
+EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image) {
+  size_t count = 1;
+
+  while(image && image->nextImage != nullptr) {
+    count++;
+    image = image->nextImage;
+  }
+
+  return count;
+}
+
+EXTERN_C Image_ImageHeader const* Image_LinkedImageOf(Image_ImageHeader const* image, size_t const index) {
+  size_t count = 0;
+  while(image && image->nextImage != nullptr) {
+    if(count == index) {
+      return image;
+    }
+    count++;
+    image = image->nextImage;
+  }
+
+  return nullptr;
 }
 
 EXTERN_C void Image_SetChannelAt(Image_ImageHeader const *image,
@@ -430,8 +469,262 @@ EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader *image, bool generateFro
     Image_Destroy(scratchImage);
   }
 }
+/*
 
-EXTERN_C size_t Image_BytesForImageAndMipMaps(Image_ImageHeader const *image) {
+bool Image::Convert(const ImageFormat newFormat) {
+  uint8_t *newPixels;
+  uint32_t nPixels = GetNumberOfPixels(0, mMipMapCount) * mArrayCount;
+
+  if (mFormat == RGBE8 && (newFormat == RGB32F || newFormat == RGBA32F)) {
+    newPixels = (uint8_t *) malloc(sizeof(uint8_t) * GetMipMappedSize(0, mMipMapCount, newFormat) * mArrayCount);
+    float *dest = (float *) newPixels;
+
+    bool writeAlpha = (newFormat == RGBA32F);
+    uint8_t *src = pData;
+    do {
+      *((vec3_t *) dest) = Math_RGBEToRGB(src);
+      if (writeAlpha) {
+        dest[3] = 1.0f;
+        dest += 4;
+      } else {
+        dest += 3;
+      }
+      src += 4;
+    } while (--nPixels);
+  } else {
+    if (!IsPlainFormat(mFormat) || !(IsPlainFormat(newFormat) || newFormat == RGB10A2 ||
+        newFormat == RGBE8 || newFormat == RGB9E5)) {
+      LOGERRORF(
+          "Image: %s fail to convert from  %s  to  %s", mLoadFileName.c_str(), GetImageFormatString(mFormat),
+          GetImageFormatString(newFormat));
+      return false;
+    }
+    if (mFormat == newFormat) {
+      return true;
+    }
+
+    uint8_t *src = pData;
+    uint8_t *dest = newPixels = (uint8_t *) malloc(
+        sizeof(uint8_t) * GetMipMappedSize(0, mMipMapCount, newFormat) * mArrayCount);
+
+    if (mFormat == RGB8 && newFormat == RGBA8) {
+      // Fast path for RGB->RGBA8
+      do {
+        dest[0] = src[0];
+        dest[1] = src[1];
+        dest[2] = src[2];
+        dest[3] = 255;
+        dest += 4;
+        src += 3;
+      } while (--nPixels);
+    } else if (mFormat == RGBA8 && newFormat == BGRA8) {
+      // Fast path for RGBA8->BGRA8 (just swizzle)
+      do {
+        dest[0] = src[2];
+        dest[1] = src[1];
+        dest[2] = src[0];
+        dest[3] = src[3];
+        dest += 4;
+        src += 4;
+      } while (--nPixels);
+    } else {
+      int srcSize = GetBytesPerPixel(mFormat);
+      int nSrcChannels = GetChannelCount(mFormat);
+
+      int destSize = GetBytesPerPixel(newFormat);
+      int nDestChannels = GetChannelCount(newFormat);
+
+      do {
+        float rgba[4];
+
+        if (IsFloatFormat(mFormat)) {
+          if (mFormat <= RGBA16F) {
+            for (int i = 0; i < nSrcChannels; i++) {
+              rgba[i] = Math_Half2Float(((uint16_t *) src)[i]);
+            }
+          } else {
+            for (int i = 0; i < nSrcChannels; i++) {
+              rgba[i] = ((float *) src)[i];
+            }
+          }
+        } else if (mFormat >= I16 && mFormat <= RGBA16) {
+          for (int i = 0; i < nSrcChannels; i++) {
+            rgba[i] = ((uint16_t *) src)[i] * (1.0f / 65535.0f);
+          }
+        } else {
+          for (int i = 0; i < nSrcChannels; i++) {
+            rgba[i] = src[i] * (1.0f / 255.0f);
+          }
+        }
+        if (nSrcChannels < 4) {
+          rgba[3] = 1.0f;
+        }
+        if (nSrcChannels == 1) {
+          rgba[2] = rgba[1] = rgba[0];
+        }
+
+        if (nDestChannels == 1) {
+          rgba[0] = 0.30f * rgba[0] + 0.59f * rgba[1] + 0.11f * rgba[2];
+        }
+
+        if (IsFloatFormat(newFormat)) {
+          if (newFormat <= RGBA32F) {
+            if (newFormat <= RGBA16F) {
+              for (int i = 0; i < nDestChannels; i++) {
+                ((uint16_t *) dest)[i] = Math_Float2Half(rgba[i]);
+              }
+            } else {
+              for (int i = 0; i < nDestChannels; i++) {
+                ((float *) dest)[i] = rgba[i];
+              }
+            }
+          } else {
+            if (newFormat == RGBE8) {
+              *(uint32_t *) dest = Math_FloatRGBToRGBE8(rgba[0], rgba[1], rgba[2]);
+            } else {
+              *(uint32_t *) dest = Math_FloatRGBToRGB9E5(rgba[0], rgba[1], rgba[2]);
+            }
+          }
+        } else if (newFormat >= I16 && newFormat <= RGBA16) {
+          for (int i = 0; i < nDestChannels; i++) {
+            ((uint16_t *) dest)[i] = (uint16_t) (65535 * Math_SaturateF(rgba[i]) + 0.5f);
+          }
+        } else if (newFormat == RGB10A2) {
+          *(uint32_t *) dest =
+              (uint32_t(1023.0f * Math_SaturateF(rgba[0]) + 0.5f) << 22) |
+                  (uint32_t(1023.0f * Math_SaturateF(rgba[1]) + 0.5f) << 12) |
+                  (uint32_t(1023.0f * Math_SaturateF(rgba[2]) + 0.5f) << 2) |
+                  (uint32_t(3.0f * Math_SaturateF(rgba[3]) + 0.5f));
+        } else {
+          for (int i = 0; i < nDestChannels; i++) {
+            dest[i] = (unsigned char) (255 * Math_SaturateF(rgba[i]) + 0.5f);
+          }
+        }
+
+        src += srcSize;
+        dest += destSize;
+      } while (--nPixels);
+    }
+  }
+  free(pData);
+  pData = newPixels;
+  mFormat = newFormat;
+
+  return true;
+}
+
+template<typename T>
+void buildMipMap(T *dst, const T *src, const uint32_t w, const uint32_t h, const uint32_t d, const uint32_t c) {
+  uint32_t xOff = (w < 2) ? 0 : c;
+  uint32_t yOff = (h < 2) ? 0 : c * w;
+  uint32_t zOff = (d < 2) ? 0 : c * w * h;
+
+  for (uint32_t z = 0; z < d; z += 2) {
+    for (uint32_t y = 0; y < h; y += 2) {
+      for (uint32_t x = 0; x < w; x += 2) {
+        for (uint32_t i = 0; i < c; i++) {
+          *dst++ =
+              (src[0] + src[xOff] + src[yOff] + src[yOff + xOff] + src[zOff] + src[zOff + xOff] + src[zOff + yOff] +
+                  src[zOff + yOff + xOff]) /
+                  8;
+          src++;
+        }
+        src += xOff;
+      }
+      src += yOff;
+    }
+    src += zOff;
+  }
+}
+
+bool Image::GenerateMipMaps(const uint32_t mipMaps) {
+  if (IsCompressedFormat(mFormat)) {
+    return false;
+  }
+  if (!(mWidth) || !Math_IsPowerOf2U32(mHeight) || !Math_IsPowerOf2U32(mDepth)) {
+    return false;
+  }
+
+  uint32_t actualMipMaps = Math_MinU32(mipMaps, GetMipMapCountFromDimensions());
+
+  if (mMipMapCount != actualMipMaps) {
+    int size = GetMipMappedSize(0, actualMipMaps);
+    if (mArrayCount > 1) {
+      uint8_t *newPixels = (uint8_t *) malloc(sizeof(uint8_t) * size * mArrayCount);
+
+      // Copy top mipmap of all array slices to new location
+      int firstMipSize = GetMipMappedSize(0, 1);
+      int oldSize = GetMipMappedSize(0, mMipMapCount);
+
+      for (uint32_t i = 0; i < mArrayCount; i++) {
+        memcpy(newPixels + i * size, pData + i * oldSize, firstMipSize);
+      }
+
+      free(pData);
+      pData = newPixels;
+    } else {
+      pData = (uint8_t *) realloc(pData, size);
+    }
+    mMipMapCount = actualMipMaps;
+  }
+
+  int nChannels = GetChannelCount(mFormat);
+
+  int n = IsCube() ? 6 : 1;
+
+  for (uint32_t arraySlice = 0; arraySlice < mArrayCount; arraySlice++) {
+    uint8_t *src = GetPixels(0, arraySlice);
+    uint8_t *dst = GetPixels(1, arraySlice);
+
+    for (uint32_t level = 1; level < mMipMapCount; level++) {
+      uint32_t w = GetWidth(level - 1);
+      uint32_t h = GetHeight(level - 1);
+      uint32_t d = GetDepth(level - 1);
+
+      uint32_t srcSize = GetMipMappedSize(level - 1, 1) / n;
+      uint32_t dstSize = GetMipMappedSize(level, 1) / n;
+
+      for (uint32_t i = 0; i < n; i++) {
+        if (IsPlainFormat(mFormat)) {
+          if (IsFloatFormat(mFormat)) {
+            buildMipMap((float *) dst, (float *) src, w, h, d, nChannels);
+          } else if (mFormat >= I16) {
+            buildMipMap((uint16_t *) dst, (uint16_t *) src, w, h, d, nChannels);
+          } else {
+            buildMipMap(dst, src, w, h, d, nChannels);
+          }
+        }
+        src += srcSize;
+        dst += dstSize;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool Image::iSwap(const int c0, const int c1) {
+  if (!IsPlainFormat(mFormat)) {
+    return false;
+  }
+
+  unsigned int nPixels = GetNumberOfPixels(0, mMipMapCount) * mArrayCount;
+  unsigned int nChannels = GetChannelCount(mFormat);
+
+  if (mFormat <= RGBA8) {
+    swapPixelChannels((uint8_t *) pData, nPixels, nChannels, c0, c1);
+  } else if (mFormat <= RGBA16F) {
+    swapPixelChannels((uint16_t *) pData, nPixels, nChannels, c0, c1);
+  } else {
+    swapPixelChannels((float *) pData, nPixels, nChannels, c0, c1);
+  }
+
+  return true;
+}
+
+*/
+
+EXTERN_C size_t Image_BytesRequiredForMipMapsOf(Image_ImageHeader const *image) {
 
   int const maxMipLevels =
       Math_Log2(Math_MaxI32(image->depth,

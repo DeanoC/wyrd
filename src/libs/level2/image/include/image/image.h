@@ -1,10 +1,8 @@
-
 #pragma once
 #ifndef WYRD_IMAGE_IMAGE_H
 #define WYRD_IMAGE_IMAGE_H
 
 #include "core/core.h"
-#include "core/logger.h"
 #include "math/math.h"
 #include "image/pixel.h"
 #include "image/format.h"
@@ -31,6 +29,11 @@ typedef enum Image_NextType {
   IMAGE_IT_Layers
 } Image_NextType;
 
+
+typedef enum Image_FlagBits {
+  Image_Flag_Cubemap = 0x0,
+} Image_FlagBits;
+
 // Upto 4D (3D Arrays_ image data, stored as packed formats but
 // accessed as double upto 4 channels per pixel in RGBA
 // Support image arrays/slices
@@ -49,14 +52,23 @@ typedef struct Image_ImageHeader {
   uint32_t depth;
   uint32_t slices;
 
-  Image_Format format;
+  union {
+    uint32_t fmtSizer;
+    Image_Format format; //< type Image_Format
+  };
 
-  Image_NextType nextType;
-  Image_ImageHeader *nextImage;
+  uint16_t flags;
+  uint8_t nextType; ///< Image_NextType
+  uint8_t pad8;
+
+  union {
+    uint32_t pad[2];
+    Image_ImageHeader *nextImage;
+  };
 
 } Image_ImageHeader;
 
-// Image are fundementally 4D arrays however 'helper' function let you
+// Image are fundamentally 4D arrays however 'helper' function let you
 // create and use them in more familar texture terms
 EXTERN_C Image_ImageHeader *Image_Create(uint32_t width,
                                          uint32_t height,
@@ -195,9 +207,44 @@ EXTERN_C inline size_t Image_ByteCountPerSlice(Image_ImageHeader const *image) {
 EXTERN_C inline size_t Image_ByteCountOf(Image_ImageHeader const *image) {
   return (Image_PixelCountOf(image) * Image_Format_BitWidth(image->format)) / 8;
 }
+EXTERN_C inline size_t Image_ByteCountOfImageChain(Image_ImageHeader const *image) {
 
-EXTERN_C size_t Image_BytesForImageAndMipMaps(Image_ImageHeader const *image);
+  size_t total = Image_ByteCountOf(image);
 
+  switch (image->nextType) {
+    case Image_IT_MipMaps:
+    case IMAGE_IT_Layers:
+      if(image->nextImage != nullptr) {
+        total += Image_ByteCountOfImageChain(image->nextImage);
+      }
+      break;
+    default:
+    case Image_IT_None:break;
+  }
+
+  return total;
+}
+
+EXTERN_C size_t Image_BytesRequiredForMipMapsOf(Image_ImageHeader const *image);
+
+EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image);
+EXTERN_C Image_ImageHeader const* Image_LinkedImageOf(Image_ImageHeader const *image, size_t const index);
+
+EXTERN_C inline bool Image_Is1D(Image_ImageHeader const* image) {
+  return image->height == 1 && image->depth == 1;
+}
+EXTERN_C inline bool Image_Is2D(Image_ImageHeader const* image) {
+  return image->height != 1 && image->depth == 1;
+}
+EXTERN_C inline bool Image_Is3D(Image_ImageHeader const* image) {
+  return image->depth != 1;
+}
+EXTERN_C inline bool Image_IsArray(Image_ImageHeader const* image) {
+  return image->slices != 1;
+}
+EXTERN_C inline bool Image_IsCubemap(Image_ImageHeader const* image) {
+  return image->flags & Image_Flag_Cubemap;
+}
 
 
 #endif //WYRD_IMAGE_IMAGE_H

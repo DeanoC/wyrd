@@ -5,6 +5,7 @@ set(CInterface
         format.h
         format_cracker.h
         pixel.h
+        io.h
         )
 
 set(CPPInterface
@@ -17,6 +18,7 @@ set(Src
         fetch.hpp
         put.hpp
         loader.cpp
+        saver.cpp
         )
 
 set(Deps
@@ -24,12 +26,14 @@ set(Deps
         level0/math
         level0/stb
         level1/vfile
+        level2/syoyo
         )
 
 set(Tests
         test_image.cpp
         test_pixel.cpp
         test_format_cracker.cpp
+        test_image_io.cpp
         )
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")

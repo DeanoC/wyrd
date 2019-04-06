@@ -35,7 +35,7 @@ TEST_CASE("asakusa", "[tinyexr]") {
   RESTORE_PATH();
 }
 
-void TestExr(char const *filename, bool tiled = false) {
+static void TestExr(char const *filename, bool tiled = false) {
   TinyExr_EXRVersion exr_version;
   LOGINFOF("Loading %s", filename);
   VFile::ScopedFile file = VFile::File::FromFile(filename, Os_FM_ReadBinary);
@@ -47,13 +47,11 @@ void TestExr(char const *filename, bool tiled = false) {
   REQUIRE(false == exr_version.non_image);
   REQUIRE(false == exr_version.multipart);
 
-  TinyExr_EXRVersion version;
   TinyExr_EXRHeader header;
   TinyExr_EXRImage image;
   TinyExr_InitEXRHeader(&header);
   TinyExr_InitEXRImage(&image);
 
-  const char *err;
   file->Seek(0, VFile_SD_Begin);
   ret = TinyExr_ParseEXRHeader(&header, &exr_version, file);
   REQUIRE(TINYEXR_SUCCESS == ret);

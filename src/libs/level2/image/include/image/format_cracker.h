@@ -656,7 +656,7 @@ EXTERN_C inline uint32_t Image_Format_ChannelBitWidth(enum Image_Format const fm
 /// 		 like that, so BC1 take 4 bits to store a texel but can't be accessed 1 pixel at at time
 /// \param	fmt	Describes the format to use.
 /// \return	The bit width of the format.
-EXTERN_C inline uint32_t Image_Format_BitWidth(enum Image_Format const fmt) {
+EXTERN_C inline uint32_t Image_Format_BitWidth(Image_Format const fmt) {
   switch (fmt) {
     case Image_Format_R64G64B64A64_UINT:
     case Image_Format_R64G64B64A64_SINT:
@@ -1200,6 +1200,25 @@ EXTERN_C inline double Image_Format_Min(enum Image_Format const fmt, int channel
 
     default:LOGWARNINGF("min %s not handled", Image_Format_Name(fmt));
       return 0.0;
+  }
+}
+// the channels the same? Compressed are treated as true as
+// each block are basically the same (BC6H and BC7 are ignored)
+EXTERN_C inline bool Image_Format_IsHomogenous(Image_Format const fmt) {
+  switch(fmt) {
+  case Image_Format_R5G5B5A1_UNORM_PACK16:
+  case Image_Format_B5G5R5A1_UNORM_PACK16:
+  case Image_Format_A1R5G5B5_UNORM_PACK16:
+  case Image_Format_A2R10G10B10_UNORM_PACK32:
+  case Image_Format_A2R10G10B10_USCALED_PACK32:
+  case Image_Format_A2R10G10B10_UINT_PACK32:
+  case Image_Format_A2B10G10R10_UNORM_PACK32:
+  case Image_Format_A2B10G10R10_USCALED_PACK32:
+  case Image_Format_A2B10G10R10_UINT_PACK32:
+  case Image_Format_X8_D24_UNORM_PACK32:
+  case Image_Format_D32_SFLOAT_S8_UINT:
+    return false;
+    default: return true;
   }
 }
 
