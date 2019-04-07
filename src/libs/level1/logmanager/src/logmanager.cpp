@@ -6,6 +6,7 @@
 #include "logmanager/logmanager.hpp"
 
 #include <cstdio> // sprintf
+#include <ctime>
 
 //#include "../Interfaces/IMemoryManager.h"
 Core_Logger LogManager::log = {
@@ -104,7 +105,7 @@ void LogManager::msg(char const *level, char const *file, int line, const char *
 
   mInWrite = true;
 
-  OutputDebugString(formattedMessage.c_str());
+  OutputDebug(formattedMessage.c_str());
 
   if (logFile.IsOpen()) {
     logFile.Write(formattedMessage.c_str(), formattedMessage.size());

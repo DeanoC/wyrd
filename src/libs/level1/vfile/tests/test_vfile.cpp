@@ -1,5 +1,6 @@
 #include "core/core.h"
 #include "cmdlineshell/cmdlineshell.h"
+#include "core/logger.h"
 
 #define CATCH_CONFIG_RUNNER
 #include "catch/catch.hpp"
@@ -13,7 +14,7 @@ int Main(int argc, char const *argv[]) {
 TEST_CASE("Open and close (C)", "[VFile OsFile]") {
   VFile_Handle vfh = VFile_FromFile("test_data/test.txt", Os_FM_Read);
   REQUIRE(vfh);
-  REQUIRE(stricmp(VFile_GetName(vfh), "test_data/test.txt") == 0);
+  REQUIRE(_stricmp(VFile_GetName(vfh), "test_data/test.txt") == 0);
   VFile_Close(vfh);
 }
 
@@ -102,7 +103,7 @@ TEST_CASE("Open and close MemFile (C)", "[VFile]") {
 
   VFile_Handle vfh = VFile_FromMemory(testData, sizeof(testData), false);
   REQUIRE(vfh);
-  REQUIRE(stricmp(VFile_GetName(vfh), "*NO_NAME*") == 0);
+  REQUIRE(_stricmp(VFile_GetName(vfh), "*NO_NAME*") == 0);
   VFile_Close(vfh);
 }
 
@@ -203,7 +204,7 @@ TEST_CASE("Open and close MemFile (CPP)", "[VFile]") {
 
   VFile::File *vfh = VFile::File::FromMemory(testData, sizeof(testData), false);
   REQUIRE(vfh);
-  REQUIRE(stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
+  REQUIRE(_stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
   vfh->Close();
 
 }
@@ -214,5 +215,5 @@ TEST_CASE("Scoped Open and close MemFile (CPP)", "[VFile]") {
 
   VFile::ScopedFile vfh = VFile::File::FromMemory(testData, sizeof(testData), false);
   REQUIRE(vfh);
-  REQUIRE(stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
+  REQUIRE(_stricmp(vfh->GetName().data(), "*NO_NAME*") == 0);
 }

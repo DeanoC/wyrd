@@ -7,7 +7,7 @@
 
 #include "core/core.h"
 
-typedef struct{}* Os_FileHandle;
+typedef void* Os_FileHandle;
 
 enum Os_FileMode {
   Os_FM_Read = 1,

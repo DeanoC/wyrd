@@ -141,7 +141,7 @@ inline int SystemRun(tinystl::string const& fileName, tinystl::vector<tinystl::s
   for (auto i = 0u; i < args.size(); ++i) {
     cargs[i] = args[i].c_str();
   }
-  return Os_SystemRun(fileName.c_str(), args.size(), cargs);
+  return Os_SystemRun(fileName.c_str(), (int)args.size(), cargs);
 }
 
 inline size_t GetLastModifiedTime(tinystl::string const& fileName) {

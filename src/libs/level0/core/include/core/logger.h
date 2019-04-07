@@ -20,9 +20,7 @@ typedef struct Core_Logger_t {
 
 EXTERN_C Core_Logger Core_Log;
 
-#if PLATFORM != PLATFORM_WINDOWS
-EXTERN_C void OutputDebugString(char const *msg);
-#endif
+EXTERN_C void OutputDebug(char const *msg);
 
 EXTERN_C void _ErrorMsg(const char* file, int line, const char* function, const char* string, ...);
 EXTERN_C void _WarningMsg(const char* file, int line, const char* function, const char* string, ...);

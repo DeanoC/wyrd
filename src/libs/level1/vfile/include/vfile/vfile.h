@@ -5,7 +5,7 @@
 #include "core/core.h"
 #include "os/file.h"
 
-typedef struct {} *VFile_Handle;
+typedef void *VFile_Handle;
 
 enum VFile_SeekDir {
   VFile_SD_Begin = 0,

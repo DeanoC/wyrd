@@ -42,28 +42,19 @@
 * Added additional atomic primitived
 */
 #pragma once
-
 #ifndef WYRD_OS_ATOMICS_H
 #define WYRD_OS_ATOMICS_H
 
 #include "core/core.h"
 
 #if PLATFORM == PLATFORM_WINDOWS
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
-#include <Windows.h>
-#undef GetObject
 #include <intrin.h>
-
-extern "C" void _ReadWriteBarrier();
 #pragma intrinsic(_ReadWriteBarrier)
 #pragma intrinsic(_InterlockedCompareExchange)
+#pragma intrinsic(_InterlockedCompareExchange64)
+#pragma intrinsic(_InterlockedCompareExchangePointer)
 #pragma intrinsic(_InterlockedExchangeAdd)
+#pragma intrinsic(_InterlockedExchangeAdd64)
 
 // Memory Barriers to prevent CPU and Compiler re-ordering
 #define Os_MemoryBarrierAcquire() _ReadWriteBarrier()
@@ -128,7 +119,7 @@ inline int32_t Os_AtomicAdd32(volatile uint32_t *pDest, uint32_t value) {
 // Atomically performs: tmp = *pDest; *pDest += value; return tmp;
 inline uint64_t Os_AtomicAdd64(volatile uint64_t *pDest, uint64_t value) {
 #ifdef _WIN32
-  return (uint64_t)_InterlockedExchangeAdd64((LONG64*)pDest, value);
+  return _InterlockedExchangeAdd64((int64_t*)pDest, value);
 #else
   return __sync_fetch_and_add(pDest, value);
 #endif

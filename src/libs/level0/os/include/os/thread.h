@@ -9,14 +9,16 @@
 
 #if PLATFORM == PLATFORM_WINDOWS
 
-typedef struct { char dummy[24]; } Os_Mutex_t;
 #if CPU_BIT_SIZE == 32
+typedef struct { char dummy[24]; } Os_Mutex_t;
 typedef struct { char dummy[4]; } Os_ConditionalVariable_t;
 #elif CPU_BIT_SIZE == 64
+typedef struct { char dummy[40]; } Os_Mutex_t;
 typedef struct { char dummy[8]; } Os_ConditionalVariable_t;
 #else
 #error What bit size if this CPU?!
 #endif
+
 typedef unsigned int Os_ThreadID_t;
 typedef void* Os_Thread_t;
 

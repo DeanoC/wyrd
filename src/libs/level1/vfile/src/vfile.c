@@ -5,6 +5,8 @@
 #include "vfile/interface.h"
 #include "vfile/osfile.h"
 
+#include <malloc.h>
+
 #define VFILE_FUNC_HEADER  \
 struct VFile_Interface_t* interface = (VFile_Interface_t*)handle; \
 ASSERT(interface); \
@@ -22,6 +24,7 @@ EXTERN_C void VFile_Flush(VFile_Handle handle) {
 }
 EXTERN_C size_t VFile_Read(VFile_Handle handle, void *buffer, size_t byteCount) {
   VFILE_FUNC_HEADER
+  memset(buffer, 0, byteCount);
   return interface->readFunc(interface, buffer, byteCount);
 }
 EXTERN_C size_t VFile_Write(VFile_Handle handle, void const *buffer, size_t byteCount) {
