@@ -33,7 +33,6 @@ using BlendState = TheForge_BlendState;
 using DepthState = TheForge_DepthState;
 using RasterizerState = TheForge_RasterizerState;
 using Pipeline = TheForge_Pipeline;
-using SwapChain = TheForge_SwapChain;
 using GPUVendorPreset = TheForge_GPUVendorPreset;
 using DefaultResourceAlignment = TheForge_DefaultResourceAlignment;
 using GPUSettings = TheForge_GPUSettings;

@@ -44,10 +44,6 @@ EXTERN_C void TheForge_AddSampler(TheForge_Renderer *pRenderer,
                                   const TheForge_SamplerDesc *pDesc,
                                   TheForge_Sampler **pp_sampler);
 EXTERN_C void TheForge_RemoveSampler(TheForge_Renderer *pRenderer, TheForge_Sampler *p_sampler);
-EXTERN_C void TheForge_AddSwapChain(TheForge_Renderer *pRenderer,
-                                    const TheForge_SwapChainDesc *p_desc,
-                                    TheForge_SwapChain **pp_swap_chain);
-EXTERN_C void TheForge_RemoveSwapChain(TheForge_Renderer *pRenderer, TheForge_SwapChain *p_swap_chain);
 EXTERN_C void TheForge_AddBuffer(TheForge_Renderer *pRenderer,
                                  const TheForge_BufferDesc *pDesc,
                                  TheForge_Buffer **pp_buffer);
@@ -156,12 +152,7 @@ EXTERN_C void TheForge_CmdSynchronizeResources(TheForge_Cmd *p_cmd,
 /// Flushes all the batched transitions requested in cmdResourceBarrier
 EXTERN_C void TheForge_CmdFlushBarriers(TheForge_Cmd *p_cmd);
 
-// queue/fence/swapchain functions
-EXTERN_C void TheForge_AcquireNextImage(TheForge_Renderer *pRenderer,
-                                        TheForge_SwapChain *p_swap_chain,
-                                        TheForge_Semaphore *p_signal_semaphore,
-                                        TheForge_Fence *p_fence,
-                                        uint32_t *p_image_index);
+// queue/fence functions
 EXTERN_C void TheForge_QueueSubmit(TheForge_Queue *p_queue,
                                    uint32_t cmd_count,
                                    TheForge_Cmd **pp_cmds,
@@ -170,11 +161,6 @@ EXTERN_C void TheForge_QueueSubmit(TheForge_Queue *p_queue,
                                    TheForge_Semaphore **pp_wait_semaphores,
                                    uint32_t signal_semaphore_count,
                                    TheForge_Semaphore **pp_signal_semaphores);
-EXTERN_C void TheForge_QueuePresent(TheForge_Queue *p_queue,
-                                    TheForge_SwapChain *p_swap_chain,
-                                    uint32_t swap_chain_image_index,
-                                    uint32_t wait_semaphore_count,
-                                    TheForge_Semaphore **pp_wait_semaphores);
 EXTERN_C void TheForge_WaitQueueIdle(TheForge_Queue *p_queue);
 
 EXTERN_C void TheForge_GetFenceStatus(TheForge_Renderer *pRenderer,
@@ -183,8 +169,6 @@ EXTERN_C void TheForge_GetFenceStatus(TheForge_Renderer *pRenderer,
 EXTERN_C void TheForge_WaitForFences(TheForge_Renderer *pRenderer,
                                      uint32_t fence_count,
                                      TheForge_Fence **pp_fences);
-
-EXTERN_C void TheForge_ToggleVSync(TheForge_Renderer *pRenderer, TheForge_SwapChain **ppSwapchain);
 
 // image related functions
 EXTERN_C bool TheForge_IsImageFormatSupported(Image_Format format);

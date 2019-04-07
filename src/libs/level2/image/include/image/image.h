@@ -143,7 +143,7 @@ EXTERN_C inline size_t Image_PixelCountPerSliceOf(Image_ImageHeader const *image
 EXTERN_C inline size_t Image_PixelCountOf(Image_ImageHeader const *image) {
   return image->width * image->height * image->depth * image->slices;
 }
-EXTERN_C inline size_t Image_PixelCountOfImageChainOf(Image_ImageHeader const *image);
+EXTERN_C size_t Image_PixelCountOfImageChainOf(Image_ImageHeader const *image);
 
 EXTERN_C inline size_t Image_CalculateIndex(Image_ImageHeader const *image,
                                             uint32_t x,
@@ -168,13 +168,13 @@ EXTERN_C inline size_t Image_ByteCountPerRowOf(Image_ImageHeader const *image) {
 EXTERN_C inline size_t Image_ByteCountPerPageOf(Image_ImageHeader const *image) {
   return (Image_PixelCountPerPageOf(image) * Image_Format_BitWidth(image->format)) / 8;
 }
-EXTERN_C inline size_t Image_ByteCountPerSlice(Image_ImageHeader const *image) {
+EXTERN_C inline size_t Image_ByteCountPerSliceOf(Image_ImageHeader const *image) {
   return (Image_PixelCountPerSliceOf(image) * Image_Format_BitWidth(image->format)) / 8;
 }
 EXTERN_C inline size_t Image_ByteCountOf(Image_ImageHeader const *image) {
   return (Image_PixelCountOf(image) * Image_Format_BitWidth(image->format)) / 8;
 }
-EXTERN_C inline size_t Image_ByteCountOfImageChain(Image_ImageHeader const *image) {
+EXTERN_C inline size_t Image_ByteCountOfImageChainOf(Image_ImageHeader const *image) {
 
   size_t total = Image_ByteCountOf(image);
 
@@ -182,7 +182,7 @@ EXTERN_C inline size_t Image_ByteCountOfImageChain(Image_ImageHeader const *imag
     case Image_IT_MipMaps:
     case IMAGE_IT_Layers:
       if (image->nextImage != NULL) {
-        total += Image_ByteCountOfImageChain(image->nextImage);
+        total += Image_ByteCountOfImageChainOf(image->nextImage);
       }
       break;
     default:
@@ -194,7 +194,7 @@ EXTERN_C inline size_t Image_ByteCountOfImageChain(Image_ImageHeader const *imag
 
 EXTERN_C size_t Image_BytesRequiredForMipMapsOf(Image_ImageHeader const *image);
 
-EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image);
+EXTERN_C size_t Image_LinkedImageCountOf(Image_ImageHeader const *image);
 EXTERN_C Image_ImageHeader const *Image_LinkedImageOf(Image_ImageHeader const *image, size_t const index);
 
 EXTERN_C inline bool Image_Is1D(Image_ImageHeader const *image) {

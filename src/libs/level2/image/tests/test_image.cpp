@@ -10,6 +10,7 @@ int Main(int argc, char const *argv[]) {
 
 #include "image/image.h"
 #include "image/format_cracker.h"
+#include "image/create.h"
 
 TEST_CASE("Image create/destroy 1D (C)", "[Image]") {
   Image_ImageHeader *image0 = Image_Create1D(256, Image_Format_A8B8G8R8_UNORM_PACK32);

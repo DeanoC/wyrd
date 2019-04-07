@@ -27,7 +27,7 @@ set( Tests
 		test_guishell.cpp )
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
-ADD_LIB_GUITESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}")
+ADD_LIB_GUITESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}" "")
 
 if (APPLE)
 add_compile_definitions(${LibName} METAL)

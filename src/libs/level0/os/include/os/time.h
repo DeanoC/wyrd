@@ -2,19 +2,13 @@
 #ifndef WYRD_OS_TIME_H
 #define WYRD_OS_TIME_H
 
-// For time related functions such as getting localtime
-#include <time.h>
+#include "core/core.h"
 
 // Time related functions
-unsigned getSystemTime();
-unsigned getTimeSinceStart();
-
-#ifdef _WIN32
-void sleep(unsigned mSec);
-#endif
+uint64_t Os_GetSystemTime();
+uint64_t Os_GetTimeSinceStart();
 
 // High res timer functions
-int64_t getUSec();
-int64_t getTimerFrequency();
+int64_t Os_GetUSec();
 
 #endif //WYRD_OS_TIME_H

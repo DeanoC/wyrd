@@ -30,4 +30,4 @@ set( Tests
         test_exr_c.cpp)
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
-ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}")
+ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}" "")

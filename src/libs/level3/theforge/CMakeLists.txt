@@ -25,18 +25,20 @@ set(Src
         )
 
 if (APPLE)
-    list(APPEND Src Metal/cpp_api.mm)
-    list(APPEND Src Metal/cmds.mm)
-    list(APPEND Src Metal/descriptor_manager.hpp)
-    list(APPEND Src Metal/descriptor_manager.mm)
-    list(APPEND Src Metal/memory_allocator.hpp)
-    list(APPEND Src Metal/raytracing.mm)
-    list(APPEND Src Metal/renderer.hpp)
-    list(APPEND Src Metal/renderer.mm)
-    list(APPEND Src Metal/shader_reflection.mm)
-    list(APPEND Src Metal/structs.hpp)
-    list(APPEND Src Metal/utils.hpp)
-    list(APPEND Src Metal/utils.mm)
+    list(APPEND Src metal/cpp_api.mm)
+    list(APPEND Src metal/cmds.mm)
+    list(APPEND Src metal/descriptor_manager.mm)
+    list(APPEND Src metal/memory_allocator.hpp)
+    list(APPEND Src metal/raytracing.mm)
+    list(APPEND Src metal/renderer.mm)
+    list(APPEND Src metal/shader_reflection.mm)
+    list(APPEND Src metal/utils.mm)
+
+
+    list(APPEND CPPInterface metal/descriptor_manager.hpp)
+    list(APPEND CPPInterface metal/renderer.hpp)
+    list(APPEND CPPInterface metal/structs.hpp)
+    list(APPEND CPPInterface metal/utils.hpp)
 endif ()
 
 set(Deps
@@ -44,7 +46,6 @@ set(Deps
         level0/os
         level0/tinystl
         level0/stb
-        level1/guishell
         level1/vfile
         level2/image
         )
@@ -53,8 +54,12 @@ set(Tests
         test_theforge.cpp
         )
 
+set(TestsDep
+        level1/logmanager
+    )
+
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
-ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}")
+ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}" "${TestsDep}")
 
 if (APPLE)
     add_compile_definitions(${LibName} METAL)

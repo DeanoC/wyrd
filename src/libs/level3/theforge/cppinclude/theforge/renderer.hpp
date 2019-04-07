@@ -19,8 +19,6 @@ void AddSemaphore(Renderer *pRenderer, Semaphore **pp_semaphore);
 void RemoveSemaphore(Renderer *pRenderer, Semaphore *p_semaphore);
 void AddQueue(Renderer *pRenderer, QueueDesc *pQDesc, Queue **ppQueue);
 void RemoveQueue(Renderer *pRenderer, Queue *pQueue);
-void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *p_desc, SwapChain **pp_swap_chain);
-void RemoveSwapChain(Renderer *pRenderer, SwapChain *p_swap_chain);
 void AddCmdPool(Renderer *pRenderer, Queue *p_queue, bool transient, CmdPool **pp_CmdPool);
 void RemoveCmdPool(Renderer *pRenderer, CmdPool *p_CmdPool);
 void AddCmd(CmdPool *p_CmdPool, bool secondary, Cmd **pp_cmd);
@@ -111,11 +109,6 @@ void CmdSynchronizeResources(Cmd *p_cmd,
                              Texture **p_textures,
                              bool batch);
 void CmdFlushBarriers(Cmd *p_cmd);
-void AcquireNextImage(Renderer *pRenderer,
-                      SwapChain *p_swap_chain,
-                      Semaphore *p_signal_semaphore,
-                      Fence *p_fence,
-                      uint32_t *p_image_index);
 void QueueSubmit(Queue *p_queue,
                  uint32_t cmd_count,
                  Cmd **pp_cmds,
@@ -124,11 +117,6 @@ void QueueSubmit(Queue *p_queue,
                  Semaphore **pp_wait_semaphores,
                  uint32_t signal_semaphore_count,
                  Semaphore **pp_signal_semaphores);
-void QueuePresent(Queue *p_queue,
-                  SwapChain *p_swap_chain,
-                  uint32_t swap_chain_image_index,
-                  uint32_t wait_semaphore_count,
-                  Semaphore **pp_wait_semaphores);
 void WaitQueueIdle(Queue *p_queue);
 void GetFenceStatus(Renderer *pRenderer,
                     Fence *p_fence,
@@ -137,7 +125,6 @@ void WaitForFences(Renderer *pRenderer,
                    uint32_t fence_count,
                    Fence **pp_fences);
 
-void ToggleVSync(Renderer *pRenderer, SwapChain **ppSwapchain);
 void AddIndirectCommandSignature(Renderer *pRenderer,
                                  const CommandSignatureDesc *p_desc,
                                  CommandSignature **ppCommandSignature);

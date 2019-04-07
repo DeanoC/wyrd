@@ -30,7 +30,7 @@ EXTERN_C bool Image_SaveDDS(Image_ImageHeader *image, VFile_Handle handle) {
   header.mDWHeight = image->height;
   header.mDWDepth = (image->depth > 1) ? image->depth : 0;
   header.mDWPitchOrLinearSize = 0;
-  header.mDWMipMapCount = Image_LinkedCountOf(image);
+  header.mDWMipMapCount = Image_LinkedImageCountOf(image);
   header.mPixelFormat.mDWSize = 32;
 
   header.mDWFlags =
@@ -164,7 +164,7 @@ EXTERN_C bool Image_SaveDDS(Image_ImageHeader *image, VFile_Handle handle) {
   // header.
 
   header.mCaps.mDWCaps1 =
-      DDSCAPS_TEXTURE | (Image_LinkedCountOf(image) > 1 ? DDSCAPS_MIPMAP | DDSCAPS_COMPLEX : 0) |
+      DDSCAPS_TEXTURE | (Image_LinkedImageCountOf(image) > 1 ? DDSCAPS_MIPMAP | DDSCAPS_COMPLEX : 0) |
           (image->depth != 1 ? DDSCAPS_COMPLEX : 0);
   header.mCaps.mDWCaps2 = (image->depth > 1) ? DDSCAPS2_VOLUME :
                           Image_IsCubemap(image) ? DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_ALL_FACES : 0;

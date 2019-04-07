@@ -3,7 +3,6 @@
 #define WYRD_THEFORGE_RENDERER_DESC_H
 
 #include "core/core.h"
-#include "guishell/window.h"
 #include "theforge/renderer_enums.h"
 #include "image/image.h"
 
@@ -367,30 +366,6 @@ typedef struct TheForge_SubresourceDataDesc {
   void *pData; // metal only allows direct access
 } TheForge_SubresourceDataDesc;
 
-typedef struct TheForge_SwapChainDesc {
-  /// Window handle
-  GuiShell_WindowDesc *pWindow;
-  /// Queues which should be allowed to present
-  struct TheForge_Queue **ppPresentQueues;
-  /// Number of present queues
-  uint32_t mPresentQueueCount;
-  /// Number of backbuffers in this swapchain
-  uint32_t mImageCount;
-  /// Width of the swapchain
-  uint32_t mWidth;
-  /// Height of the swapchain
-  uint32_t mHeight;
-  /// Sample count
-  TheForge_SampleCount mSampleCount;
-  /// Sample quality (DirectX12 only)
-  uint32_t mSampleQuality;
-  /// Color format of the swapchain
-  Image_Format mColorFormat;
-  /// Clear value
-  TheForge_ClearValue mColorClearValue;
-  /// Set whether swap chain will be presented using vsync
-  bool mEnableVsync;
-} TheForge_SwapChainDesc;
 
 // backend specific renderer desc
 typedef struct TheForge_RendererDescVulkan {

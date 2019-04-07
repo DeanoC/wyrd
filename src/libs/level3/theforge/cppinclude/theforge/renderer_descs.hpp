@@ -32,7 +32,6 @@ using ComputePipelineDesc = TheForge_ComputePipelineDesc;
 using RaytracingPipelineDesc = TheForge_RaytracingPipelineDesc;
 using PipelineDesc = TheForge_PipelineDesc;
 using SubresourceDataDesc = TheForge_SubresourceDataDesc;
-using SwapChainDesc = TheForge_SwapChainDesc;
 using RendererDescVulkan = TheForge_RendererDescVulkan;
 using RendererDescD3D12 = TheForge_RendererDescD3D12;
 using RendererDesc = TheForge_RendererDesc;

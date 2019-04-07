@@ -111,7 +111,7 @@ EXTERN_C double Image_GetChannelAt(Image_ImageHeader const *image, enum Image_Ch
   }
 
 }
-EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image) {
+EXTERN_C size_t Image_LinkedImageCountOf(Image_ImageHeader const *image) {
   size_t count = 1;
 
   while (image && image->nextImage != nullptr) {

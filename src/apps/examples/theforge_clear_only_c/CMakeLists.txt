@@ -7,7 +7,8 @@ set(Src
 set(Deps
         level0/core
         level0/guishell
-        level2/theforge
+        level3/theforge
+        level4/theforge_display
         )
 
 ADD_GUI_APP(${AppName} "${Src}" "${Deps}")

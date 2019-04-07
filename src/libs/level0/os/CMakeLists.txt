@@ -28,6 +28,7 @@ endif()
 if(APPLE)
 	list(APPEND Src posix/filesystem.cpp)
 	list(APPEND Src apple/filesystem.mm)
+	list(APPEND Src apple/time.mm)
 	list(APPEND Src posix/thread.c)
 endif()
 
@@ -43,5 +44,5 @@ set(Tests
 		test_thread.cpp)
 
 ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
-ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}")
+ADD_LIB_TESTS(${LibName} "${CInterface}" "${CPPInterface}" "${Tests}" "")
 

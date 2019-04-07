@@ -10,13 +10,8 @@ set( CInterface
 		)
 
 set( CPPInterface
-		any.h
-		exception.h
-		filesystem.h
-		freelist.h
-		linear_allocator.h
-		quick_hash.h
-		utils.h
+		quick_hash.hpp
+		utils.hpp
 		)
 set(Src
 		logger.c

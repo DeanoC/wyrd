@@ -35,15 +35,7 @@ EXTERN_C void TheForge_AddQueue(Renderer *pRenderer, QueueDesc *pQDesc, Queue **
 EXTERN_C void TheForge_RemoveQueue(Renderer *pRenderer, Queue *pQueue) {
   RemoveQueue(pRenderer, pQueue);
 }
-EXTERN_C void TheForge_AddSwapChain(Renderer *pRenderer,
-                                    const SwapChainDesc *p_desc,
-                                    SwapChain **pp_swap_chain) {
-  AddSwapChain(pRenderer, p_desc, pp_swap_chain);
-}
-EXTERN_C void TheForge_RemoveSwapChain(Renderer *pRenderer, SwapChain *p_swap_chain) {
-  RemoveSwapChain(pRenderer,
-                  p_swap_chain);
-}
+
 EXTERN_C void TheForge_AddCmdPool(Renderer *pRenderer,
                                   Queue *p_queue,
                                   bool transient,
@@ -302,17 +294,6 @@ EXTERN_C void TheForge_CmdSynchronizeResources(Cmd *p_cmd,
 EXTERN_C void TheForge_CmdFlushBarriers(Cmd *p_cmd) {
   CmdFlushBarriers(p_cmd);
 }
-EXTERN_C void TheForge_AcquireNextImage(Renderer *pRenderer,
-                                        SwapChain *p_swap_chain,
-                                        Semaphore *p_signal_semaphore,
-                                        Fence *p_fence,
-                                        uint32_t *p_image_index) {
-  AcquireNextImage(pRenderer,
-                   p_swap_chain,
-                   p_signal_semaphore,
-                   p_fence,
-                   p_image_index);
-}
 EXTERN_C void TheForge_QueueSubmit(Queue *p_queue,
                                    uint32_t cmd_count,
                                    Cmd **pp_cmds,
@@ -330,17 +311,6 @@ EXTERN_C void TheForge_QueueSubmit(Queue *p_queue,
               signal_semaphore_count,
               pp_signal_semaphores);
 }
-EXTERN_C void TheForge_QueuePresent(Queue *p_queue,
-                                    SwapChain *p_swap_chain,
-                                    uint32_t swap_chain_image_index,
-                                    uint32_t wait_semaphore_count,
-                                    Semaphore **pp_wait_semaphores) {
-  QueuePresent(p_queue,
-               p_swap_chain,
-               swap_chain_image_index,
-               wait_semaphore_count,
-               pp_wait_semaphores);
-}
 EXTERN_C void TheForge_WaitQueueIdle(Queue *p_queue) {
   WaitQueueIdle(p_queue);
 }
@@ -355,10 +325,6 @@ EXTERN_C void TheForge_WaitForFences(Renderer *pRenderer,
                                      uint32_t fence_count,
                                      Fence **pp_fences) {
   WaitForFences(pRenderer, fence_count, pp_fences);
-}
-EXTERN_C void TheForge_ToggleVSync(Renderer *pRenderer, SwapChain **ppSwapchain) {
-  ToggleVSync(pRenderer,
-              ppSwapchain);
 }
 EXTERN_C void TheForge_AddIndirectCommandSignature(Renderer *pRenderer,
                                                    const CommandSignatureDesc *p_desc,

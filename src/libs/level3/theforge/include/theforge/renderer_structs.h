@@ -200,12 +200,6 @@ typedef struct TheForge_Pipeline {
   TheForge_PipelineType mType;
 } TheForge_Pipeline;
 
-typedef struct TheForge_SwapChain {
-  TheForge_SwapChainDesc mDesc;
-  /// Render targets created from the swapchain back buffers
-  TheForge_RenderTarget **ppSwapchainRenderTargets;
-} TheForge_SwapChain;
-
 typedef struct TheForge_GPUVendorPreset {
   char mVendorId[TheForge_MAX_GPU_VENDOR_STRING_LENGTH];
   char mModelId[TheForge_MAX_GPU_VENDOR_STRING_LENGTH];

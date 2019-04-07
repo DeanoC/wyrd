@@ -157,7 +157,7 @@ TEST_CASE("buffer add/remove API (C)", "[TheForge]") {
       0,
       0,
       nullptr,
-      TheForge_IF_NONE, // not used
+      Image_Format_UNDEFINED, // not used
       TheForge_DESCRIPTOR_TYPE_UNDEFINED,
       "test",
       nullptr,
@@ -182,7 +182,7 @@ TEST_CASE("buffer add/remove API (C)", "[TheForge]") {
         0,
         0,
         nullptr,
-        TheForge_IF_NONE, // not used
+        Image_Format_UNDEFINED, // not used
         TheForge_DESCRIPTOR_TYPE_VERTEX_BUFFER,
         "test",
         nullptr,

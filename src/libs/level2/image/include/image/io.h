@@ -19,4 +19,7 @@ EXTERN_C bool Image_SavePNG(Image_ImageHeader *image, VFile_Handle handle);
 EXTERN_C bool Image_SaveJPG(Image_ImageHeader *image, VFile_Handle handle);
 EXTERN_C bool Image_SaveHDR(Image_ImageHeader *image, VFile_Handle handle);
 
+// try to figure out which format the file is in and load it
+EXTERN_C Image_ImageHeader *Image_Load(VFile_Handle handle);
+
 #endif //WYRD_IMAGE_IO_HPP

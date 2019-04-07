@@ -2,6 +2,7 @@
 #include "core/logger.h"
 #include "math/math.h"
 #include "stb/stb_image.h"
+#include "core/quick_hash.hpp"
 #include "vfile/vfile.hpp"
 #include "image/format.h"
 #include "image/format_cracker.h"
@@ -10,7 +11,6 @@
 #include "syoyo/tiny_exr.hpp"
 #include "dds.hpp"
 #include <float.h>
-
 
 // Describes the header of a PVR header-texture
 typedef struct PVR_Header_Texture_TAG {
@@ -594,3 +594,35 @@ EXTERN_C Image_ImageHeader *Image_LoadEXR(VFile_Handle handle) {
   return image;
 }
 
+EXTERN_C Image_ImageHeader *Image_Load(VFile_Handle handle) {
+  VFile::File *file = VFile::File::FromHandle(handle);
+  tinystl::string_view name = file->GetName();
+
+  if( auto pos = name.rfind('.') != tinystl::string_view::npos ) {
+    tinystl::string_view ext(name.data()+pos+1, name.size()-pos );
+    switch(Core::QuickHash(ext) ) {
+      case ".dds"_hash:
+        return Image_LoadDDS(handle);
+      case ".pvr"_hash:
+        return Image_LoadPVR(handle);
+      case ".exr"_hash:
+        return Image_LoadEXR(handle);
+      case ".hdr"_hash:
+        return Image_LoadHDR(handle);
+      case ".jpg"_hash:
+      case ".jpeg"_hash:
+      case ".png"_hash:
+      case ".tga"_hash:
+      case ".bmp"_hash:
+      case ".psd"_hash:
+      case ".gif"_hash:
+      case ".pic"_hash:
+      case ".pnm"_hash:
+        return Image_LoadLDR(handle);
+      default:
+        return nullptr;
+    }
+  } else {
+    return nullptr;
+  }
+}

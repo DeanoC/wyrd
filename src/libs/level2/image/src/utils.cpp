@@ -206,7 +206,7 @@ EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader *image, bool generateFro
 
       for (auto w = 0u; w < image->slices; ++w) {
         float const *origSlice = (float const *)
-            (((uint8_t *) Image_RawDataPtr(image)) + w * Image_ByteCountPerSlice(image));
+            (((uint8_t *) Image_RawDataPtr(image)) + w * Image_ByteCountPerSliceOf(image));
 
         hq_resample<float>(numChans,
                            origSlice, image->width, image->height,
