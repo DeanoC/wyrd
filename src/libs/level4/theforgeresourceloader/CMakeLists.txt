@@ -20,7 +20,8 @@ set(Deps
         level0/os
         level0/tinystl
         level0/stb
-        level1/theforge
+        level2/image
+        level3/theforge
         )
 
 set(Tests
