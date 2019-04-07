@@ -29,10 +29,11 @@ typedef enum Image_NextType {
   IMAGE_IT_Layers
 } Image_NextType;
 
-
 typedef enum Image_FlagBits {
   Image_Flag_Cubemap = 0x0,
+  Image_Flag_HeaderOnly = 0x1,
 } Image_FlagBits;
+typedef uint16_t Image_Flags;
 
 // Upto 4D (3D Arrays_ image data, stored as packed formats but
 // accessed as double upto 4 channels per pixel in RGBA
@@ -57,18 +58,19 @@ typedef struct Image_ImageHeader {
     Image_Format format; //< type Image_Format
   };
 
-  uint16_t flags;
+  Image_Flags flags;
   uint8_t nextType; ///< Image_NextType
   uint8_t pad8;
 
   union {
     uint32_t pad[2];
-    Image_ImageHeader *nextImage;
+    struct Image_ImageHeader *nextImage;
   };
 
 } Image_ImageHeader;
 
-// Image are fundamentally 4D arrays however 'helper' function let you
+// Image are fundamentally 4D arrays
+// 'helper' functions in create.h let you
 // create and use them in more familar texture terms
 EXTERN_C Image_ImageHeader *Image_Create(uint32_t width,
                                          uint32_t height,
@@ -80,56 +82,21 @@ EXTERN_C Image_ImageHeader *Image_CreateNoClear(uint32_t width,
                                                 uint32_t depth,
                                                 uint32_t slices,
                                                 enum Image_Format format);
-
-// helpers
-EXTERN_C Image_ImageHeader *Image_Create1D(uint32_t width, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create1DNoClear(uint32_t width, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create1DArray(uint32_t width, uint32_t slices, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create1DArrayNoClear(uint32_t width, uint32_t slices, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create2D(uint32_t width, uint32_t height, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create2DNoClear(uint32_t width, uint32_t height, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create2DArray(uint32_t width,
-                                                uint32_t height,
-                                                uint32_t slices,
-                                                enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create2DArrayNoClear(uint32_t width,
-                                                       uint32_t height,
-                                                       uint32_t slices,
-                                                       enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create3D(uint32_t width, uint32_t height, uint32_t depth, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create3DNoClear(uint32_t width,
-                                                  uint32_t height,
-                                                  uint32_t depth,
-                                                  enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create3DArray(uint32_t width,
-                                                uint32_t height,
-                                                uint32_t depth,
-                                                uint32_t slices,
-                                                enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_Create3DArrayNoClear(uint32_t width,
-                                                       uint32_t height,
-                                                       uint32_t depth,
-                                                       uint32_t slices,
-                                                       enum Image_Format format);
-
-EXTERN_C Image_ImageHeader *Image_CreateCubemap(uint32_t width, uint32_t height, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_CreateCubemapNoClear(uint32_t width, uint32_t height, enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_CreateCubemapArray(uint32_t width,
-                                                     uint32_t height,
-                                                     uint32_t slices,
-                                                     enum Image_Format format);
-EXTERN_C Image_ImageHeader *Image_CreateCubemapArrayNoClear(uint32_t width,
-                                                            uint32_t height,
-                                                            uint32_t slices,
-                                                            enum Image_Format format);
-
-EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader *image, bool generateFromImage);
-
 EXTERN_C void Image_Destroy(Image_ImageHeader *image);
+
+// if you want to use the calculation fields without an actual image
+// this will fill in a valid header with no data or allocation
+EXTERN_C void Image_FillHeader(uint32_t width,
+                               uint32_t height,
+                               uint32_t depth,
+                               uint32_t slices,
+                               enum Image_Format format,
+                               Image_ImageHeader * header);
 
 
 EXTERN_C inline void *Image_RawDataPtr(Image_ImageHeader const *image) {
   ASSERT(image != NULL);
+  ASSERT((image->flags & Image_Flag_HeaderOnly) == 0)
   return (void *) (image + 1);
 }
 
@@ -155,13 +122,13 @@ EXTERN_C void Image_CopySlice(Image_ImageHeader const *dst,
 
 EXTERN_C void Image_CopyRow(Image_ImageHeader *dst,
                             uint32_t dy, uint32_t dz, uint32_t dw,
-                            Image_ImageHeader const* src,
+                            Image_ImageHeader const *src,
                             uint32_t sy, uint32_t sz, uint32_t sw);
 
 EXTERN_C void Image_CopyPixel(Image_ImageHeader *dst,
-                                     uint32_t dx, uint32_t dy, uint32_t dz, uint32_t dw,
-                                     Image_ImageHeader const* src,
-                                     uint32_t sx, uint32_t sy, uint32_t sz, uint32_t sw);
+                              uint32_t dx, uint32_t dy, uint32_t dz, uint32_t dw,
+                              Image_ImageHeader const *src,
+                              uint32_t sx, uint32_t sy, uint32_t sz, uint32_t sw);
 
 
 EXTERN_C inline size_t Image_PixelCountPerRowOf(Image_ImageHeader const *image) {
@@ -214,7 +181,7 @@ EXTERN_C inline size_t Image_ByteCountOfImageChain(Image_ImageHeader const *imag
   switch (image->nextType) {
     case Image_IT_MipMaps:
     case IMAGE_IT_Layers:
-      if(image->nextImage != nullptr) {
+      if (image->nextImage != NULL) {
         total += Image_ByteCountOfImageChain(image->nextImage);
       }
       break;
@@ -228,23 +195,22 @@ EXTERN_C inline size_t Image_ByteCountOfImageChain(Image_ImageHeader const *imag
 EXTERN_C size_t Image_BytesRequiredForMipMapsOf(Image_ImageHeader const *image);
 
 EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image);
-EXTERN_C Image_ImageHeader const* Image_LinkedImageOf(Image_ImageHeader const *image, size_t const index);
+EXTERN_C Image_ImageHeader const *Image_LinkedImageOf(Image_ImageHeader const *image, size_t const index);
 
-EXTERN_C inline bool Image_Is1D(Image_ImageHeader const* image) {
+EXTERN_C inline bool Image_Is1D(Image_ImageHeader const *image) {
   return image->height == 1 && image->depth == 1;
 }
-EXTERN_C inline bool Image_Is2D(Image_ImageHeader const* image) {
+EXTERN_C inline bool Image_Is2D(Image_ImageHeader const *image) {
   return image->height != 1 && image->depth == 1;
 }
-EXTERN_C inline bool Image_Is3D(Image_ImageHeader const* image) {
+EXTERN_C inline bool Image_Is3D(Image_ImageHeader const *image) {
   return image->depth != 1;
 }
-EXTERN_C inline bool Image_IsArray(Image_ImageHeader const* image) {
+EXTERN_C inline bool Image_IsArray(Image_ImageHeader const *image) {
   return image->slices != 1;
 }
-EXTERN_C inline bool Image_IsCubemap(Image_ImageHeader const* image) {
+EXTERN_C inline bool Image_IsCubemap(Image_ImageHeader const *image) {
   return image->flags & Image_Flag_Cubemap;
 }
-
 
 #endif //WYRD_IMAGE_IMAGE_H

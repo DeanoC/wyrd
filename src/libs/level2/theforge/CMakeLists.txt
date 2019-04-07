@@ -6,7 +6,6 @@ set(CInterface
         renderer_enums.h
         renderer_structs.h
         shader_reflection.h
-        image_enums.h
         )
 
 set(CPPInterface
@@ -15,14 +14,11 @@ set(CPPInterface
         renderer_enums.hpp
         renderer_structs.hpp
         shader_reflection.hpp
-        image_enums.hpp
         )
 
 set(Src
         c_api.cpp
         shader_reflection.cpp
-        Image/image.cpp
-        Image/image.h
         utils.hpp
         dynamic_memory_allocator.cpp
         dynamic_memory_allocator.hpp
@@ -50,7 +46,7 @@ set(Deps
         level0/stb
         level1/guishell
         level1/vfile
-        level1/image
+        level2/image
         )
 
 set(Tests

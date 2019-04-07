@@ -29,6 +29,7 @@
 #include "os/filesystem.hpp"
 #include "os/thread.hpp"
 #include "tinystl/vector.h"
+#include "theforge/renderer.hpp"
 
 #include "resource_loader.h"
 

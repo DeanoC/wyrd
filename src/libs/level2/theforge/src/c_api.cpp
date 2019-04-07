@@ -1,7 +1,7 @@
 #include "core/core.h"
 #include "theforge/renderer.hpp"
 #include "theforge/shader_reflection.hpp"
-#include "theforge/image_enums.hpp"
+#include "image/image.h"
 
 // I usually don't global namespace things
 using namespace TheForge;
@@ -467,7 +467,7 @@ EXTERN_C void TheForge_DestroyPipelineReflection(TheForge_PipelineReflection *pR
   DestroyPipelineReflection(pReflection);
 }
 
-EXTERN_C ImageFormat TheForge_GetRecommendedSwapchainFormat(bool hintHDR) {
+EXTERN_C Image_Format TheForge_GetRecommendedSwapchainFormat(bool hintHDR) {
   return GetRecommendedSwapchainFormat(hintHDR);
 }
 
@@ -494,96 +494,5 @@ EXTERN_C void TheForge_CmdUpdateSubresources(TheForge_Cmd *pCmd,
                                              TheForge_Texture *pTexture) {
 
   CmdUpdateSubresources(pCmd, startSubresource, numSubresources, pSubresources, pIntermediate, intermediateOffset, pTexture );
-}
-
-struct TheForge_ImageFormatString {
-  TheForge_ImageFormat format;
-  const char *string;
-};
-
-const TheForge_ImageFormatString *GetFormatStrings() {
-  static const TheForge_ImageFormatString formatStrings[] =
-      {{NONE, "NONE"},
-
-       {R8, "R8"},
-       {RG8, "RG8"},
-       {RGB8, "RGB8"},
-       {RGBA8, "RGBA8"},
-
-       {R16, "R16"},
-       {RG16, "RG16"},
-       {RGB16, "RGB16"},
-       {RGBA16, "RGBA16"},
-
-       {R16F, "R16F"},
-       {RG16F, "RG16F"},
-       {RGB16F, "RGB16F"},
-       {RGBA16F, "RGBA16F"},
-
-       {R32F, "R32F"},
-       {RG32F, "RG32F"},
-       {RGB32F, "RGB32F"},
-       {RGBA32F, "RGBA32F"},
-
-       {RGBE8, "RGBE8"},
-       {RGB565, "RGB565"},
-       {RGBA4, "RGBA4"},
-       {RGB10A2, "RGB10A2"},
-
-       {DXT1, "DXT1"},
-       {DXT3, "DXT3"},
-       {DXT5, "DXT5"},
-       {ATI1N, "ATI1N"},
-       {ATI2N, "ATI2N"},
-
-       {PVR_2BPP, "PVR_2BPP"},
-       {PVR_2BPPA, "PVR_2BPPA"},
-       {PVR_4BPP, "PVR_4BPP"},
-       {PVR_4BPPA, "PVR_4BPPA"},
-
-       {ETC1, "ETC1"},
-       {ATC, "ATC"},
-       {ATCA, "ATCA"},
-       {ATCI, "ATCI"},
-
-       {GNF_BC1, "GNF_BC1"},
-       {GNF_BC2, "GNF_BC2"},
-       {GNF_BC3, "GNF_BC3"},
-       {GNF_BC4, "GNF_BC4"},
-       {GNF_BC5, "GNF_BC5"},
-       {GNF_BC6, "GNF_BC6"},
-       {GNF_BC7, "GNF_BC7"},
-
-       {BGRA8, "BGRA8"},
-       {X8D24PAX32, "X8D24PAX32"},
-       {S8, "S8"},
-       {D16S8, "D16S8"},
-       {D32S8, "D32S8"},
-
-       {PVR_2BPP_SRGB, "PVR_2BPP_SRGB"},
-       {PVR_2BPPA_SRGB, "PVR_2BPPA_SRGB"},
-       {PVR_4BPP_SRGB, "PVR_4BPP_SRGB"},
-       {PVR_4BPPA_SRGB, "PVR_4BPPA_SRGB"},
-
-      };
-  return formatStrings;
-}
-
-EXTERN_C const char *TheForge_GetImageFormatString(TheForge_ImageFormat format) {
-  for (unsigned int i = 0; i < TheForge_IF_COUNT; i++) {
-    if (format == GetFormatStrings()[i].format) {
-      return GetFormatStrings()[i].string;
-    }
-  }
-  return NULL;
-}
-
-EXTERN_C TheForge_ImageFormat TheForge_GetFormatFromString(char const *string) {
-  for (unsigned int i = 0; i < TheForge_IF_COUNT; i++) {
-    if (stricmp(string, GetFormatStrings()[i].string) == 0) {
-      return GetFormatStrings()[i].format;
-    }
-  }
-  return NONE;
 }
 

@@ -1,9 +1,7 @@
 #include "core/core.h"
-#include "core/logger.h"
 #include "image/format.h"
 #include "image/format_cracker.h"
 #include "image/image.h"
-#include "hq_resample.hpp"
 
 EXTERN_C Image_ImageHeader *Image_Create(uint32_t width,
                                          uint32_t height,
@@ -29,24 +27,32 @@ EXTERN_C Image_ImageHeader *Image_CreateNoClear(uint32_t width,
   }
 
   uint64_t const dataSize = (width *
-      height *
-      depth *
-      slices *
-      Image_Format_BitWidth(format)) / 8;
+                            height *
+                            depth *
+                            slices *
+                            Image_Format_BitWidth(format)) / 8;
 
   auto *image = (Image_ImageHeader *) malloc(sizeof(Image_ImageHeader) + dataSize);
+  Image_FillHeader(width, height, depth, slices, format, image);
   image->dataSize = dataSize;
-  image->width = width;
-  image->height = height;
-  image->depth = depth;
-  image->slices = slices;
-  image->format = format;
-  image->flags = 0;
-  image->nextType = Image_IT_None;
-  image->nextImage = nullptr;
 
   return image;
-
+}
+EXTERN_C void Image_FillHeader(uint32_t width,
+                               uint32_t height,
+                               uint32_t depth,
+                               uint32_t slices,
+                               enum Image_Format format,
+                               Image_ImageHeader *header) {
+  header->dataSize = 0;
+  header->width = width;
+  header->height = height;
+  header->depth = depth;
+  header->slices = slices;
+  header->format = format;
+  header->flags = 0;
+  header->nextType = Image_IT_None;
+  header->nextImage = nullptr;
 }
 
 EXTERN_C void Image_Destroy(Image_ImageHeader *image) {
@@ -54,107 +60,16 @@ EXTERN_C void Image_Destroy(Image_ImageHeader *image) {
   switch (image->nextType) {
     case Image_IT_MipMaps:
     case IMAGE_IT_Layers: {
-      if(image->nextImage != nullptr) {
+      if (image->nextImage != nullptr) {
         Image_Destroy(image->nextImage);
       }
-    } break;
-    default:
-    case Image_IT_None:
+    }
       break;
+    default:
+    case Image_IT_None:break;
   }
   free(image);
 }
-
-EXTERN_C Image_ImageHeader *Image_Create1D(uint32_t width, enum Image_Format format) {
-  return Image_Create(width, 1, 1, 1, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create1DNoClear(uint32_t width, enum Image_Format format) {
-  return Image_CreateNoClear(width, 1, 1, 1, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create1DArray(uint32_t width, uint32_t slices, enum Image_Format format) {
-  return Image_Create(width, 1, 1, slices, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create1DArrayNoClear(uint32_t width, uint32_t slices, enum Image_Format format) {
-  return Image_CreateNoClear(width, 1, 1, slices, format);
-}
-
-EXTERN_C Image_ImageHeader *Image_Create2D(uint32_t width, uint32_t height, enum Image_Format format) {
-  return Image_Create(width, height, 1, 1, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create2DNoClear(uint32_t width, uint32_t height, enum Image_Format format) {
-  return Image_CreateNoClear(width, height, 1, 1, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create2DArray(uint32_t width,
-                                                uint32_t height,
-                                                uint32_t slices,
-                                                enum Image_Format format) {
-  return Image_Create(width, height, 1, slices, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create2DArrayNoClear(uint32_t width,
-                                                       uint32_t height,
-                                                       uint32_t slices,
-                                                       enum Image_Format format) {
-  return Image_CreateNoClear(width, height, 1, slices, format);
-}
-
-EXTERN_C Image_ImageHeader *Image_Create3D(uint32_t width, uint32_t height, uint32_t depth, enum Image_Format format) {
-  return Image_Create(width, height, depth, 1, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create3DNoClear(uint32_t width,
-                                                  uint32_t height,
-                                                  uint32_t depth,
-                                                  enum Image_Format format) {
-  return Image_CreateNoClear(width, height, depth, 1, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create3DArray(uint32_t width,
-                                                uint32_t height,
-                                                uint32_t depth,
-                                                uint32_t slices,
-                                                enum Image_Format format) {
-  return Image_Create(width, height, depth, slices, format);
-}
-EXTERN_C Image_ImageHeader *Image_Create3DArrayNoClear(uint32_t width,
-                                                       uint32_t height,
-                                                       uint32_t depth,
-                                                       uint32_t slices,
-                                                       enum Image_Format format) {
-  return Image_CreateNoClear(width, height, depth, slices, format);
-}
-
-EXTERN_C Image_ImageHeader *Image_CreateCubemap(uint32_t width, uint32_t height, enum Image_Format format) {
-  Image_ImageHeader* image = Image_Create(width, height, 1, 6, format);
-  if(image) {
-    image->flags = Image_Flag_Cubemap;
-  }
-  return image;}
-EXTERN_C Image_ImageHeader *Image_CreateCubemapNoClear(uint32_t width, uint32_t height, enum Image_Format format) {
-  Image_ImageHeader* image = Image_CreateNoClear(width, height, 1, 6, format);
-  if(image) {
-    image->flags = Image_Flag_Cubemap;
-  }
-  return image;
-}
-EXTERN_C Image_ImageHeader *Image_CreateCubemapArray(uint32_t width,
-                                                     uint32_t height,
-                                                     uint32_t slices,
-                                                     enum Image_Format format) {
-  Image_ImageHeader* image = Image_Create(width, height, 1, slices * 6, format);
-  if(image) {
-    image->flags = Image_Flag_Cubemap;
-  }
-  return image;
-}
-EXTERN_C Image_ImageHeader *Image_CreateCubemapArrayNoClear(uint32_t width,
-                                                            uint32_t height,
-                                                            uint32_t slices,
-                                                            enum Image_Format format) {
-  Image_ImageHeader* image = Image_CreateNoClear(width, height, 1, slices * 6, format);
-  if(image) {
-    image->flags = Image_Flag_Cubemap;
-  }
-  return image;
-}
-
 
 // we include fetch after swizzle so hopefully the compiler will inline it...
 EXTERN_C inline enum Image_Channel Image_Channel_Swizzle(enum Image_Format format, enum Image_Channel channel) {
@@ -199,7 +114,7 @@ EXTERN_C double Image_GetChannelAt(Image_ImageHeader const *image, enum Image_Ch
 EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image) {
   size_t count = 1;
 
-  while(image && image->nextImage != nullptr) {
+  while (image && image->nextImage != nullptr) {
     count++;
     image = image->nextImage;
   }
@@ -207,10 +122,10 @@ EXTERN_C size_t Image_LinkedCountOf(Image_ImageHeader const *image) {
   return count;
 }
 
-EXTERN_C Image_ImageHeader const* Image_LinkedImageOf(Image_ImageHeader const* image, size_t const index) {
+EXTERN_C Image_ImageHeader const *Image_LinkedImageOf(Image_ImageHeader const *image, size_t const index) {
   size_t count = 0;
-  while(image && image->nextImage != nullptr) {
-    if(count == index) {
+  while (image && image->nextImage != nullptr) {
+    if (count == index) {
       return image;
     }
     count++;
@@ -294,181 +209,7 @@ EXTERN_C void Image_SetPixelAt(Image_ImageHeader const *image, Image_PixelD cons
   }
 }
 
-EXTERN_C void Image_CopyImage(Image_ImageHeader const *dst,
-                              Image_ImageHeader const *src) {
-  if (src == dst) { return; }
 
-  ASSERT(dst->slices == src->slices);
-  ASSERT(dst->depth == src->depth);
-  ASSERT(dst->height == src->height);
-  ASSERT(dst->width == src->width);
-
-  for (auto w = 0u; w < src->slices; ++w) {
-    for (auto z = 0u; z < src->depth; ++z) {
-      for (auto y = 0u; y < src->height; ++y) {
-        for (auto x = 0u; x < src->width; ++x) {
-          size_t const index = Image_CalculateIndex(src, x, y, z, w);
-          Image_PixelD pixel;
-          Image_GetPixelAt(src, &pixel, index);
-          Image_SetPixelAt(dst, &pixel, index);
-        }
-      }
-    }
-  }
-}
-EXTERN_C void Image_CopySlice(Image_ImageHeader const *dst,
-                              uint32_t dw,
-                              Image_ImageHeader const *src,
-                              uint32_t sw) {
-  ASSERT(dst->depth == src->depth);
-  ASSERT(dst->height == src->height);
-  ASSERT(dst->width == src->width);
-  if (dst == src) {
-    ASSERT(dw != sw);
-  }
-
-  for (auto z = 0u; z < src->depth; ++z) {
-    for (auto y = 0u; y < src->height; ++y) {
-      for (auto x = 0u; x < src->width; ++x) {
-        size_t const srcIndex = Image_CalculateIndex(src, x, y, z, sw);
-        size_t const dstIndex = Image_CalculateIndex(src, x, y, z, dw);
-        Image_PixelD pixel;
-        Image_GetPixelAt(src, &pixel, srcIndex);
-        Image_SetPixelAt(dst, &pixel, dstIndex);
-      }
-    }
-  }
-}
-
-EXTERN_C void Image_CopyPage(Image_ImageHeader const *dst,
-                             uint32_t dz, uint32_t dw,
-                             Image_ImageHeader const *src,
-                             uint32_t sz, uint32_t sw) {
-  ASSERT(dst->height == src->height);
-  ASSERT(dst->width == src->width);
-  if (dst == src) {
-    ASSERT(dz != sz || dw != sw);
-  }
-
-  for (auto y = 0u; y < src->height; ++y) {
-    for (auto x = 0u; x < src->width; ++x) {
-      size_t const srcIndex = Image_CalculateIndex(src, x, y, sz, sw);
-      size_t const dstIndex = Image_CalculateIndex(src, x, y, dz, dw);
-      Image_PixelD pixel;
-      Image_GetPixelAt(src, &pixel, srcIndex);
-      Image_SetPixelAt(dst, &pixel, dstIndex);
-    }
-  }
-}
-
-EXTERN_C void Image_CopyRow(Image_ImageHeader *dst,
-                            uint32_t dy, uint32_t dz, uint32_t dw,
-                            Image_ImageHeader const *src,
-                            uint32_t sy, uint32_t sz, uint32_t sw) {
-  ASSERT(dst->width == src->width);
-  if (dst == src) {
-    ASSERT(dy != sy || dz != sz || dw != sw);
-  }
-
-  for (auto x = 0u; x < src->width; ++x) {
-    size_t const srcIndex = Image_CalculateIndex(src, x, sy, sz, sw);
-    size_t const dstIndex = Image_CalculateIndex(src, x, dy, dz, dw);
-    Image_PixelD pixel;
-    Image_GetPixelAt(src, &pixel, srcIndex);
-    Image_SetPixelAt(dst, &pixel, dstIndex);
-  }
-}
-
-EXTERN_C void Image_CopyPixel(Image_ImageHeader *dst,
-                              uint32_t dx, uint32_t dy, uint32_t dz, uint32_t dw,
-                              Image_ImageHeader const *src,
-                              uint32_t sx, uint32_t sy, uint32_t sz, uint32_t sw) {
-  size_t const srcIndex = Image_CalculateIndex(src, sx, sy, sz, sw);
-  size_t const dstIndex = Image_CalculateIndex(src, dx, dy, dz, dw);
-  Image_PixelD pixel;
-  Image_GetPixelAt(src, &pixel, srcIndex);
-  Image_SetPixelAt(dst, &pixel, dstIndex);
-}
-
-
-// TODO optimise or have option for faster mipmap chain generation
-EXTERN_C void Image_CreateMipMapChain(Image_ImageHeader *image, bool generateFromImage) {
-  // start from the image provided and create successive mip images
-  ASSERT(image->nextType == Image_IT_None);
-  ASSERT(Math_IsPowerOf2U32(image->width));
-  ASSERT(Math_IsPowerOf2U32(image->height));
-  // need to think about mip mapped volume textures...
-  ASSERT(image->depth == 1);
-
-  using namespace Image;
-
-  Image_ImageHeader *curImage = image;
-  uint32_t curWidth = image->width;
-  uint32_t curHeight = image->height;
-  if (curWidth <= 1 || curHeight <= 1) { return; }
-
-  Image_ImageHeader *doubleImage = nullptr;
-  Image_ImageHeader *scratchImage = nullptr;
-
-  uint32_t const numChans = Image_Format_ChannelCount(image->format);
-  if (generateFromImage) {
-    Image_Format dblFmt = Image_Format_R32G32B32A32_SFLOAT;
-    switch (numChans) {
-      case 1:dblFmt = Image_Format_R32_SFLOAT;
-        break;
-      case 2:dblFmt = Image_Format_R32G32_SFLOAT;
-        break;
-      case 3:dblFmt = Image_Format_R32G32B32_SFLOAT;
-        break;
-      case 4:dblFmt = Image_Format_R32G32B32A32_SFLOAT;
-        break;
-      default:
-      case 0: {
-        ASSERT(false);
-      }
-    }
-    doubleImage = Image_Create(image->width, image->height,
-                               image->depth, image->slices,
-                               dblFmt);
-    Image_CopyImage(doubleImage, image);
-
-    scratchImage = Image_Create(image->width / 2, image->height / 2,
-                                1, 1, dblFmt);
-  }
-
-  do {
-    curWidth = curWidth / 2;
-    curHeight = curHeight / 2;
-
-    Image_ImageHeader *newImage = Image_Create(curWidth, curHeight, 1, image->slices, image->format);
-
-    if (generateFromImage) {
-      float *const scratch = (float *const) Image_RawDataPtr(scratchImage);
-
-      for (auto w = 0u; w < image->slices; ++w) {
-        float const *origSlice = (float const *)
-            (((uint8_t *) Image_RawDataPtr(image)) + w * Image_ByteCountPerSlice(image));
-
-        hq_resample<float>(numChans,
-                           origSlice, image->width, image->height,
-                           scratch, curWidth, curHeight);
-
-        Image_CopySlice(newImage, w, scratchImage, 0);
-      }
-    }
-
-    curImage->nextImage = newImage;
-    curImage->nextType = Image_IT_MipMaps;
-    curImage = newImage;
-  } while (curWidth > 1 || curHeight > 1);
-
-  if (doubleImage) {
-    Image_Destroy(doubleImage);
-  }
-  if (scratchImage) {
-    Image_Destroy(scratchImage);
-  }
-}
 /*
 
 bool Image::Convert(const ImageFormat newFormat) {
@@ -741,15 +482,13 @@ EXTERN_C size_t Image_BytesRequiredForMipMapsOf(Image_ImageHeader const *image) 
     case Image_Format_PVR_4BPP_BLOCK:
     case Image_Format_PVR_4BPPA_BLOCK:
     case Image_Format_PVR_4BPP_SRGB_BLOCK:
-    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
-      minWidth = 8;
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:minWidth = 8;
       minHeight = 8;
       break;
     case Image_Format_PVR_2BPP_BLOCK:
     case Image_Format_PVR_2BPPA_BLOCK:
     case Image_Format_PVR_2BPP_SRGB_BLOCK:
-    case Image_Format_PVR_2BPPA_SRGB_BLOCK:
-      minWidth = 16;
+    case Image_Format_PVR_2BPPA_SRGB_BLOCK:minWidth = 16;
       minHeight = 8;
       break;
     default:break;

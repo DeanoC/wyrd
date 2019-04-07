@@ -194,7 +194,7 @@ void CmdBindLocalDescriptors(Cmd *pCmd,
                              uint32_t numDescriptors,
                              DescriptorData *pDescParams);
 
-ImageFormat GetRecommendedSwapchainFormat(bool hintHDR);
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR);
 
 void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange);
 void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer);

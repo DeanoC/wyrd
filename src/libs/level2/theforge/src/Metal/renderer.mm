@@ -10,7 +10,7 @@
 #include "theforge/shader_reflection.hpp"
 #include "structs.hpp"
 #include "memory_allocator.hpp"
-#include "../Image/image.h"
+#include "image/image.h"
 #include "../dynamic_memory_allocator.hpp"
 #include "renderer.hpp"
 #include "utils.hpp"
@@ -473,7 +473,7 @@ void CreateDefaultResources(Renderer *pRenderer) {
   TextureDesc texture1DDesc = {};
   texture1DDesc.mArraySize = 1;
   texture1DDesc.mDepth = 1;
-  texture1DDesc.mFormat = R8;
+  texture1DDesc.mFormat = Image_Format_R8_UNORM;
   texture1DDesc.mHeight = 1;
   texture1DDesc.mMipLevels = 1;
   texture1DDesc.mSampleCount = SAMPLE_COUNT_1;
@@ -949,7 +949,6 @@ void AddCmd(CmdPool *pCmdPool, bool secondary, Cmd **ppCmd) {
 
   if (pCmdPool->mCmdPoolDesc.mCmdPoolType == CMD_POOL_DIRECT) {
     pCmd->pBoundColorFormats = (uint32_t *) calloc(MAX_RENDER_TARGET_ATTACHMENTS, sizeof(uint32_t));
-    pCmd->pBoundSrgbValues = (bool *) calloc(MAX_RENDER_TARGET_ATTACHMENTS, sizeof(bool));
   }
 
   *ppCmd = pCmd;
@@ -961,10 +960,6 @@ void RemoveCmd(CmdPool *pCmdPool, Cmd *pCmd) {
 
   if (pCmd->pBoundColorFormats) {
     free(pCmd->pBoundColorFormats);
-  }
-
-  if (pCmd->pBoundSrgbValues) {
-    free(pCmd->pBoundSrgbValues);
   }
 
   free(pCmd);
@@ -1056,7 +1051,7 @@ void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *pDesc, SwapChain **p
   pSwapChain->mMTKDrawable = nil;
 
   // Set the view pixel format to match the swapchain's pixel format.
-  MTLPixelFormat pixelFormat = Util::ToMtlPixelFormat(pSwapChain->mDesc.mColorFormat, pSwapChain->mDesc.mSrgb);
+  MTLPixelFormat pixelFormat = Util::ToMtlPixelFormat(pSwapChain->mDesc.mColorFormat);
   pSwapChain->pMTKView.colorPixelFormat = pixelFormat;
 
   // Create present command buffer for the swapchain.
@@ -1070,7 +1065,6 @@ void AddSwapChain(Renderer *pRenderer, const SwapChainDesc *pDesc, SwapChain **p
   descColor.mDepth = 1;
   descColor.mArraySize = 1;
   descColor.mFormat = pSwapChain->mDesc.mColorFormat;
-  descColor.mSrgb = pSwapChain->mDesc.mSrgb;
   descColor.mClearValue = pSwapChain->mDesc.mColorClearValue;
   descColor.mSampleCount = SAMPLE_COUNT_1;
   descColor.mSampleQuality = 0;
@@ -1185,7 +1179,6 @@ void AddRenderTarget(Renderer *pRenderer, const RenderTargetDesc *pDesc, RenderT
   rtDesc.mDescriptors = DESCRIPTOR_TYPE_TEXTURE;
   rtDesc.mStartState = RESOURCE_STATE_UNDEFINED;
   rtDesc.pNativeHandle = pDesc->pNativeHandle;
-  rtDesc.mSrgb = pRenderTarget->mDesc.mSrgb;
   rtDesc.mHostVisible = false;
 
   rtDesc.mDescriptors |= pDesc->mDescriptors;
@@ -1693,7 +1686,7 @@ void AddGraphicsPipelineImpl(Renderer *pRenderer,
 
       //setup layout for all bindings instead of just 0.
       renderPipelineDesc.vertexDescriptor.layouts[inputBindingCount - 1].stride +=
-          CalculateImageFormatStride(attrib->mFormat);
+          Image_Format_BitWidth(attrib->mFormat) / 8;
       renderPipelineDesc.vertexDescriptor.layouts[inputBindingCount - 1].stepRate = 1;
       renderPipelineDesc.vertexDescriptor.layouts[inputBindingCount - 1].stepFunction =
           pPipeline->pShader->mtlVertexShader.patchType != MTLPatchTypeNone ? MTLVertexStepFunctionPerPatchControlPoint
@@ -1725,7 +1718,7 @@ void AddGraphicsPipelineImpl(Renderer *pRenderer,
                                  pRenderer->pDefaultBlendState;
   for (uint32_t i = 0; i < pDesc->mRenderTargetCount; i++) {
     renderPipelineDesc.colorAttachments[i].pixelFormat =
-        Util::ToMtlPixelFormat(pDesc->pColorFormats[i], pDesc->pSrgbValues[i]);
+        Util::ToMtlPixelFormat(pDesc->pColorFormats[i]);
 
     // set blend state
     bool hasBlendState = (blendState != nil);
@@ -1746,7 +1739,7 @@ void AddGraphicsPipelineImpl(Renderer *pRenderer,
 
   // assign pixel format form depth attachment
   if (pDesc->mDepthStencilFormat != NONE) {
-    renderPipelineDesc.depthAttachmentPixelFormat = Util::ToMtlPixelFormat(pDesc->mDepthStencilFormat, false);
+    renderPipelineDesc.depthAttachmentPixelFormat = Util::ToMtlPixelFormat(pDesc->mDepthStencilFormat);
 #ifndef TARGET_IOS
     if (renderPipelineDesc.depthAttachmentPixelFormat == MTLPixelFormatDepth24Unorm_Stencil8) {
       renderPipelineDesc.stencilAttachmentPixelFormat = renderPipelineDesc.depthAttachmentPixelFormat;
@@ -2232,25 +2225,31 @@ void AddTexture(Renderer *pRenderer,
   pTexture->mTextureId = (++pRenderer->mTextureIds << 8U) +
       Util::PthreadToUint64(Os::Thread::GetCurrentThreadID());
 
-  pTexture->mtlPixelFormat = Util::ToMtlPixelFormat(pTexture->mDesc.mFormat, pTexture->mDesc.mSrgb);
+  pTexture->mtlPixelFormat = Util::ToMtlPixelFormat(pTexture->mDesc.mFormat);
 #ifndef TARGET_IOS
   if (pTexture->mtlPixelFormat == MTLPixelFormatDepth24Unorm_Stencil8
       && ![pRenderer->pDevice isDepth24Stencil8PixelFormatSupported]) {
-    InternalLog(LOG_TYPE_WARN, "Format D24S8 is not supported on this device. Using D32 instead", "addTexture");
-    pTexture->mtlPixelFormat = MTLPixelFormatDepth32Float;
-    pTexture->mDesc.mFormat = D32F;
+    InternalLog(LOG_TYPE_WARN, "Format D24S8 is not supported on this device. Using D32_SFLOAT_S8_UINT instead", "addTexture");
+    pTexture->mtlPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+    pTexture->mDesc.mFormat = Image_Format_D32_SFLOAT_S8_UINT;
   }
 #endif
 
   pTexture->mIsCompressed = Util::IsMtlCompressedPixelFormat(pTexture->mtlPixelFormat);
-  Image img;
-  img.RedefineDimensions(
-      pTexture->mDesc.mFormat,
+  Image_ImageHeader img;
+  Image_FillHeader(
       pTexture->mDesc.mWidth,
       pTexture->mDesc.mHeight,
       pTexture->mDesc.mDepth,
-      pTexture->mDesc.mMipLevels);
-  pTexture->mTextureSize = img.GetMipMappedSize(0, pTexture->mDesc.mMipLevels);
+      pTexture->mDesc.mArraySize,
+      pTexture->mDesc.mFormat,
+      &img);
+  if(pTexture->mDesc.mMipLevels > 1) {
+    pTexture->mTextureSize = Image_BytesRequiredForMipMapsOf(&img);
+  } else {
+    pTexture->mTextureSize = Image_ByteCountOf(&img);
+  }
+
   if (pTexture->mDesc.mHostVisible) {
     InternalLog(
         LOG_TYPE_WARN,
@@ -2384,8 +2383,8 @@ void AddTexture(Renderer *pRenderer,
   *ppTexture = pTexture;
 }
 
-ImageFormat GetRecommendedSwapchainFormat(bool hintHDR) {
-  return BGRA8;
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
+  return Image_Format_B8G8R8A8_UNORM;
 }
 
 }} // end namespace TheForge::Metal

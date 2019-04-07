@@ -156,7 +156,6 @@ typedef struct TheForge_Cmd {
 
   const TheForge_RootSignature *pBoundRootSignature;
   uint32_t *pBoundColorFormats;
-  bool *pBoundSrgbValues;
   uint32_t mBoundDepthStencilFormat;
   uint32_t mBoundRenderTargetCount;
   TheForge_SampleCount mBoundSampleCount;

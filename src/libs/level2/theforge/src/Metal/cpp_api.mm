@@ -4,7 +4,7 @@
 #include "theforge/renderer_enums.hpp"
 #include "theforge/renderer_structs.hpp"
 #include "theforge/shader_reflection.hpp"
-#include "theforge/image_enums.hpp"
+#include "image/image.h"
 #include "renderer.hpp"
 
 namespace TheForge {
@@ -448,7 +448,7 @@ void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName) 
   Metal::CmdAddDebugMarker((Metal::Cmd *) pCmd, r, g, b, pName);
 }
 
-ImageFormat GetRecommendedSwapchainFormat(bool hintHDR) {
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
   return Metal::GetRecommendedSwapchainFormat(hintHDR);
 }
 void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange) {

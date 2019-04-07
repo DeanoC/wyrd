@@ -8,7 +8,10 @@
 #include <limits.h> // for max/min types
 #include <float.h> // for max/min float types
 
-EXTERN_C char const *Image_Format_Name(enum Image_Format const fmt);
+EXTERN_C char const *Image_Format_Name(Image_Format const fmt);
+EXTERN_C Image_Format Image_Format_FromName(char const * name);
+
+EXTERN_C size_t Image_Format_Count();
 
 EXTERN_C inline bool Image_Format_IsDepth(enum Image_Format const fmt) {
   switch (fmt) {
@@ -1222,6 +1225,20 @@ EXTERN_C inline bool Image_Format_IsHomogenous(Image_Format const fmt) {
   }
 }
 
+EXTERN_C inline bool Image_Format_IsPVR(Image_Format fmt) {
+  switch(fmt) {
+    case Image_Format_PVR_2BPP_BLOCK:
+    case Image_Format_PVR_2BPPA_BLOCK:
+    case Image_Format_PVR_4BPP_BLOCK:
+    case Image_Format_PVR_4BPPA_BLOCK:
+    case Image_Format_PVR_2BPP_SRGB_BLOCK:
+    case Image_Format_PVR_2BPPA_SRGB_BLOCK:
+    case Image_Format_PVR_4BPP_SRGB_BLOCK:
+    case Image_Format_PVR_4BPPA_SRGB_BLOCK:
+      return true;
+    default: return false;
+  }
+}
 typedef uint8_t *Image_Swizzle;
 EXTERN_C Image_Swizzle Image_Format_Swizzle_RGBA;
 EXTERN_C Image_Swizzle Image_Format_Swizzle_ARGB;
@@ -1389,5 +1406,6 @@ EXTERN_C inline Image_Swizzle Image_Format_Swizzle(enum Image_Format fmt_) {
       return Image_Format_Swizzle_RGBA;
   }
 }
+
 
 #endif //WYRD_IMAGE_FORMAT_CRACKER_H

@@ -3,7 +3,6 @@
 #define WYRD_THEFORGE_UTILS_HPP
 
 #include "core/core.h"
-#include "theforge/image_enums.hpp"
 
 namespace TheForge {
 

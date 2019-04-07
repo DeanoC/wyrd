@@ -4,8 +4,8 @@
 
 #include "core/core.h"
 #include "guishell/window.h"
-#include "theforge/image_enums.h"
 #include "theforge/renderer_enums.h"
+#include "image/image.h"
 
 /// Data structure holding necessary info to create a Buffer
 typedef struct TheForge_BufferDesc {
@@ -30,7 +30,7 @@ typedef struct TheForge_BufferDesc {
   /// Set this to specify a counter buffer for this buffer (applicable to BUFFER_USAGE_STORAGE_SRV, BUFFER_USAGE_STORAGE_UAV)
   struct TheForge_Buffer *pCounterBuffer;
   /// Format of the buffer (applicable to typed storage buffers (Buffer<T>)
-  TheForge_ImageFormat mFormat;
+  Image_Format mFormat;
   /// Flags specifying the suitable usage of this buffer (Uniform buffer, Vertex Buffer, Index Buffer,...)
   TheForge_DescriptorTypeFlags mDescriptors;
   /// Debug name used in gpu profile
@@ -69,7 +69,7 @@ typedef struct TheForge_RenderTargetDesc {
   /// MSAA
   TheForge_SampleCount mSampleCount;
   /// Internal image format
-  TheForge_ImageFormat mFormat;
+  Image_Format mFormat;
   /// Optimized clear value (recommended to use this same value when clearing the rendertarget)
   TheForge_ClearValue mClearValue;
   /// The image quality level. The higher the quality, the lower the performance. The valid range is between zero and the value appropriate for mSampleCount
@@ -85,8 +85,6 @@ typedef struct TheForge_RenderTargetDesc {
   uint32_t mSharedNodeIndexCount;
   /// GPU which will own this texture
   uint32_t mNodeIndex;
-  /// Set whether rendertarget is srgb
-  bool mSrgb;
 } TheForge_RenderTargetDesc;
 
 /// Data structure holding necessary info to create a Texture
@@ -108,7 +106,7 @@ typedef struct TheForge_TextureDesc {
   /// The image quality level. The higher the quality, the lower the performance. The valid range is between zero and the value appropriate for mSampleCount
   uint32_t mSampleQuality;
   /// Internal image format
-  TheForge_ImageFormat mFormat;
+  Image_Format mFormat;
   /// Optimized clear value (recommended to use this same value when clearing the rendertarget)
   TheForge_ClearValue mClearValue;
   /// What state will the texture get created in
@@ -281,7 +279,7 @@ typedef struct TheForge_VertexAttrib {
   TheForge_ShaderSemantic mSemantic;
   uint32_t mSemanticNameLength;
   char mSemanticName[TheForge_MAX_SEMANTIC_NAME_LENGTH];
-  TheForge_ImageFormat mFormat;
+  Image_Format mFormat;
   uint32_t mBinding;
   uint32_t mLocation;
   uint32_t mOffset;
@@ -333,12 +331,12 @@ typedef struct TheForge_GraphicsPipelineDesc {
   struct TheForge_BlendState *pBlendState;
   struct TheForge_DepthState *pDepthState;
   struct TheForge_RasterizerState *pRasterizerState;
-  TheForge_ImageFormat *pColorFormats;
+  Image_Format *pColorFormats;
   bool *pSrgbValues;
   uint32_t mRenderTargetCount;
   TheForge_SampleCount mSampleCount;
   uint32_t mSampleQuality;
-  TheForge_ImageFormat mDepthStencilFormat;
+  Image_Format mDepthStencilFormat;
   TheForge_PrimitiveTopology mPrimitiveTopo;
 } TheForge_GraphicsPipelineDesc;
 
@@ -387,11 +385,9 @@ typedef struct TheForge_SwapChainDesc {
   /// Sample quality (DirectX12 only)
   uint32_t mSampleQuality;
   /// Color format of the swapchain
-  TheForge_ImageFormat mColorFormat;
+  Image_Format mColorFormat;
   /// Clear value
   TheForge_ClearValue mColorClearValue;
-  /// Set whether this swapchain using srgb color space
-  bool mSrgb;
   /// Set whether swap chain will be presented using vsync
   bool mEnableVsync;
 } TheForge_SwapChainDesc;

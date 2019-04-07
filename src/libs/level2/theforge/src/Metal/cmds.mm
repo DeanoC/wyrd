@@ -628,12 +628,10 @@ void CmdBindRenderTargets(
       }
 
       pCmd->pBoundColorFormats[i] = ppRenderTargets[i]->mDesc.mFormat;
-      pCmd->pBoundSrgbValues[i] = ppRenderTargets[i]->mDesc.mSrgb;
 
       uint32_t hashValues[] = {
           (uint32_t) ppRenderTargets[i]->mDesc.mFormat,
           (uint32_t) ppRenderTargets[i]->mDesc.mSampleCount,
-          (uint32_t) ppRenderTargets[i]->mDesc.mSrgb,
       };
       renderPassHash = stb_hash_fast(hashValues, sizeof(hashValues));
     }
@@ -708,7 +706,6 @@ void CmdBindRenderTargets(
       uint32_t hashValues[] = {
           (uint32_t) pDepthStencil->mDesc.mFormat,
           (uint32_t) pDepthStencil->mDesc.mSampleCount,
-          (uint32_t) pDepthStencil->mDesc.mSrgb,
       };
       renderPassHash = stb_hash_fast(hashValues, sizeof(hashValues));
     } else {
@@ -1164,9 +1161,7 @@ void CmdUpdateSubresources(
   uint nFaces = 1;
   uint nMips = pTexture->mDesc.mMipLevels;
 
-  bool isPvrtc = (pTexture->mDesc.mFormat >= PVR_2BPP && pTexture->mDesc.mFormat <= PVR_4BPPA)
-      || (pTexture->mDesc.mFormat >= PVR_2BPP_SRGB
-          && pTexture->mDesc.mFormat <= PVR_4BPPA_SRGB);
+  bool isPvrtc = Image_Format_IsPVR(pTexture->mDesc.mFormat);
 
   uint32_t subresourceOffset = 0;
   for (uint32_t layer = 0; layer < nLayers; ++layer) {

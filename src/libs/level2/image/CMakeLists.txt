@@ -6,6 +6,8 @@ set(CInterface
         format_cracker.h
         pixel.h
         io.h
+        utils.h
+        create.h
         )
 
 set(CPPInterface
@@ -19,6 +21,9 @@ set(Src
         put.hpp
         loader.cpp
         saver.cpp
+        utils.cpp
+        convert.cpp
+        create.cpp
         )
 
 set(Deps

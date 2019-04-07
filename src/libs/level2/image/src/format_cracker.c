@@ -20,3 +20,23 @@ EXTERN_C char const *Image_Format_Name(enum Image_Format const fmt) {
 
   return "Unknown Format";
 }
+
+EXTERN_C Image_Format Image_Format_FromName(char const * name) {
+  for (size_t i = 0u; i < Image_Format_Count(); ++i) {
+    if (stricmp(name, Image_Format_Name(i)) == 0) {
+      return (Image_Format)i;
+    }
+  }
+  return Image_Format_UNDEFINED;
+}
+
+EXTERN_C size_t Image_Format_Count() {
+  static size_t s_count = 0;
+  if (s_count == 0) {
+#define IF_START_MACRO
+#define IF_MOD_MACRO(x) s_count++;
+#define IF_END_MACRO
+#include "image/format.h"
+  }
+  return s_count;
+}

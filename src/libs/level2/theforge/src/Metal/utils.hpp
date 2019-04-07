@@ -6,7 +6,7 @@
 #include "core/core.h"
 #include "structs.hpp"
 #include "theforge/renderer.hpp"
-#include "theforge/image_enums.hpp"
+#include "image/image.h"
 #include "descriptor_manager.hpp"
 
 enum LogType {
@@ -21,10 +21,10 @@ namespace TheForge { namespace Metal { namespace Util {
 
 uint64_t PthreadToUint64(const pthread_t& value);
 bool IsCompatibleTextureView(const MTLTextureType& textureType, const MTLTextureType& subviewTye);
-MTLPixelFormat ToMtlPixelFormat(ImageFormat format, const bool& srgb);
+MTLPixelFormat ToMtlPixelFormat(Image_Format format);
 bool IsMtlDepthPixelFormat(const MTLPixelFormat& format);
 bool IsMtlCompressedPixelFormat(const MTLPixelFormat& format);
-MTLVertexFormat ToMtlVertexFormat(ImageFormat format);
+MTLVertexFormat ToMtlVertexFormat(Image_Format format);
 MTLLoadAction ToMtlLoadAction(const LoadActionType& loadActionType);
 
 void BindArgumentBuffer(Cmd *pCmd,

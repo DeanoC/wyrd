@@ -6,6 +6,7 @@
 #include "image/format.h"
 #include "image/format_cracker.h"
 #include "image/image.h"
+#include "image/utils.h"
 #include "syoyo/tiny_exr.hpp"
 #include "dds.hpp"
 #include <float.h>

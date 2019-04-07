@@ -71,7 +71,7 @@ static bool AddDepthBuffer()
   depthRT.mClearValue.depth = 1.0f;
   depthRT.mClearValue.stencil = 0;
   depthRT.mDepth = 1;
-  depthRT.mFormat = TheForge_IF_D32F;
+  depthRT.mFormat = Image_Format_D32_SFLOAT;
   depthRT.mWidth = windowDesc.width;
   depthRT.mHeight = windowDesc.height;
   depthRT.mSampleCount = TheForge_SAMPLE_COUNT_1;
