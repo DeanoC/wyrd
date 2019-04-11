@@ -7,6 +7,9 @@
 #include "theforge/renderer_descs.h"
 #include "stb/stb_dict.h"
 
+typedef struct TheForge_DescriptorBinder {
+} TheForge_DescriptorBinder;
+
 typedef struct TheForge_IndirectDrawArguments {
   uint32_t mVertexCount;
   uint32_t mInstanceCount;
@@ -108,9 +111,6 @@ typedef struct TheForge_RootSignature {
   TheForge_DescriptorInfo *pDescriptors;
   TheForge_PipelineType mPipelineType;
 
-  /// Api specific binding manager
-  stb_ptrmap pDescriptorManagerMap;
-
   /// Translates hash of descriptor name to descriptor index
   stb_udict32 pDescriptorNameToIndexMap;
 
@@ -152,6 +152,7 @@ typedef struct TheForge_Cmd {
   struct TheForge_Renderer *pRenderer;
   TheForge_CmdPool *pCmdPool;
 
+  TheForge_DescriptorBinder*    pBoundDescriptorBinder;
   const TheForge_RootSignature *pBoundRootSignature;
   uint32_t *pBoundColorFormats;
   uint32_t mBoundDepthStencilFormat;
@@ -225,6 +226,7 @@ typedef struct TheForge_GPUSettings {
 } TheForge_GPUSettings;
 
 typedef struct TheForge_ResourceAllocator TheForge_ResourceAllocator;
+
 
 typedef struct TheForge_Renderer {
   char *pName;

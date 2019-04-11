@@ -1314,12 +1314,6 @@ void AddGraphicsComputeRootSignature(Renderer *pRenderer,
     pRootSignature->pStaticSamplerSlots[i] = staticSamplers[i].first->reg;
   }
 
-  // Create descriptor manager for this thread.
-  DescriptorManager *pManager = NULL;
-  AddDescriptorManager(pRenderer, pRootSignature, &pManager);
-  stb_ptrmap_add(&pRootSignature->pDescriptorManagerMap,
-                 Os::Thread::GetCurrentThreadID(), pManager);
-
   *ppRootSignature = pRootSignature;
 }
 
@@ -1364,14 +1358,6 @@ void AddRootSignature(Renderer *pRenderer,
 
 void RemoveRootSignature(Renderer *pRenderer, RootSignature *pRootSignature) {
 
-  stb_ptrmap *ptrmap = &pRootSignature->pDescriptorManagerMap;
-  for (int i = 0; i < ptrmap->count; ++i) {
-    RemoveDescriptorManager(pRenderer,
-                            pRootSignature,
-                            (DescriptorManager *) ptrmap->table[i].v);
-  }
-
-  stb_ptrmap_destroy(&pRootSignature->pDescriptorManagerMap);
   stb_udict32_destroy(&pRootSignature->pDescriptorNameToIndexMap);
 
   free(pRootSignature->ppStaticSamplers);

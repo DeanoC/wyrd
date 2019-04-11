@@ -170,6 +170,23 @@ struct Raytracing : public TheForge::Raytracing {
   MPSRayIntersector* pIntersector;
 };
 
+struct DescriptorBinderNode
+{
+  /// The descriptor data bound to the current rootSignature;
+  DescriptorData* pDescriptorDataArray = nullptr;
+  /// Array of flags to check whether a descriptor has already been bound.
+  bool* pBoundDescriptors = nullptr;
+  bool  mBoundStaticSamplers = false;
+
+  typedef tinystl::unordered_map<uint32_t, tinystl::pair<Buffer*, bool>> ArgumentBufferMap;
+  /// Map that holds all the argument buffers bound by this descriptor biner for each root signature.
+  ArgumentBufferMap mArgumentBuffers;
+};
+
+struct DescriptorBinder : public TheForge_DescriptorBinder{
+  tinystl::unordered_map<const RootSignature *, DescriptorBinderNode> mRootSignatureNodes;
+};
+
 }} // end namespace TheForge::Metal
 
 #endif //WYRD_METAL_STRUCTS_HPP

@@ -2,6 +2,7 @@
 #include "guishell/guishell.h"
 #include "guishell/window.h"
 #include "theforge/renderer.h"
+#include "theforge_display/theforge_display.h"
 
 DEFINE_APPLICATION_MAIN
 const uint32_t gImageCount = 3;
@@ -12,7 +13,7 @@ TheForge_Queue *pGraphicsQueue = NULL;
 TheForge_CmdPool *pCmdPool = NULL;
 TheForge_Cmd **ppCmds = NULL;
 
-TheForge_SwapChain *pSwapChain = NULL;
+TheForge_Display_SwapChain *pSwapChain = NULL;
 TheForge_RenderTarget *pDepthBuffer = NULL;
 TheForge_Fence *pRenderCompleteFences[gImageCount] = {NULL};
 TheForge_Semaphore *pImageAcquiredSemaphore = NULL;
@@ -45,7 +46,7 @@ static bool AddSwapChain()
   GuiShell_WindowDesc windowDesc = {0};
   GuiShell_WindowGetCurrentDesc(&windowDesc);
 
-  TheForge_SwapChainDesc swapChainDesc = {0};
+  TheForge_Display_SwapChainDesc swapChainDesc = {0};
   swapChainDesc.pWindow = &windowDesc;
   swapChainDesc.mPresentQueueCount = 1;
   swapChainDesc.ppPresentQueues = &pGraphicsQueue;
@@ -53,9 +54,9 @@ static bool AddSwapChain()
   swapChainDesc.mHeight = windowDesc.height;
   swapChainDesc.mImageCount = gImageCount;
   swapChainDesc.mSampleCount = TheForge_SAMPLE_COUNT_1;
-  swapChainDesc.mColorFormat = TheForge_GetRecommendedSwapchainFormat(true);
+  swapChainDesc.mColorFormat = TheForge_Display_GetRecommendedSwapchainFormat(true);
   swapChainDesc.mEnableVsync = false;
-  TheForge_AddSwapChain(pRenderer, &swapChainDesc, &pSwapChain);
+  TheForge_Display_AddSwapChain(pRenderer, &swapChainDesc, &pSwapChain);
 
   return pSwapChain != NULL;
 }
@@ -166,7 +167,7 @@ static void Update(double deltaTimeMS) {
 }
 
 static void Draw() {
-  TheForge_AcquireNextImage(pRenderer, pSwapChain, pImageAcquiredSemaphore, NULL, &gFrameIndex);
+  TheForge_Display_AcquireNextImage(pRenderer, pSwapChain, pImageAcquiredSemaphore, NULL, &gFrameIndex);
 
   TheForge_RenderTarget* pRenderTarget = pSwapChain->ppSwapchainRenderTargets[gFrameIndex];
   TheForge_Semaphore*    pRenderCompleteSemaphore = pRenderCompleteSemaphores[gFrameIndex];
@@ -212,7 +213,7 @@ static void Draw() {
   TheForge_EndCmd(cmd);
 
   TheForge_QueueSubmit(pGraphicsQueue, 1, &cmd, pRenderCompleteFence, 1, &pImageAcquiredSemaphore, 1, &pRenderCompleteSemaphore);
-  TheForge_QueuePresent(pGraphicsQueue, pSwapChain, gFrameIndex, 1, &pRenderCompleteSemaphore);
+  TheForge_Display_QueuePresent(pGraphicsQueue, pSwapChain, gFrameIndex, 1, &pRenderCompleteSemaphore);
 
 }
 
@@ -224,7 +225,7 @@ static void Unload() {
 //  TheForge_RemovePipeline(pRenderer, pSkyBoxDrawPipeline);
 //  TheForge_RemovePipeline(pRenderer, pSpherePipeline);
 
-  TheForge_RemoveSwapChain(pRenderer, pSwapChain);
+  TheForge_Display_RemoveSwapChain(pRenderer, pSwapChain);
   TheForge_RemoveRenderTarget(pRenderer, pDepthBuffer);
 
 }

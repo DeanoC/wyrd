@@ -103,10 +103,6 @@ EXTERN_C void TheForge_CmdSetViewport(TheForge_Cmd *p_cmd,
                                       float max_depth);
 EXTERN_C void TheForge_CmdSetScissor(TheForge_Cmd *p_cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 EXTERN_C void TheForge_CmdBindPipeline(TheForge_Cmd *p_cmd, TheForge_Pipeline *p_pipeline);
-EXTERN_C void TheForge_CmdBindDescriptors(TheForge_Cmd *pCmd,
-                                          TheForge_RootSignature *pRootSignature,
-                                          uint32_t numDescriptors,
-                                          TheForge_DescriptorData *pDescParams);
 EXTERN_C void TheForge_CmdBindIndexBuffer(TheForge_Cmd *p_cmd, TheForge_Buffer *p_buffer, uint64_t offset);
 EXTERN_C void TheForge_CmdBindVertexBuffer(TheForge_Cmd *p_cmd,
                                            uint32_t buffer_count,
@@ -132,6 +128,11 @@ EXTERN_C void TheForge_CmdDispatch(TheForge_Cmd *p_cmd,
                                    uint32_t group_count_x,
                                    uint32_t group_count_y,
                                    uint32_t group_count_z);
+EXTERN_C void TheForge_CmdBindDescriptors(TheForge_Cmd* pCmd,
+    TheForge_DescriptorBinder* pDescriptorBinder,
+    TheForge_RootSignature* pRootSignature,
+    uint32_t numDescriptors,
+    TheForge_DescriptorData* pDescParams);
 
 // Transition Commands
 EXTERN_C void TheForge_CmdResourceBarrier(TheForge_Cmd *p_cmd,
@@ -228,5 +229,16 @@ EXTERN_C void TheForge_CmdUpdateSubresources(TheForge_Cmd *pCmd,
 // Resource Debug Naming Interface
 EXTERN_C void TheForge_SetBufferName(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer, const char *pName);
 EXTERN_C void TheForge_SetTextureName(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture, const char *pName);
+
+// descriptor binder functions
+EXTERN_C void TheForge_AddDescriptorBinder(
+    TheForge_Renderer* pRenderer,
+    uint32_t gpuIndex,
+    uint32_t descCount,
+    const TheForge_DescriptorBinderDesc* p_descs,
+    TheForge_DescriptorBinder** pp_descriptor_binder);
+EXTERN_C void TheForge_RemoveDescriptorBinder(
+    TheForge_Renderer* pRenderer,
+    TheForge_DescriptorBinder* p_descriptor_binder);
 
 #endif //WYRD_THEFORGE_RENDERER_H

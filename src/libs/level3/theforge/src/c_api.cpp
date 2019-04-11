@@ -199,10 +199,12 @@ EXTERN_C void TheForge_CmdBindPipeline(Cmd *p_cmd, TheForge_Pipeline *p_pipeline
   CmdBindPipeline(p_cmd, p_pipeline);
 }
 EXTERN_C void TheForge_CmdBindDescriptors(Cmd *pCmd,
+                                          TheForge_DescriptorBinder* pDescriptorBinder,
                                           RootSignature *pRootSignature,
                                           uint32_t numDescriptors,
                                           DescriptorData *pDescParams) {
   CmdBindDescriptors(pCmd,
+                     pDescriptorBinder,
                      pRootSignature,
                      numDescriptors,
                      pDescParams);

@@ -10,6 +10,8 @@ set(Deps
         level0/spirvtools
         level3/theforge
         level4/theforge_display
+        level4/theforge_shaderreflection
+        level4/theforge_resourceloader
         )
 
 ADD_GUI_APP(${AppName} "${Src}" "${Deps}")

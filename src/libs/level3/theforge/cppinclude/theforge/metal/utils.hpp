@@ -7,7 +7,7 @@
 #include "structs.hpp"
 #include "theforge/renderer.hpp"
 #include "image/image.h"
-#include "theforge/metal/descriptor_manager.hpp"
+#include "theforge/metal/descriptor.hpp"
 
 enum LogType {
   LOG_TYPE_INFO,
@@ -27,10 +27,6 @@ bool IsMtlCompressedPixelFormat(const MTLPixelFormat& format);
 MTLVertexFormat ToMtlVertexFormat(Image_Format format);
 MTLLoadAction ToMtlLoadAction(const LoadActionType& loadActionType);
 
-void BindArgumentBuffer(Cmd *pCmd,
-                        DescriptorManager *pManager,
-                        const DescriptorInfo *descInfo,
-                        const DescriptorData *descData);
 void EndCurrentEncoders(Cmd *pCmd);
 bool SyncEncoders(Cmd *pCmd, const CmdPoolType& newEncoderType);
 

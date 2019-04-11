@@ -165,6 +165,13 @@ typedef struct TheForge_RootSignatureDesc {
 
 } TheForge_RootSignatureDesc;
 
+typedef struct TheForge_DescriptorBinderDesc
+{
+  struct TheForge_RootSignature* pRootSignature;
+  uint32_t       mMaxDynamicUpdatesPerBatch;
+  uint32_t       mMaxDynamicUpdatesPerDraw;
+
+} TheForge_DescriptorBinderDesc;
 typedef struct TheForge_CmdPoolDesc {
   TheForge_CmdPoolType mCmdPoolType;
 } TheForge_CmdPoolDesc;

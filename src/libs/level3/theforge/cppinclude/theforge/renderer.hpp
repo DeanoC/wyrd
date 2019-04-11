@@ -68,6 +68,7 @@ void CmdSetViewport(Cmd *p_cmd,
 void CmdSetScissor(Cmd *p_cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 void CmdBindPipeline(Cmd *p_cmd, Pipeline *p_pipeline);
 void CmdBindDescriptors(Cmd *pCmd,
+                        DescriptorBinder *pDescriptorBinder,
                         RootSignature *pRootSignature,
                         uint32_t numDescriptors,
                         DescriptorData *pDescParams);

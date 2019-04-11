@@ -1118,7 +1118,7 @@ void AddShader(Handle handle,
   BinaryShaderDesc binaryDesc = {};
   tinystl::vector<char> byteCodes[SHADER_STAGE_COUNT] = {};
   for (uint32_t i = 0; i < SHADER_STAGE_COUNT; ++i) {
-    ShaderReflection::RendererDefinesDesc const* rendererDefinesDesc = ShaderReflection::GetRendererShaderDefines(pRenderer);
+    ShaderReflection::RendererDefinesDesc const* rendererDefinesDesc = ShaderReflection::GetRendererShaderDefines(rl->pRenderer);
 
     if (pDesc->mStages[i].mFileName != nullptr) {
       tinystl::string filename = pDesc->mStages[i].mFileName;

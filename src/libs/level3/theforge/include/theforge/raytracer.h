@@ -114,6 +114,7 @@ typedef struct TheForge_RaytracingShaderTableRecordDesc {
 typedef struct TheForge_RaytracingShaderTableDesc {
   TheForge_Pipeline *pPipeline;
   TheForge_RootSignature *pEmptyRootSignature;
+  TheForge_DescriptorBinder *pDescriptorBinder;
   TheForge_RaytracingShaderTableRecordDesc *pRayGenShader;
   TheForge_RaytracingShaderTableRecordDesc *pMissShaders;
   TheForge_RaytracingShaderTableRecordDesc *pHitGroups;
