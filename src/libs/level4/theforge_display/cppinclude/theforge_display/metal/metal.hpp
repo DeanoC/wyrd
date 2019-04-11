@@ -36,5 +36,7 @@ void QueuePresent(TheForge::Metal::Queue *p_queue,
 
 void ToggleVSync(TheForge::Metal::Renderer *pRenderer, SwapChain **ppSwapchain);
 
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR);
+
 } } } // end namespace
 #endif //WYRD_THEFORGE_DISPLAY_METAL_METAL_HPP

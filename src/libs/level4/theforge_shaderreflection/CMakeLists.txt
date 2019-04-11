@@ -1,34 +1,33 @@
-set(LibName theforge_resourceloader)
+set(LibName theforge_shaderreflection)
 
 set(CInterface
-        theforge_resourceloader.h
+        theforge_shaderreflection.h
         )
 
 set(CPPInterface
-        theforge_resourceloader.hpp
+        theforge_shaderreflection.hpp
         )
 
 set(Src
-        resource_loader.cpp
         c_api.cpp
+        theforge_shaderreflection.cpp
         )
 
 if (APPLE)
+    list(APPEND Src metal/theforge_shaderreflection.mm)
 endif ()
 
 set(Deps
         level0/core
         level0/os
         level0/tinystl
-        level0/stb
-        level2/image
+        level1/vfile
         level3/theforge
-        level4/theforge_shaderreflection
         )
 
 set(Tests
-        test_theforgeresourceloader.cpp
         )
+
 set(TestsDep
         level1/logmanager
         )

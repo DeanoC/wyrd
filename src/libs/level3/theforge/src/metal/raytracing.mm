@@ -5,7 +5,6 @@
 #include "core/core.h"
 #include "theforge/renderer.hpp"
 #include "theforge/metal/renderer.hpp"
-#include "theforge/shader_reflection.hpp"
 #include "tinystl/unordered_map.h"
 #include "tinystl/vector.h"
 #include "tinystl/unordered_set.h"
@@ -19,13 +18,6 @@
 
 namespace TheForge { namespace Metal {
 
-extern void CreateShaderReflection(Renderer *pRenderer,
-                                   Shader *shader,
-                                   const uint8_t *shaderCode,
-                                   uint32_t shaderSize,
-                                   ShaderStage shaderStage,
-                                   tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats,
-                                   ShaderReflection *pOutReflection);
 
 struct AccelerationStructure {
   MPSAccelerationStructureGroup *pSharedGroup;

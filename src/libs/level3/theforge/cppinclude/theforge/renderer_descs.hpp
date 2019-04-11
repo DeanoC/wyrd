@@ -16,10 +16,8 @@ using SamplerDesc = TheForge_SamplerDesc;
 using RootSignatureDesc = TheForge_RootSignatureDesc;
 using CmdPoolDesc = TheForge_CmdPoolDesc;
 using QueueDesc = TheForge_QueueDesc;
-using ShaderMacro = TheForge_ShaderMacro;
-using RendererShaderDefinesDesc = TheForge_RendererShaderDefinesDesc;
-using ShaderStageDesc = TheForge_ShaderStageDesc;
-using ShaderDesc = TheForge_ShaderDesc;
+
+using ShaderResource = TheForge_ShaderResourceDesc;
 using BinaryShaderStageDesc = TheForge_BinaryShaderStageDesc;
 using BinaryShaderDesc = TheForge_BinaryShaderDesc;
 using BlendStateDesc = TheForge_BlendStateDesc;

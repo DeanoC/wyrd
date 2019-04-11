@@ -6,6 +6,7 @@
 #include "os/atomics.h"
 #include "theforge/renderer.h"
 #include "image/image.h"
+#include "theforge_shaderreflection/theforge_shaderreflection.h"
 
 typedef Os_atomic64_t TheForge_ResourceLoader_SyncToken;
 typedef void *TheForge_ResourceLoader_Handle;
@@ -34,6 +35,20 @@ typedef struct TheForge_ResourceLoader_TextureLoadDesc {
   TheForge_TextureCreationFlags mCreationFlag;
 } TheForge_ResourceLoader_TextureLoadDesc;
 
+typedef struct TheForge_ResourceLoader_ShaderStageLoadDesc
+{
+  char const* mFileName;
+  TheForge_ShaderReflection_Macro*    pMacros;
+  uint32_t        mMacroCount;
+  const char*     mEntryPointName;
+} TheForge_ResourceLoader_ShaderStageLoadDesc;
+
+typedef struct TheForge_ResourceLoader_ShaderLoadDesc
+{
+  TheForge_ResourceLoader_ShaderStageLoadDesc mStages[TheForge_SHADER_STAGE_COUNT];
+  TheForge_ShaderTarget        mTarget;
+} TheForge_ResourceLoader_ShaderLoadDesc;
+
 typedef struct TheForge_ResourceLoader_BufferUpdateDesc {
   TheForge_Buffer *pBuffer;
   const void *pData;
@@ -52,6 +67,7 @@ enum {
   TheForge_ResourceLoader_RT_BUFFER = 0,
   TheForge_ResourceLoader_RT_TEXTURE,
 };
+
 typedef uint8_t TheForge_ResourceLoader_ResourceType;
 
 typedef struct TheForge_ResourceLoader_ResourceLoadDesc {
@@ -76,7 +92,8 @@ EXTERN_C void TheForge_ResourceLoader_Init(
     uint64_t memoryBudget,
     bool useThreads,
     TheForge_ResourceLoader_Handle *handle);
-EXTERN_C void TheForge_ResourceLoader_Destroy(TheForge_ResourceLoader_Handle handle);
+EXTERN_C void TheForge_ResourceLoader_Destroy(
+    TheForge_ResourceLoader_Handle handle);
 
 EXTERN_C void TheForge_ResourceLoader_RemoveBuffer(
     TheForge_ResourceLoader_Handle handle,
@@ -90,10 +107,6 @@ EXTERN_C void TheForge_ResourceLoader_FinishResourceLoading(
     TheForge_ResourceLoader_Handle handle);
 
 // sync interface
-EXTERN_C void TheForge_ResourceLoader_UpdateResources(
-    TheForge_ResourceLoader_Handle handle,
-    uint32_t resourceCount,
-    TheForge_ResourceLoader_ResourceUpdateDesc *pResources);
 EXTERN_C void TheForge_ResourceLoader_AddBuffer(
     TheForge_ResourceLoader_Handle handle,
     TheForge_ResourceLoader_BufferLoadDesc *pBuffer, bool batch);
@@ -101,6 +114,15 @@ EXTERN_C void TheForge_ResourceLoader_AddTexture(
     TheForge_ResourceLoader_Handle handle,
     TheForge_ResourceLoader_TextureLoadDesc *pTexture,
     bool batch);
+EXTERN_C void TheForge_ResourceLoader_AddShader(
+    TheForge_ResourceLoader_Handle handle,
+    TheForge_ResourceLoader_ShaderLoadDesc *pDesc,
+    TheForge_Shader **ppShader);
+
+EXTERN_C void TheForge_ResourceLoader_UpdateResources(
+    TheForge_ResourceLoader_Handle handle,
+    uint32_t resourceCount,
+    TheForge_ResourceLoader_ResourceUpdateDesc *pResources);
 EXTERN_C void TheForge_ResourceLoader_UpdateBuffer(
     TheForge_ResourceLoader_Handle handle,
     TheForge_ResourceLoader_BufferUpdateDesc *pBuffer,
@@ -111,19 +133,6 @@ EXTERN_C void TheForge_ResourceLoader_UpdateTexture(
     bool batch);
 
 // async interface
-EXTERN_C void TheForge_ResourceLoader_UpdateResourcesAsync(
-    TheForge_ResourceLoader_Handle handle,
-    uint32_t resourceCount,
-    TheForge_ResourceLoader_ResourceUpdateDesc *pResources,
-    TheForge_ResourceLoader_SyncToken *token);
-EXTERN_C void TheForge_ResourceLoader_WaitBatchCompleted(
-    TheForge_ResourceLoader_Handle handle);
-EXTERN_C bool TheForge_ResourceLoader_IsTokenCompleted(
-    TheForge_ResourceLoader_Handle handle,
-    TheForge_ResourceLoader_SyncToken token);
-EXTERN_C void TheForge_ResourceLoader_WaitTokenCompleted(
-    TheForge_ResourceLoader_Handle handle,
-    TheForge_ResourceLoader_SyncToken token);
 EXTERN_C void TheForge_ResourceLoader_AddBufferAsync(
     TheForge_ResourceLoader_Handle handle,
     TheForge_ResourceLoader_BufferLoadDesc *pBufferDesc,
@@ -131,6 +140,12 @@ EXTERN_C void TheForge_ResourceLoader_AddBufferAsync(
 EXTERN_C void TheForge_ResourceLoader_AddTextureAsync(
     TheForge_ResourceLoader_Handle handle,
     TheForge_ResourceLoader_TextureLoadDesc *pTextureDesc,
+    TheForge_ResourceLoader_SyncToken *token);
+
+EXTERN_C void TheForge_ResourceLoader_UpdateResourcesAsync(
+    TheForge_ResourceLoader_Handle handle,
+    uint32_t resourceCount,
+    TheForge_ResourceLoader_ResourceUpdateDesc *pResources,
     TheForge_ResourceLoader_SyncToken *token);
 EXTERN_C void TheForge_ResourceLoader_UpdateBufferAsync(
     TheForge_ResourceLoader_Handle handle,
@@ -140,5 +155,14 @@ EXTERN_C void TheForge_ResourceLoader_UpdateTextureAsync(
     TheForge_ResourceLoader_Handle handle,
     TheForge_ResourceLoader_TextureUpdateDesc *pTexture,
     TheForge_ResourceLoader_SyncToken *token);
+
+EXTERN_C void TheForge_ResourceLoader_WaitBatchCompleted(
+    TheForge_ResourceLoader_Handle handle);
+EXTERN_C bool TheForge_ResourceLoader_IsTokenCompleted(
+    TheForge_ResourceLoader_Handle handle,
+    TheForge_ResourceLoader_SyncToken token);
+EXTERN_C void TheForge_ResourceLoader_WaitTokenCompleted(
+    TheForge_ResourceLoader_Handle handle,
+    TheForge_ResourceLoader_SyncToken token);
 
 #endif //WYRD_THEFORGE_RESOURCELOADER_RESOURCELOADER_H

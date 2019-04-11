@@ -5,7 +5,6 @@ set(CInterface
         raytracer.h
         renderer_enums.h
         renderer_structs.h
-        shader_reflection.h
         )
 
 set(CPPInterface
@@ -13,12 +12,10 @@ set(CPPInterface
         raytracer.hpp
         renderer_enums.hpp
         renderer_structs.hpp
-        shader_reflection.hpp
         )
 
 set(Src
         c_api.cpp
-        shader_reflection.cpp
         utils.hpp
         dynamic_memory_allocator.cpp
         dynamic_memory_allocator.hpp
@@ -31,7 +28,6 @@ if (APPLE)
     list(APPEND Src metal/memory_allocator.hpp)
     list(APPEND Src metal/raytracing.mm)
     list(APPEND Src metal/renderer.mm)
-    list(APPEND Src metal/shader_reflection.mm)
     list(APPEND Src metal/utils.mm)
 
 

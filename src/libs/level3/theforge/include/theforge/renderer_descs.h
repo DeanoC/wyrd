@@ -176,42 +176,53 @@ typedef struct TheForge_QueueDesc {
   uint32_t mNodeIndex;
 } TheForge_QueueDesc;
 
-typedef struct TheForge_ShaderMacro {
-  char const *definition;
-  char const *value;
-} TheForge_ShaderMacro;
+typedef struct TheForge_ShaderResourceDesc {
+  // resource Type
+  TheForge_DescriptorTypeFlags type;
 
-typedef struct TheForge_RendererShaderDefinesDesc {
-  TheForge_ShaderMacro *rendererShaderDefines;
-  uint32_t rendererShaderDefinesCnt;
-} TheForge_RendererShaderDefinesDesc;
+  // The resource set for binding frequency
+  uint32_t set;
 
-typedef struct TheForge_ShaderStageDesc {
-  char const *mName;
-  char const *mCode;
-  char const *mEntryPoint;
-  size_t mNumMacros;
-  TheForge_ShaderMacro const *mMacros;
-} TheForge_ShaderStageDesc;
+  // The resource binding location
+  uint32_t reg;
 
-typedef struct TheForge_ShaderDesc {
-  TheForge_ShaderStage mStages;
-  TheForge_ShaderStageDesc mVert;
-  TheForge_ShaderStageDesc mFrag;
-  TheForge_ShaderStageDesc mGeom;
-  TheForge_ShaderStageDesc mHull;
-  TheForge_ShaderStageDesc mDomain;
-  TheForge_ShaderStageDesc mComp;
-} TheForge_ShaderDesc;
+  // The size of the resource. This will be the DescriptorInfo array size for textures
+  uint32_t size;
+
+  // what stages use this resource
+  TheForge_ShaderStage used_stages;
+
+  // resource name
+  const char *name;
+
+  // name size
+  uint32_t name_size;
+
+  // we don't usually expose the backend but this makes the implementation
+  // easier and saves an alloc
+  union {
+    struct {
+      uint32_t mtlTextureType;           // Needed to bind different types of textures as default resources on Metal.
+      uint32_t mtlArgumentBufferType;    // Needed to bind multiple resources under a same descriptor on Metal.
+    };
+    uint64_t constant_size; // d3d12
+  } backend;
+
+} TheForge_ShaderResourceDesc;
 
 typedef struct TheForge_BinaryShaderStageDesc {
   /// Byte code array
   char *pByteCode;
   uint32_t mByteCodeSize;
+
   // Shader source is needed for reflection
   char const *mSource;
+
   /// Entry point is needed for Metal
   char const *mEntryPoint;
+  // Thread group size for compute shader for Metal
+  uint32_t mNumThreadsPerGroup[3];
+
 } TheForge_BinaryShaderStageDesc;
 
 typedef struct TheForge_BinaryShaderDesc {

@@ -42,5 +42,7 @@ void AcquireNextImage(TheForge::Renderer *pRenderer,
                           (TheForge::Metal::Fence *) p_fence,
                           p_image_index);
 }
-
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
+  return Metal::GetRecommendedSwapchainFormat(hintHDR);
+}
 } }// end namespace

@@ -90,8 +90,6 @@ typedef struct TheForge_Sampler {
   uint64_t mSamplerId;
 } TheForge_Sampler;
 
-#include "theforge/shader_reflection.h"
-
 /// Data structure holding the layout for a descriptor
 typedef struct TheForge_DescriptorInfo {
   /// Binding information generated from the shader reflection
@@ -179,7 +177,9 @@ typedef struct TheForge_Queue {
 
 typedef struct TheForge_Shader {
   TheForge_ShaderStage mStages;
-  TheForge_PipelineReflection mReflection;
+
+  struct TheForge_ShaderResourceDesc *pShaderResources;
+  uint32_t mShaderResourceCount;
 } TheForge_Shader;
 
 typedef struct TheForge_BlendState {

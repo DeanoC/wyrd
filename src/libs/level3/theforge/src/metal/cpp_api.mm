@@ -1,10 +1,5 @@
 #include "core/core.h"
 #include "theforge/renderer.hpp"
-#include "theforge/renderer_descs.hpp"
-#include "theforge/renderer_enums.hpp"
-#include "theforge/renderer_structs.hpp"
-#include "theforge/shader_reflection.hpp"
-#include "image/image.h"
 #include "theforge/metal/renderer.hpp"
 
 namespace TheForge {
@@ -53,9 +48,9 @@ void RemoveSampler(Renderer *pRenderer, Sampler *p_sampler) {
   Metal::RemoveSampler((Metal::Renderer *) pRenderer, (Metal::Sampler *) p_sampler);
 }
 
-void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program) {
-  Metal::AddShader((Metal::Renderer *) pRenderer, p_desc, (Metal::Shader **) p_shader_program);
-}
+//void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program) {
+//  Metal::AddShader((Metal::Renderer *) pRenderer, p_desc, (Metal::Shader **) p_shader_program);
+//}
 
 void AddShaderBinary(Renderer *pRenderer, const BinaryShaderDesc *p_desc, Shader **p_shader_program) {
   Metal::AddShaderBinary((Metal::Renderer *) pRenderer, p_desc, (Metal::Shader **) p_shader_program);
@@ -413,9 +408,7 @@ void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName) 
   Metal::CmdAddDebugMarker((Metal::Cmd *) pCmd, r, g, b, pName);
 }
 
-Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
-  return Metal::GetRecommendedSwapchainFormat(hintHDR);
-}
+
 void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange) {
   Metal::MapBuffer((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer, pRange);
 }

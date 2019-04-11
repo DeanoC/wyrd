@@ -68,9 +68,6 @@ EXTERN_C void TheForge_AddCmd_n(TheForge_CmdPool *p_CmdPool,
 EXTERN_C void TheForge_RemoveCmd_n(TheForge_CmdPool *p_CmdPool, uint32_t cmd_count, TheForge_Cmd **pp_cmd);
 
 // shader functions
-EXTERN_C void TheForge_AddShader(TheForge_Renderer *pRenderer,
-                                 const TheForge_ShaderDesc *p_desc,
-                                 TheForge_Shader **p_shader_program);
 EXTERN_C void TheForge_AddShaderBinary(TheForge_Renderer *pRenderer,
                                        const TheForge_BinaryShaderDesc *p_desc,
                                        TheForge_Shader **p_shader_program);
@@ -172,11 +169,6 @@ EXTERN_C void TheForge_WaitForFences(TheForge_Renderer *pRenderer,
 
 // image related functions
 EXTERN_C bool TheForge_IsImageFormatSupported(Image_Format format);
-
-//Returns the recommended format for the swapchain.
-//If true is passed for the hintHDR parameter, it will return an HDR format IF the platform supports it
-//If false is passed or the platform does not support HDR a non HDR format is returned.
-EXTERN_C Image_Format TheForge_GetRecommendedSwapchainFormat(bool hintHDR);
 
 //indirect Draw functions
 EXTERN_C void TheForge_AddIndirectCommandSignature(TheForge_Renderer *pRenderer,
