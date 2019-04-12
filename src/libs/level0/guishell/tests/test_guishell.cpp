@@ -64,13 +64,24 @@ EXTERN_C void GuiShell_AppConfig(GuiShell_Functions* functions, GuiShell_WindowD
 
 struct CppGuiShellTest {
 
-  static bool Init(){return true;}
-  static void Exit(){}
+  static bool Init() {
+    LOGINFO("Init");
+    return true;
+  }
+  static void Exit() {
+    LOGINFO("Exit");
+  }
 
-  static bool Load(){return true;};
-  static void Unload(){};
+  static bool Load() {
+    LOGINFO("Load");
+    return true;
+  };
+  static void Unload() {
+    LOGINFO("Unload");
+  };
 
   static void Update(double deltaTime){
+    LOGINFO("Update");
     static bool testsHaveRun = false;
     if(testsHaveRun == false ) {
       char const* argv[] = { "Guishell_tests" };
@@ -79,7 +90,9 @@ struct CppGuiShellTest {
       GuiShell::Terminate();
     }
   }
-  static void Draw(){};
+  static void Draw() {
+    LOGINFO("Draw");
+  };
 
   static GuiShell::Window::Desc const* InitialWindow() {
     static GuiShell::Window::Desc const initialWindow {

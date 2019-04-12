@@ -121,10 +121,10 @@ EXTERN_C void Image_BlockDecodeBC5(uint8_t *dest, uint8_t const *src) {
 }
 
 EXTERN_C void Image_BlockDecodeCompressedData(uint8_t *dest,
-                                               uint8_t const *src,
-                                               const int width,
-                                               const int height,
-                                               const enum Image_Format format) {
+                                              uint8_t const *src,
+                                              const int width,
+                                              const int height,
+                                              const Image_Format format) {
   ASSERT(Image_Format_IsCompressed(format));
 
   int blockWidth = (width < 4) ? width : 4;

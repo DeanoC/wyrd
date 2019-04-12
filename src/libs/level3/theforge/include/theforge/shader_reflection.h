@@ -97,7 +97,7 @@ static const uint32_t TheForge_MAX_SHADER_STAGE_COUNT = 5;
 typedef struct TheForge_PipelineReflection {
   TheForge_ShaderStage mShaderStages;
   // the individual stages reflection data.
-  struct TheForge_ShaderReflection mStageReflections[TheForge_MAX_SHADER_STAGE_COUNT];
+  TheForge_ShaderReflection mStageReflections[TheForge_MAX_SHADER_STAGE_COUNT];
   uint32_t mStageReflectionCount;
 
   uint32_t mVertexStageIndex;

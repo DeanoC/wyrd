@@ -8,8 +8,10 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
+#undef EXTERN_C
 #define EXTERN_C extern "C"
 #else
+#undef EXTERN_C
 #define EXTERN_C
 #endif
 

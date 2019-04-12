@@ -115,8 +115,8 @@ TEST_CASE("Image create/destroy 2D (C)", "[Image]") {
   REQUIRE(image3->depth == 1);
   REQUIRE(image3->slices == 100);
   REQUIRE(image3->dataSize == (64 * 32 * 100 * Image_Format_BitWidth(image3->format)) / 8);
-  REQUIRE(image2->nextImage == nullptr);
-  REQUIRE(image2->nextType == Image_IT_None);
+  REQUIRE(image3->nextImage == nullptr);
+  REQUIRE(image3->nextType == Image_IT_None);
   REQUIRE(image3->flags == 0);
   Image_Destroy(image3);
 }
@@ -237,8 +237,8 @@ TEST_CASE("Image create/destroy 2D Cubemap (C)", "[Image]") {
   REQUIRE(image3->depth == 1);
   REQUIRE(image3->slices == 100 * 6);
   REQUIRE(image3->dataSize == (64 * 32 * 100 * 6 * Image_Format_BitWidth(image3->format)) / 8);
-  REQUIRE(image2->nextImage == nullptr);
-  REQUIRE(image2->nextType == Image_IT_None);
+  REQUIRE(image3->nextImage == nullptr);
+  REQUIRE(image3->nextType == Image_IT_None);
   REQUIRE(image3->flags == Image_Flag_Cubemap);
   Image_Destroy(image3);
 }

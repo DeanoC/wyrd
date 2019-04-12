@@ -1,6 +1,7 @@
 #pragma once
 #ifndef WYRD_GUISHELL_GUISHELL_H
 #define WYRD_GUISHELL_GUISHELL_H
+
 #include "core/core.h"
 #include "guishell/window.h"
 
@@ -35,10 +36,20 @@ EXTERN_C void GuiShell_Terminate();
 
 EXTERN_C int Main( int argc_, char* argv[]);
 
+#if PLATFORM == PLATFORM_WINDOWS
+#include "core/windows.h"
+#define DEFINE_APPLICATION_MAIN \
+extern "C" int LibWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow); \
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) { \
+  return LibWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow); \
+}
+
+#else
 #define DEFINE_APPLICATION_MAIN \
 int main(int argc, char* argv[])					\
 {													\
 	return Main(argc, argv);					    \
 }
+#endif
 
 #endif //WYRD_GUISHELL_GUISHELL_HPP

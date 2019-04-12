@@ -23,7 +23,7 @@ EXTERN_C char const *Image_Format_Name(enum Image_Format const fmt) {
 
 EXTERN_C Image_Format Image_Format_FromName(char const * name) {
   for (size_t i = 0u; i < Image_Format_Count(); ++i) {
-    if (stricmp(name, Image_Format_Name(i)) == 0) {
+    if (_stricmp(name, Image_Format_Name(i)) == 0) {
       return (Image_Format)i;
     }
   }

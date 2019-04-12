@@ -33,6 +33,7 @@ EXTERN_C Image_ImageHeader *Image_CreateNoClear(uint32_t width,
                             Image_Format_BitWidth(format)) / 8;
 
   auto *image = (Image_ImageHeader *) malloc(sizeof(Image_ImageHeader) + dataSize);
+  if (!image) { return image; }
   Image_FillHeader(width, height, depth, slices, format, image);
   image->dataSize = dataSize;
 
@@ -494,7 +495,7 @@ EXTERN_C size_t Image_BytesRequiredForMipMapsOf(Image_ImageHeader const *image) 
     default:break;
   }
 
-  int size = 0;
+  size_t size = 0;
   int level = maxMipLevels;
 
   Image_ImageHeader scratch;

@@ -156,8 +156,8 @@ constexpr string_view::size_type string_view::find(value_type ch, size_type pos)
 }
 constexpr string_view::size_type string_view::rfind(value_type ch, size_type pos) const noexcept {
   if(pos >= m_size) return npos;
-  for (auto i = m_size-1-pos; i >= 0 ; --i) {
-    if(m_str[i] == ch) return i;
+  for (auto i = m_size - pos; i > 0; --i) {
+    if (m_str[i - 1] == ch) { return i - 1; }
   }
   return npos;
 }

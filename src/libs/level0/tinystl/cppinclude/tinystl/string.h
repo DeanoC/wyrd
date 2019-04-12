@@ -721,6 +721,15 @@ static inline size_t hash(const basic_string<allocator>& value) {
 
 typedef basic_string<TINYSTL_ALLOCATOR> string;
 
+#if PLATFORM == PLATFORM_WINDOWS
+// basic to_string support, probably slow etc.
+#define TO_STRING_GEN(TYPE, FMT) \
+static inline string to_string(TYPE const t) { \
+  char tmp[1024]; \
+  sprintf_s(tmp, FMT, t); \
+  return string(tmp); \
+}
+#else
 // basic to_string support, probably slow etc.
 #define TO_STRING_GEN(TYPE, FMT) \
 static inline string to_string(TYPE const t) { \
@@ -728,6 +737,7 @@ static inline string to_string(TYPE const t) { \
   sprintf(tmp, FMT, t); \
   return string(tmp); \
 }
+#endif
 
 TO_STRING_GEN(uint8_t, "%" PRIu8)
 TO_STRING_GEN(uint16_t, "%" PRIu16)
