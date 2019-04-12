@@ -5,6 +5,8 @@
 #include "vfile/vfile.h"
 #include "vfile/interface.h"
 #include "vfile/osfile.h"
+#include <malloc.h>
+#include <string.h>
 
 static void VFile_OsFile_Close(VFile_Interface_t *vif) {
   VFile_OsFile_t *vof = (VFile_OsFile_t *) (vif + 1);
