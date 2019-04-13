@@ -39,8 +39,20 @@ inline bool IsAbsolutePath(tinystl::string const& path) {
   return Os_IsAbsolutePath(path.c_str());
 }
 
-bool SplitPath(tinystl::string const& fullPath, tinystl::string_view& fileName,
-               tinystl::string_view& extension);
+inline bool SplitPath(tinystl::string const& fullPath, tinystl::string_view& fileName,
+               tinystl::string_view& extension) {
+
+  size_t fileNamePos = 0;
+  size_t extPos = 0;
+  bool okay = Os_SplitPath(fullPath.c_str(), &fileNamePos, &extPos);
+  if(okay) {
+    fileName = tinystl::string_view(fullPath.c_str()+fileNamePos);
+    extension = tinystl::string_view(fullPath.c_str()+extPos);
+    return true;
+  } else {
+    return false;
+  }
+}
 inline bool SplitPath(tinystl::string const& fullPath, tinystl::string& fileName,
                tinystl::string& extension) {
   tinystl::string_view fn, ext;

@@ -29,3 +29,4 @@ typedef unsigned long size_t;
 #define vsprintf_s vsnprintf
 #define strncpy_s strncpy
 #define _strdup strdup
+#define _stricmp stricmp
