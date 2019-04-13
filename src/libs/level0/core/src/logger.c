@@ -21,31 +21,31 @@ void OutputDebug(char const* msg)
 static void errorMsg(char const *file, int line, const char *function, char const *msg) {
   char out[MSG_MAX];
   sprintf(out, "%s(%i): ERR (%s) - %s\n", file, line, function, msg);
-  OutputDebugString(out);
+  OutputDebug(out);
 }
 
 static void warningMsg(char const *file, int line, const char *function, char const *msg) {
   char out[MSG_MAX];
   sprintf(out, "%s(%i): WARN (%s) - %s\n", file, line, function, msg);
-  OutputDebugString(out);
+  OutputDebug(out);
 }
 
 static void infoMsg(char const *file, int line, const char *function, char const *msg) {
   char out[MSG_MAX];
   sprintf(out, "%s(%i): INFO (%s) - %s\n", file, line, function, msg);
-  OutputDebugString(out);
+  OutputDebug(out);
 }
 
 static void debugMsg(char const *file, int line, const char *function, char const *msg) {
   char out[MSG_MAX];
   sprintf(out, "%s(%i): DBG (%s) - %s\n", file, line, function, msg);
-  OutputDebugString(out);
+  OutputDebug(out);
 }
 
 static void failedAssert(char const *file, int line, char const *msg) {
   char out[MSG_MAX];
   sprintf(out, "%s(%i): Assert Failed - %s\n", file, line, msg);
-  OutputDebugString(out);
+  OutputDebug(out);
 }
 
 EXTERN_C void _ErrorMsg(const char *file, int line, const char *function, const char *string, ...) {

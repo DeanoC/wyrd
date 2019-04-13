@@ -5,7 +5,6 @@
 #include "vfile/interface.h"
 #include "vfile/osfile.h"
 
-#include <malloc.h>
 
 #define VFILE_FUNC_HEADER  \
 struct VFile_Interface_t* interface = (VFile_Interface_t*)handle; \
