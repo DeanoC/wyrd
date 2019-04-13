@@ -576,7 +576,7 @@ EXTERN_C Image_ImageHeader *Image_LoadEXR(VFile_Handle handle) {
   if(firstPixelType == TINYEXR_PIXELTYPE_FLOAT) {
     float* out = (float*)Image_RawDataPtr(image);
 
-    for (int i = 0; i < image->width * image->height; i++) {
+    for (uint32_t i = 0; i < image->width * image->height; i++) {
       for (int chn = 0; chn < numChannels; chn++) {
         out[i * numChannels + chn] = ((float**) exrImage.images)[idxChannels[chn]][i];
       }
@@ -584,7 +584,7 @@ EXTERN_C Image_ImageHeader *Image_LoadEXR(VFile_Handle handle) {
   } else if(firstPixelType == TINYEXR_PIXELTYPE_HALF) {
     uint16_t* out = (uint16_t*)Image_RawDataPtr(image);
 
-    for (int i = 0; i < image->width * image->height; i++) {
+    for (uint32_t i = 0; i < image->width * image->height; i++) {
       for (int chn = 0; chn < numChannels; chn++) {
         out[i * numChannels + chn] = ((uint16_t**) exrImage.images)[idxChannels[chn]][i];
       }

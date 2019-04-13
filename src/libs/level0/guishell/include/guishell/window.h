@@ -3,10 +3,8 @@
 #define WYRD_GUISHELL_WINDOW_H
 
 #include "core/core.h"
-#include "os/rect.h"
-#include "math/math.h"
 
-typedef struct{} *GuiShell_IconHandle;
+typedef void *GuiShell_IconHandle;
 
 typedef struct GuiShell_WindowDesc {
   char const* name;

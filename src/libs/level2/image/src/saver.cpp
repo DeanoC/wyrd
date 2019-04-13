@@ -30,7 +30,7 @@ EXTERN_C bool Image_SaveDDS(Image_ImageHeader *image, VFile_Handle handle) {
   header.mDWHeight = image->height;
   header.mDWDepth = (image->depth > 1) ? image->depth : 0;
   header.mDWPitchOrLinearSize = 0;
-  header.mDWMipMapCount = Image_LinkedImageCountOf(image);
+  header.mDWMipMapCount = (uint32_t) Image_LinkedImageCountOf(image);
   header.mPixelFormat.mDWSize = 32;
 
   header.mDWFlags =
@@ -179,7 +179,7 @@ EXTERN_C bool Image_SaveDDS(Image_ImageHeader *image, VFile_Handle handle) {
     file->Write(&headerDX10, sizeof(headerDX10) * 1);
   }
 
-  int size = Image_BytesRequiredForMipMapsOf(image);
+  size_t size = Image_BytesRequiredForMipMapsOf(image);
 
   // RGB to BGR
 //  if (mFormat == RGB8 || mFormat == RGBA8) {
@@ -189,7 +189,7 @@ EXTERN_C bool Image_SaveDDS(Image_ImageHeader *image, VFile_Handle handle) {
   for (uint32_t mipMapLevel = 0; mipMapLevel < header.mDWMipMapCount; mipMapLevel++) {
     Image_ImageHeader const *face = Image_LinkedImageOf(image, mipMapLevel);
 
-    int faceSize = Image_ByteCountOf(face);
+    size_t faceSize = Image_ByteCountOf(face);
     void *src = Image_RawDataPtr(face);
     file->Write(src, faceSize);
   }

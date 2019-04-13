@@ -80,7 +80,7 @@ auto PutChannel_R5G5B5A1_UNORM(uint8_t channel_, uint8_t *ptr_, double const val
     double const v = Math_ClampD(value_, 0.0, 1.0);
     pixel = (pixel & uint16_t(0xFFFEu)) | (uint16_t) v << 0u;
   } else {
-    assert(channel_ < 4);
+    ASSERT(channel_ < 4);
   }
   PutRaw(ptr_, pixel);
 }
@@ -100,7 +100,7 @@ auto PutChannel_A1R5G5B5_UNORM(uint8_t channel_, uint8_t *ptr_, double const val
     double const v = Math_ClampD(value_ * 31.0, 0.0, 31.0);
     pixel = (pixel & uint16_t(0xFFE0u)) | (uint16_t) v << 0u;
   } else {
-    assert(channel_ < 4);
+    ASSERT(channel_ < 4);
   }
   PutRaw(ptr_, pixel);
 }
@@ -126,7 +126,7 @@ auto PutChannel_A2R10G10B10(uint8_t channel_, uint8_t *ptr_, double const value_
     double const v = Math_ClampD(value_, 0.0, 1023.0);
     pixel = (pixel & 0xFFFFFC00u) | (uint32_t) v << 0u;
   } else {
-    assert(channel_ < 4);
+    ASSERT(channel_ < 4);
   }
   PutRaw(ptr_, pixel);
 
@@ -143,11 +143,11 @@ auto PutChannel_X8D24_UNORM(uint8_t channel_, uint8_t *ptr_, double const value_
     double const v = Math_ClampD(value_ * 255.0, 0.0, 255.0);
     pixel = (pixel & 0x00FFFFFFu) | (uint32_t) v << 24u;
   } else if (channel_ == 1) {
-    static const double Max24Bit = double(1 << 24) - 1.0;
+    static const double Max24Bit = double(1ul << 24ul) - 1.0;
     double const v = Math_ClampD(value_ * Max24Bit, 0.0, Max24Bit);
     pixel = (pixel & 0xFF000000u) | (uint32_t) v << 0u;
   } else {
-    assert(channel_ < 2);
+    ASSERT(channel_ < 2);
   }
   PutRaw(ptr_, pixel);
 }
@@ -162,7 +162,7 @@ auto PutChannel_D24X8_UNORM(uint8_t channel_, uint8_t *ptr_, double const value_
     double const v = Math_ClampD(value_ * 255.0, 0.0, 255.0);
     pixel = (pixel & 0xFFFFFF00u) | (uint32_t) v << 0u;
   } else {
-    assert(channel_ < 2);
+    ASSERT(channel_ < 2);
   }
   PutRaw(ptr_, pixel);
 }
@@ -175,7 +175,7 @@ auto PutChannel_D16S8_UNORM_UINT(uint8_t channel_, uint8_t *ptr_, double const v
     double const v = Math_ClampD(value_, 0.0, 255.0);
     PutHomoChannel<uint16_t>(0, ptr_ + 2, (uint8_t) v);
   } else {
-    assert(channel_ < 2);
+    ASSERT(channel_ < 2);
   }
 
 }

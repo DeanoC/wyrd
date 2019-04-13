@@ -1,3 +1,5 @@
+cmake_policy(PUSH)
+cmake_policy(SET CMP0077 NEW)
 
 set(LibName spirvtools)
 
@@ -15,7 +17,9 @@ set(Src
 set(Deps
         level0/core)
 
-set(SPIRV_SKIP_EXECUTABLES 1)
+option(SPIRV_SKIP_EXECUTABLES ON)
+option(SPIRV_SKIP_TESTS ON)
+
 FetchContent_Declare(
         ThirdParty_SPIRVCross
         GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross
@@ -40,3 +44,5 @@ ADD_LIB(${LibName} "${CInterface}" "${CPPInterface}" "${Src}" "${Deps}")
 target_link_libraries(${LibName} spirv-cross-cpp)
 target_link_libraries(${LibName} SPIRV-Tools)
 target_include_directories(${LibName} PRIVATE ${thirdparty_spirvtools_SOURCE_DIR}/include)
+
+cmake_policy(POP)

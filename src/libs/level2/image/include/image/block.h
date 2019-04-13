@@ -39,10 +39,10 @@ EXTERN_C void Image_BlockDecodeBC4(uint8_t *dest, uint8_t const *src);
 EXTERN_C void Image_BlockDecodeBC5(uint8_t *dest, uint8_t const *src);
 
 EXTERN_C void Image_BlockDecodeCompressedData(uint8_t *dest,
-                                               uint8_t const *src,
-                                               int width,
-                                               int height,
-                                               Image_Format format);
+                                              uint8_t const *src,
+                                              const int width,
+                                              const int height,
+                                              const Image_Format format);
 
-EXTERN_C bool Image_BlockDecodeIsSupported(Image_Format format);
+EXTERN_C bool Image_BlockDecodeIsSupported(const Image_Format format);
 #endif //WYRD_IMAGE_BLOCK_H

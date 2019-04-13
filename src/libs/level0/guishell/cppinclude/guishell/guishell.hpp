@@ -4,10 +4,7 @@
 
 #include "core/core.h"
 #include "guishell/guishell.h"
-#include "tinystl/string.h"
 #include "guishell/window.hpp"
-
-namespace GuiShell {
 
 // Init, Load, Unload, Update, Draw and Exit and InitialWindow must be defined
 // as static function in the users app class
@@ -22,6 +19,8 @@ EXTERN_C void GuiShell_AppConfig(GuiShell_Functions* functions, GuiShell_WindowD
   functions->exit = &theApp.Exit; \
   memcpy(initialWindow, theApp.InitialWindow(), sizeof(GuiShell_WindowDesc)); \
 }
+
+namespace GuiShell {
 
 inline void Terminate() {
   GuiShell_Terminate();

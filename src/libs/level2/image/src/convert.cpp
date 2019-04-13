@@ -106,7 +106,7 @@ void HalfNToFloatN(Image_ImageHeader *src, Image_Format newFormat, Image_ImageHe
     float *ddata = (float *) Image_RawDataPtr(dst);
     size_t nPixels = Image_PixelCountOf(src);
     do {
-      int i = 0;
+      uint32_t i = 0;
       for (i = 0; i < Image_Format_ChannelCount(src->format); i++) {
         ddata[i] = Math_Half2Float(sdata[i]);
       }
@@ -141,7 +141,7 @@ void FloatNToHalfN(Image_ImageHeader *src, Image_Format newFormat, Image_ImageHe
     uint16_t *ddata = (uint16_t *) Image_RawDataPtr(dst);
     size_t nPixels = Image_PixelCountOf(src);
     do {
-      int i = 0;
+      uint32_t i = 0;
       for (i = 0; i < Image_Format_ChannelCount(src->format); i++) {
         ddata[i] = Math_Float2Half(sdata[i]);
       }

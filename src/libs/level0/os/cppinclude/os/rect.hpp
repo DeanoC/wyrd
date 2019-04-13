@@ -4,6 +4,7 @@
 
 #include "core/core.h"
 #include "os/rect.h"
+
 namespace Os {
 
 using Rect = Os_Rect;

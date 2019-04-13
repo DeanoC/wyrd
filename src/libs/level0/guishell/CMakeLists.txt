@@ -10,12 +10,14 @@ set( CPPInterface
 		)
 
 set( Src
-		guishell.cpp
 		)
 if (APPLE)
 	list(APPEND Src apple/macapp.hpp)
 	list(APPEND Src apple/macapp.mm)
 endif()
+if (WIN32)
+    list(APPEND Src windows/windows.cpp)
+endif ()
 
 set( Deps
 		level0/core

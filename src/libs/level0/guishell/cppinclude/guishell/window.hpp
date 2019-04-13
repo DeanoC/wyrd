@@ -4,7 +4,6 @@
 
 #include "core/core.h"
 #include "guishell/window.h"
-#include "os/rect.hpp"
 
 namespace GuiShell {
 namespace Window {

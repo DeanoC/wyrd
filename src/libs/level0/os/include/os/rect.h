@@ -2,6 +2,8 @@
 #ifndef WYRD_OS_RECTDESC_H
 #define WYRD_OS_RECTDESC_H
 
+#include "core/core.h"
+
 typedef struct Os_Rect {
   int32_t left;
   int32_t top;
