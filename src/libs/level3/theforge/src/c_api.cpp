@@ -1,6 +1,5 @@
 #include "core/core.h"
 #include "theforge/renderer.hpp"
-#include "theforge/shader_reflection.hpp"
 #include "image/image.h"
 
 // I usually don't global namespace things
@@ -83,11 +82,11 @@ EXTERN_C void TheForge_AddSampler(Renderer *pRenderer, const SamplerDesc *pDesc,
 EXTERN_C void TheForge_RemoveSampler(Renderer *pRenderer, Sampler *p_sampler) {
   RemoveSampler(pRenderer, p_sampler);
 }
-EXTERN_C void TheForge_AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program) {
-  AddShader(pRenderer,
-            p_desc,
-            p_shader_program);
-}
+//EXTERN_C void TheForge_AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program) {
+//  AddShader(pRenderer,
+//            p_desc,
+//            p_shader_program);
+//}
 EXTERN_C void TheForge_AddShaderBinary(Renderer *pRenderer,
                                        const BinaryShaderDesc *p_desc,
                                        Shader **p_shader_program) {
@@ -200,10 +199,12 @@ EXTERN_C void TheForge_CmdBindPipeline(Cmd *p_cmd, TheForge_Pipeline *p_pipeline
   CmdBindPipeline(p_cmd, p_pipeline);
 }
 EXTERN_C void TheForge_CmdBindDescriptors(Cmd *pCmd,
+                                          TheForge_DescriptorBinder* pDescriptorBinder,
                                           RootSignature *pRootSignature,
                                           uint32_t numDescriptors,
                                           DescriptorData *pDescParams) {
   CmdBindDescriptors(pCmd,
+                     pDescriptorBinder,
                      pRootSignature,
                      numDescriptors,
                      pDescParams);
@@ -420,21 +421,6 @@ EXTERN_C void TheForge_AddTexture(Renderer *pRenderer, const TextureDesc *pDesc,
 }
 EXTERN_C void TheForge_RemoveTexture(Renderer *pRenderer, Texture *pTexture) {
   RemoveTexture(pRenderer, pTexture);
-}
-EXTERN_C void TheForge_DestroyShaderReflection(TheForge_ShaderReflection *pReflection) {
-  DestroyShaderReflection(pReflection);
-}
-EXTERN_C void TheForge_CreatePipelineReflection(TheForge_ShaderReflection *pReflection,
-                                                uint32_t stageCount,
-                                                TheForge_PipelineReflection *pOutReflection) {
-  CreatePipelineReflection(pReflection, stageCount, pOutReflection);
-}
-EXTERN_C void TheForge_DestroyPipelineReflection(TheForge_PipelineReflection *pReflection) {
-  DestroyPipelineReflection(pReflection);
-}
-
-EXTERN_C Image_Format TheForge_GetRecommendedSwapchainFormat(bool hintHDR) {
-  return GetRecommendedSwapchainFormat(hintHDR);
 }
 
 EXTERN_C void TheForge_MapBuffer(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer, TheForge_ReadRange *pRange) {

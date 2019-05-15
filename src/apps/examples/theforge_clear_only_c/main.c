@@ -32,7 +32,7 @@ static bool AddSwapChain()
   swapChainDesc.mHeight = windowDesc.height;
   swapChainDesc.mImageCount = gImageCount;
   swapChainDesc.mSampleCount = TheForge_SAMPLE_COUNT_1;
-  swapChainDesc.mColorFormat = TheForge_GetRecommendedSwapchainFormat(true);
+  swapChainDesc.mColorFormat = TheForge_Display_GetRecommendedSwapchainFormat(true);
   swapChainDesc.mEnableVsync = false;
   TheForge_Display_AddSwapChain(pRenderer, &swapChainDesc, &pSwapChain);
 

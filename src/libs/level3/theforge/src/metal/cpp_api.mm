@@ -1,11 +1,8 @@
 #include "core/core.h"
 #include "theforge/renderer.hpp"
-#include "theforge/renderer_descs.hpp"
-#include "theforge/renderer_enums.hpp"
-#include "theforge/renderer_structs.hpp"
-#include "theforge/shader_reflection.hpp"
-#include "image/image.h"
 #include "theforge/metal/renderer.hpp"
+#include "theforge/metal/descriptor.hpp"
+#include "theforge/metal/utils.hpp"
 
 namespace TheForge {
 
@@ -40,7 +37,6 @@ void RemoveQueue(Renderer *pRenderer, Queue *pQueue) {
   Metal::RemoveQueue((Metal::Renderer *) pRenderer, (Metal::Queue *) pQueue);
 }
 
-
 void RemoveRenderTarget(Renderer *pRenderer, RenderTarget *p_render_target) {
   Metal::RemoveRenderTarget((Metal::Renderer *) pRenderer, (Metal::RenderTarget *) p_render_target);
 }
@@ -51,10 +47,6 @@ void AddSampler(Renderer *pRenderer, const SamplerDesc *pDesc, Sampler **pp_samp
 
 void RemoveSampler(Renderer *pRenderer, Sampler *p_sampler) {
   Metal::RemoveSampler((Metal::Renderer *) pRenderer, (Metal::Sampler *) p_sampler);
-}
-
-void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program) {
-  Metal::AddShader((Metal::Renderer *) pRenderer, p_desc, (Metal::Shader **) p_shader_program);
 }
 
 void AddShaderBinary(Renderer *pRenderer, const BinaryShaderDesc *p_desc, Shader **p_shader_program) {
@@ -296,10 +288,15 @@ void CmdBindPipeline(Cmd *p_cmd, Pipeline *p_pipeline) {
 }
 
 void CmdBindDescriptors(Cmd *pCmd,
+                        DescriptorBinder *pDescriptorBinder,
                         RootSignature *pRootSignature,
                         uint32_t numDescriptors,
                         DescriptorData *pDescParams) {
-  Metal::CmdBindDescriptors((Metal::Cmd *) pCmd, (Metal::RootSignature *) pRootSignature, numDescriptors, pDescParams);
+  Metal::CmdBindDescriptors((Metal::Cmd *) pCmd,
+                            (Metal::DescriptorBinder *) pDescriptorBinder,
+                            (Metal::RootSignature *) pRootSignature,
+                            numDescriptors,
+                            pDescParams);
 }
 
 void CmdBindIndexBuffer(Cmd *p_cmd, Buffer *p_buffer, uint64_t offset) {
@@ -413,9 +410,6 @@ void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName) 
   Metal::CmdAddDebugMarker((Metal::Cmd *) pCmd, r, g, b, pName);
 }
 
-Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
-  return Metal::GetRecommendedSwapchainFormat(hintHDR);
-}
 void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange) {
   Metal::MapBuffer((Metal::Renderer *) pRenderer, (Metal::Buffer *) pBuffer, pRange);
 }

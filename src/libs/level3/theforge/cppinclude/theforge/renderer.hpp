@@ -29,7 +29,7 @@ void AddRenderTarget(Renderer *pRenderer, const RenderTargetDesc *p_desc, Render
 void RemoveRenderTarget(Renderer *pRenderer, RenderTarget *p_render_target);
 void AddSampler(Renderer *pRenderer, const SamplerDesc *pDesc, Sampler **pp_sampler);
 void RemoveSampler(Renderer *pRenderer, Sampler *p_sampler);
-void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program);
+//void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program);
 void AddShaderBinary(Renderer *pRenderer, const BinaryShaderDesc *p_desc, Shader **p_shader_program);
 void RemoveShader(Renderer *pRenderer, Shader *p_shader_program);
 void AddRootSignature(Renderer *pRenderer, const RootSignatureDesc *pRootDesc, RootSignature **pp_root_signature);
@@ -68,6 +68,7 @@ void CmdSetViewport(Cmd *p_cmd,
 void CmdSetScissor(Cmd *p_cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 void CmdBindPipeline(Cmd *p_cmd, Pipeline *p_pipeline);
 void CmdBindDescriptors(Cmd *pCmd,
+                        DescriptorBinder *pDescriptorBinder,
                         RootSignature *pRootSignature,
                         uint32_t numDescriptors,
                         DescriptorData *pDescParams);
@@ -157,7 +158,6 @@ void CmdEndDebugMarker(Cmd *pCmd);
 void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName);
 void SetBufferName(Renderer *pRenderer, Buffer *pBuffer, const char *pName);
 void SetTextureName(Renderer *pRenderer, Texture *pTexture, const char *pName);
-Image_Format GetRecommendedSwapchainFormat(bool hintHDR);
 void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange);
 void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer);
 void CmdUpdateBuffer(Cmd *p_cmd, uint64_t srcOffset,

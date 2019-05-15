@@ -29,12 +29,13 @@
 #define SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS
 #include "spirv_cross.hpp"
 #include "spirv-tools/libspirv.h"
+#include "spirv_cross_containers.hpp"
 //#include "OS/Interfaces/IMemoryManager.h" //NOTE: this should be the last include in a .cpp
 
 // helper functions
-static void ReflectBoundResources(
+void ReflectBoundResources(
     spirv_cross::Compiler *pCompiler,
-    const std::vector<spirv_cross::Resource>& allResources,
+    const spirv_cross::SmallVector<spirv_cross::Resource>& allResources,
     const std::unordered_set<uint32_t>& usedResouces,
     Spirvtools_Resource *resources,
     uint32_t *current_resource,
@@ -400,7 +401,7 @@ EXTERN_C void Spirvtools_CrossReflectShaderVariables(Spirvtools_Cross *pCompiler
         ((char *) variable.name)[variable.name_size] = 0;
       }
 
-      std::vector<spirv_cross::BufferRange> range = compiler->get_active_buffer_ranges(resource.SPIRV_code.id);
+      spirv_cross::SmallVector<spirv_cross::BufferRange> range = compiler->get_active_buffer_ranges(resource.SPIRV_code.id);
 
       for (uint32_t j = 0;
            j < (uint32_t) range.size();

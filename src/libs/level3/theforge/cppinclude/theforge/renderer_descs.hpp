@@ -16,10 +16,8 @@ using SamplerDesc = TheForge_SamplerDesc;
 using RootSignatureDesc = TheForge_RootSignatureDesc;
 using CmdPoolDesc = TheForge_CmdPoolDesc;
 using QueueDesc = TheForge_QueueDesc;
-using ShaderMacro = TheForge_ShaderMacro;
-using RendererShaderDefinesDesc = TheForge_RendererShaderDefinesDesc;
-using ShaderStageDesc = TheForge_ShaderStageDesc;
-using ShaderDesc = TheForge_ShaderDesc;
+
+using ShaderResource = TheForge_ShaderResourceDesc;
 using BinaryShaderStageDesc = TheForge_BinaryShaderStageDesc;
 using BinaryShaderDesc = TheForge_BinaryShaderDesc;
 using BlendStateDesc = TheForge_BlendStateDesc;
@@ -38,6 +36,7 @@ using RendererDesc = TheForge_RendererDesc;
 using IndirectArgumentDescriptor = TheForge_IndirectArgumentDescriptor;
 using CommandSignatureDesc = TheForge_CommandSignatureDesc;
 using QueryHeapDesc = TheForge_QueryHeapDesc;
+using DescriptorBinderDesc = TheForge_DescriptorBinderDesc;
 }
 
 #endif //WYRD_THEFORGE_RENDERER_DESCS_HPP

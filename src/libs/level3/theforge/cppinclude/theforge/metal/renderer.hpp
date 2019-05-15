@@ -5,7 +5,6 @@
 #include "core/core.h"
 #include "structs.hpp"
 #include "theforge/renderer.hpp"
-#include "theforge/shader_reflection.hpp"
 #include "tinystl/unordered_map.h"
 
 namespace TheForge { namespace Metal {
@@ -31,7 +30,7 @@ void RemoveRenderTarget(Renderer *pRenderer, RenderTarget *p_render_target);
 void AddSampler(Renderer *pRenderer, const SamplerDesc *pDesc, Sampler **pp_sampler);
 void RemoveSampler(Renderer *pRenderer, Sampler *p_sampler);
 
-void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program);
+//void AddShader(Renderer *pRenderer, const ShaderDesc *p_desc, Shader **p_shader_program);
 void AddShaderBinary(Renderer *pRenderer, const BinaryShaderDesc *p_desc, Shader **p_shader_program);
 void RemoveShader(Renderer *pRenderer, Shader *p_shader_program);
 
@@ -85,6 +84,7 @@ void CmdSetViewport(Cmd *p_cmd,
 void CmdSetScissor(Cmd *p_cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 void CmdBindPipeline(Cmd *p_cmd, Pipeline *p_pipeline);
 void CmdBindDescriptors(Cmd *pCmd,
+                        DescriptorBinder* pDescriptorBinder,
                         RootSignature *pRootSignature,
                         uint32_t numDescriptors,
                         DescriptorData *pDescParams);
@@ -167,20 +167,17 @@ void CmdBeginDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName
 void CmdEndDebugMarker(Cmd *pCmd);
 void CmdAddDebugMarker(Cmd *pCmd, float r, float g, float b, const char *pName);
 
-void CreateShaderReflection(
-    Renderer *pRenderer, Shader *shader, const uint8_t *shaderCode, uint32_t shaderSize, ShaderStage shaderStage,
-    tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats, ShaderReflection *pOutReflection);
 
 const DescriptorInfo *GetDescriptor(const RootSignature *pRootSignature, const char *pResName, uint32_t *pIndex);
 
 void GetRawTextureHandle(Renderer *pRenderer, Texture *pTexture, void **ppHandle);
 
 void CmdBindLocalDescriptors(Cmd *pCmd,
+                             DescriptorBinder *pDescriptorBinder,
                              RootSignature *pRootSignature,
                              uint32_t numDescriptors,
                              DescriptorData *pDescParams);
 
-Image_Format GetRecommendedSwapchainFormat(bool hintHDR);
 
 void MapBuffer(Renderer *pRenderer, Buffer *pBuffer, ReadRange *pRange);
 void UnmapBuffer(Renderer *pRenderer, Buffer *pBuffer);

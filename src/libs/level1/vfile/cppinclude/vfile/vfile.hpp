@@ -46,7 +46,7 @@ struct File {
 
   size_t Size() const { return VFile_Size((VFile_Handle) this); }
 
-  tinystl::string_view GetName() const { return VFile_GetName((VFile_Handle) this); }
+  char const* GetName() const { return VFile_GetName((VFile_Handle) this); }
 
   bool IsEOF() const { return VFile_IsEOF((VFile_Handle) this); }
 

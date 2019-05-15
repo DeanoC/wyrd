@@ -68,9 +68,6 @@ EXTERN_C void TheForge_AddCmd_n(TheForge_CmdPool *p_CmdPool,
 EXTERN_C void TheForge_RemoveCmd_n(TheForge_CmdPool *p_CmdPool, uint32_t cmd_count, TheForge_Cmd **pp_cmd);
 
 // shader functions
-EXTERN_C void TheForge_AddShader(TheForge_Renderer *pRenderer,
-                                 const TheForge_ShaderDesc *p_desc,
-                                 TheForge_Shader **p_shader_program);
 EXTERN_C void TheForge_AddShaderBinary(TheForge_Renderer *pRenderer,
                                        const TheForge_BinaryShaderDesc *p_desc,
                                        TheForge_Shader **p_shader_program);
@@ -106,10 +103,6 @@ EXTERN_C void TheForge_CmdSetViewport(TheForge_Cmd *p_cmd,
                                       float max_depth);
 EXTERN_C void TheForge_CmdSetScissor(TheForge_Cmd *p_cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 EXTERN_C void TheForge_CmdBindPipeline(TheForge_Cmd *p_cmd, TheForge_Pipeline *p_pipeline);
-EXTERN_C void TheForge_CmdBindDescriptors(TheForge_Cmd *pCmd,
-                                          TheForge_RootSignature *pRootSignature,
-                                          uint32_t numDescriptors,
-                                          TheForge_DescriptorData *pDescParams);
 EXTERN_C void TheForge_CmdBindIndexBuffer(TheForge_Cmd *p_cmd, TheForge_Buffer *p_buffer, uint64_t offset);
 EXTERN_C void TheForge_CmdBindVertexBuffer(TheForge_Cmd *p_cmd,
                                            uint32_t buffer_count,
@@ -135,6 +128,11 @@ EXTERN_C void TheForge_CmdDispatch(TheForge_Cmd *p_cmd,
                                    uint32_t group_count_x,
                                    uint32_t group_count_y,
                                    uint32_t group_count_z);
+EXTERN_C void TheForge_CmdBindDescriptors(TheForge_Cmd* pCmd,
+    TheForge_DescriptorBinder* pDescriptorBinder,
+    TheForge_RootSignature* pRootSignature,
+    uint32_t numDescriptors,
+    TheForge_DescriptorData* pDescParams);
 
 // Transition Commands
 EXTERN_C void TheForge_CmdResourceBarrier(TheForge_Cmd *p_cmd,
@@ -172,11 +170,6 @@ EXTERN_C void TheForge_WaitForFences(TheForge_Renderer *pRenderer,
 
 // image related functions
 EXTERN_C bool TheForge_IsImageFormatSupported(Image_Format format);
-
-//Returns the recommended format for the swapchain.
-//If true is passed for the hintHDR parameter, it will return an HDR format IF the platform supports it
-//If false is passed or the platform does not support HDR a non HDR format is returned.
-EXTERN_C Image_Format TheForge_GetRecommendedSwapchainFormat(bool hintHDR);
 
 //indirect Draw functions
 EXTERN_C void TheForge_AddIndirectCommandSignature(TheForge_Renderer *pRenderer,
@@ -236,5 +229,16 @@ EXTERN_C void TheForge_CmdUpdateSubresources(TheForge_Cmd *pCmd,
 // Resource Debug Naming Interface
 EXTERN_C void TheForge_SetBufferName(TheForge_Renderer *pRenderer, TheForge_Buffer *pBuffer, const char *pName);
 EXTERN_C void TheForge_SetTextureName(TheForge_Renderer *pRenderer, TheForge_Texture *pTexture, const char *pName);
+
+// descriptor binder functions
+EXTERN_C void TheForge_AddDescriptorBinder(
+    TheForge_Renderer* pRenderer,
+    uint32_t gpuIndex,
+    uint32_t descCount,
+    const TheForge_DescriptorBinderDesc* p_descs,
+    TheForge_DescriptorBinder** pp_descriptor_binder);
+EXTERN_C void TheForge_RemoveDescriptorBinder(
+    TheForge_Renderer* pRenderer,
+    TheForge_DescriptorBinder* p_descriptor_binder);
 
 #endif //WYRD_THEFORGE_RENDERER_H

@@ -5,7 +5,6 @@
 #include "core/core.h"
 #include "theforge/renderer.hpp"
 #include "theforge/metal/renderer.hpp"
-#include "theforge/shader_reflection.hpp"
 #include "tinystl/unordered_map.h"
 #include "tinystl/vector.h"
 #include "tinystl/unordered_set.h"
@@ -18,14 +17,6 @@
 #define MAX_BUFFER_BINDINGS 31
 
 namespace TheForge { namespace Metal {
-
-extern void CreateShaderReflection(Renderer *pRenderer,
-                                   Shader *shader,
-                                   const uint8_t *shaderCode,
-                                   uint32_t shaderSize,
-                                   ShaderStage shaderStage,
-                                   tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats,
-                                   ShaderReflection *pOutReflection);
 
 struct AccelerationStructure {
   MPSAccelerationStructureGroup *pSharedGroup;
@@ -64,6 +55,8 @@ struct RaytracingShaderInfoSet {
 struct RaytracingShaderTable {
   RaytracingShaderInfoSet mHitShadersInfo;
   RaytracingShaderInfoSet mMissShadersInfo;
+
+  DescriptorBinder *pDescriptorBinder;
 
   ShaderLocalData mRayGenData;
   uint32_t mRayGenHitRef;
@@ -104,8 +97,6 @@ struct RaytracingPipeline {
   uint32_t mMaxRaysCount;
   uint32_t mPayloadRecordSize;
 };
-
-extern void AddDescriptorManager(Renderer *pRenderer, RootSignature *pRootSignature, DescriptorManager **ppManager);
 
 bool IsRaytracingSupported(Renderer *pRenderer) {
   return true;
@@ -545,8 +536,8 @@ void CmdCopyTexture(Cmd *pCmd, Texture *pDst, Texture *pSrc) {
           copyFromTexture:pSrc->mtlTexture
               sourceSlice:l
               sourceLevel:m
-             sourceOrigin:MTLOriginMake(0,0,0)
-               sourceSize:MTLSizeMake(mipmapWidth, mipmapHeight, 1)                                                                                         toTexture:pDst->mtlTexture                                                              destinationSlice:l
+             sourceOrigin:MTLOriginMake(0, 0, 0)
+               sourceSize:MTLSizeMake(mipmapWidth, mipmapHeight, 1) toTexture:pDst->mtlTexture destinationSlice:l
          destinationLevel:m
         destinationOrigin:MTLOriginMake(0, 0, 0)];
     }
@@ -565,7 +556,7 @@ void AddRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
   ASSERT(pDesc);
   ASSERT(ppPipeline);
 
-  Raytracing *pRaytracing = (Raytracing*) pDesc->pRaytracing;
+  Raytracing *pRaytracing = (Raytracing *) pDesc->pRaytracing;
   ASSERT(pRaytracing);
 
   Pipeline *pGenericPipeline = (Pipeline *) calloc(1, sizeof(Pipeline));
@@ -579,8 +570,8 @@ void AddRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
   // Set to YES to allow compiler to make certain optimizations
   computeDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
 
-  Renderer* pRenderer = (Renderer*)pRaytracing->pRenderer;
-  Shader* pRayGenShader = (Shader*)pDesc->pRayGenShader;
+  Renderer *pRenderer = (Renderer *) pRaytracing->pRenderer;
+  Shader *pRayGenShader = (Shader *) pDesc->pRayGenShader;
 
   NSString *entryPointNStr = [[NSString alloc] initWithUTF8String:pRayGenShader->mtlComputeShaderEntryPoint.c_str()];
   computeDescriptor.computeFunction = pRayGenShader->mtlComputeShader;
@@ -606,7 +597,7 @@ void AddRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
     // Set to YES to allow compiler to make certain optimizations
     computeDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
 
-    Shader* pClosestHitShader = (Shader*)pDesc->pHitGroups[i].pClosestHitShader;
+    Shader *pClosestHitShader = (Shader *) pDesc->pHitGroups[i].pClosestHitShader;
     //Rustam: take care about "any hit" and "intersection" shaders
     entryPointNStr =
         [[NSString alloc] initWithUTF8String:pClosestHitShader->mtlComputeShaderEntryPoint.c_str()];
@@ -634,7 +625,7 @@ void AddRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
     // Set to YES to allow compiler to make certain optimizations
     computeDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = YES;
 
-    Shader* pMissShader = (Shader*)pDesc->ppMissShaders[i];
+    Shader *pMissShader = (Shader *) pDesc->ppMissShaders[i];
     //Rustam: take care about "any hit" and "intersection" shaders
     entryPointNStr = [[NSString alloc] initWithUTF8String:pMissShader->mtlComputeShaderEntryPoint.c_str()];
 
@@ -686,7 +677,7 @@ void AddRaytracingPipeline(const RaytracingPipelineDesc *pDesc, Pipeline **ppPip
   NSUInteger intersectionsBufferSize =
       sizeof(MPSIntersectionDistancePrimitiveIndexInstanceIndexCoordinates) * pDesc->mMaxRaysCount;
   pPipeline->mIntersectionBuffer = [pRenderer->pDevice newBufferWithLength:intersectionsBufferSize
-                                                                                options:MTLResourceStorageModePrivate];
+                                                                   options:MTLResourceStorageModePrivate];
 
 #if !TARGET_OS_IPHONE
   [pPipeline->mSettingsBuffer didModifyRange:NSMakeRange(0, pPipeline->mSettingsBuffer.length)];
@@ -746,7 +737,7 @@ void SetupShadersInfo(Raytracing *pRaytracing,
 #else
   MTLResourceOptions options = MTLResourceStorageModeShared;
 #endif
-  Renderer* pRenderer =(Renderer*)pRenderer;
+  Renderer *pRenderer = (Renderer *) pRenderer;
   shadersInfo->mHitPipelines = [[NSMutableArray alloc] init];
 
   uint32_t settingsBufferSize = sizeof(HitShaderSettings) * groupsCount;
@@ -793,7 +784,7 @@ void SetupShadersInfo(Raytracing *pRaytracing,
       raysBuffer =
           [pRenderer->pDevice newBufferWithLength:raysBufferSize options:MTLResourceStorageModePrivate];
       intersectionsBuffer = [pRenderer->pDevice newBufferWithLength:intersectionsBufferSize
-                                                                         options:MTLResourceStorageModePrivate];
+                                                            options:MTLResourceStorageModePrivate];
       payloadBuffer =
           [pRenderer->pDevice newBufferWithLength:payloadBufferSize options:MTLResourceStorageModePrivate];
 
@@ -821,7 +812,7 @@ void SetupShadersInfo(Raytracing *pRaytracing,
 
     /* Check Local Root Signature */
     if (pHitGroups[i].pRootSignature != nullptr) {
-      shadersInfo->pShadersLocalData[i].pLocalRootSignature = (RootSignature*)pHitGroups[i].pRootSignature;
+      shadersInfo->pShadersLocalData[i].pLocalRootSignature = (RootSignature *) pHitGroups[i].pRootSignature;
       shadersInfo->pShadersLocalData[i].mRootDataCount = pHitGroups[i].mRootDataCount;
       shadersInfo->pShadersLocalData[i].pRootData =
           (DescriptorData *) calloc(pHitGroups[i].mRootDataCount, sizeof(DescriptorData));
@@ -842,7 +833,7 @@ void AddRaytracingShaderTable(Raytracing *pRaytracing,
   RaytracingShaderTable *table = (RaytracingShaderTable *) calloc(1, sizeof(RaytracingShaderTable));
   memset(table, 0, sizeof(RaytracingShaderTable));
 
-  table->mRayGenData.pLocalRootSignature = (RootSignature*)pDesc->pRayGenShader->pRootSignature;
+  table->mRayGenData.pLocalRootSignature = (RootSignature *) pDesc->pRayGenShader->pRootSignature;
   if (pDesc->pRayGenShader->pRootData != nullptr) {
     table->mRayGenData.pRootData =
         (DescriptorData *) calloc(pDesc->pRayGenShader->mRootDataCount, sizeof(DescriptorData));
@@ -859,7 +850,7 @@ void AddRaytracingShaderTable(Raytracing *pRaytracing,
   /***************************************************************/
   /*Setup shaders settings*/
   /***************************************************************/
-  RaytracingPipeline *pPipeline = ((Pipeline *)pDesc->pPipeline)->pRaytracingPipeline;
+  RaytracingPipeline *pPipeline = ((Pipeline *) pDesc->pPipeline)->pRaytracingPipeline;
   SetupShadersInfo(pRaytracing, &table->mHitShadersInfo, pDesc->mHitGroupCount, pPipeline, pDesc->pHitGroups,
                    pPipeline->mHitPipelines, pPipeline->mHitGroupNames);
   SetupShadersInfo(pRaytracing, &table->mMissShadersInfo, pDesc->mMissShaderCount, pPipeline, pDesc->pMissShaders,
@@ -915,12 +906,12 @@ void AddRaytracingRootSignature(Renderer *pRenderer,
   if (pRootDesc != nullptr) {
     for (uint32_t i = 0; i < pRootDesc->mStaticSamplerCount; ++i) {
       staticSamplerMap.insert({
-        pRootDesc->ppStaticSamplerNames[i],
-        (Sampler*)pRootDesc->ppStaticSamplers[i]});
+                                  pRootDesc->ppStaticSamplerNames[i],
+                                  (Sampler *) pRootDesc->ppStaticSamplers[i]});
     }
   }
 
-  new(&pRootSignature->pDescriptorNameToIndexMap) tinystl::unordered_map<uint32_t, uint32_t >();
+  new(&pRootSignature->pDescriptorNameToIndexMap) tinystl::unordered_map<uint32_t, uint32_t>();
 
   for (uint32_t i = 0; i < resourceCount; ++i) {
     ShaderResource const *pRes = &pResources[i];
@@ -991,12 +982,6 @@ void AddRaytracingRootSignature(Renderer *pRenderer,
     pRootSignature->pStaticSamplerSlots[i] = staticSamplers[i].first->reg;
   }
 
-  // Create descriptor manager for this thread.
-  DescriptorManager *pManager = NULL;
-  AddDescriptorManager(pRenderer, pRootSignature, &pManager);
-  stb_ptrmap_add(&pRootSignature->pDescriptorManagerMap,
-      Os::Thread::GetCurrentThreadID(), pManager);
-
   *ppRootSignature = pRootSignature;
 }
 
@@ -1042,7 +1027,7 @@ void InvokeShader(Cmd *pCmd, Raytracing *pRaytracing,
                   id <MTLBuffer> hitGroupIndices,
                   MTLSize threadgroups,
                   MTLSize threadsPerThreadgroup) {
-  RaytracingShaderTable *pShaderTable = (RaytracingShaderTable*) pDesc->pShaderTable;
+  RaytracingShaderTable *pShaderTable = (RaytracingShaderTable *) pDesc->pShaderTable;
   id <MTLBuffer> raysBufferLocal = raysBuffer;
   id <MTLBuffer> payloadBufferLocal = payloadBuffer;
   if (pShadersInfo->pHitReferences[shaderId].active) {
@@ -1061,17 +1046,15 @@ void InvokeShader(Cmd *pCmd, Raytracing *pRaytracing,
     [blitEncoder endEncoding];
   }
 
+  RaytracingShaderTable *shaderTable = (RaytracingShaderTable *) pDesc->pShaderTable;
+
   //Bind "Global Root Signature" again
   CmdBindDescriptors(pCmd,
-                     (RootSignature*)pDesc->pRootSignature,
+                     (DescriptorBinder *) shaderTable->pDescriptorBinder,
+                     (RootSignature *) pDesc->pRootSignature,
                      pDesc->mRootSignatureDescriptorsCount,
                      pDesc->pRootSignatureDescriptorData);
-  if (pShadersInfo->pShadersLocalData[shaderId].pLocalRootSignature) {
-    RootSignature *rs = pShadersInfo->pShadersLocalData[shaderId].pLocalRootSignature;
-    uint32_t dc = pShadersInfo->pShadersLocalData[shaderId].mRootDataCount;
-    DescriptorData *dd = pShadersInfo->pShadersLocalData[shaderId].pRootData;
-    CmdBindLocalDescriptors(pCmd, rs, dc, dd);
-  }
+
   id <MTLComputeCommandEncoder> computeEncoder = pCmd->mtlComputeEncoder;
   Dispatch(computeEncoder, raysBufferLocal, globalSettingsBuffer, intersectionsBuffer,
            indexBuffer, instancesIDsBuffer, payloadBuffer, masksBuffer, hitGroupIndices,
@@ -1086,8 +1069,8 @@ void InvokeShader(Cmd *pCmd, Raytracing *pRaytracing,
     NSUInteger height = (NSUInteger) pDesc->mHeight;
 
     id <MTLBuffer> intersectionBufferLocal = pShadersInfo->mIntersectionBuffer[shaderId];
-    RaytracingPipeline *pPipeline = ((Pipeline*)pDesc->pPipeline)->pRaytracingPipeline;
-    AccelerationStructure* pTopLevelAS = (AccelerationStructure*)pDesc->pTopLevelAccelerationStructure;
+    RaytracingPipeline *pPipeline = ((Pipeline *) pDesc->pPipeline)->pRaytracingPipeline;
+    AccelerationStructure *pTopLevelAS = (AccelerationStructure *) pDesc->pTopLevelAccelerationStructure;
     [pPipeline->mIntersector encodeIntersectionToCommandBuffer:pCmd->mtlCommandBuffer      // Command buffer to encode into
                                               intersectionType:MPSIntersectionTypeNearest  // Intersection test type //Rustam: Get this from RayFlags from shader
                                                      rayBuffer:raysBufferLocal   // Ray buffer
@@ -1117,7 +1100,7 @@ void CmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatc
   NSUInteger width = (NSUInteger) pDesc->mWidth;
   NSUInteger height = (NSUInteger) pDesc->mHeight;
 
-  RaytracingPipeline *pRaytracingPipeline = ((Pipeline*)pDesc->pPipeline)->pRaytracingPipeline;
+  RaytracingPipeline *pRaytracingPipeline = ((Pipeline *) pDesc->pPipeline)->pRaytracingPipeline;
   /*setup settings values in buffer*/
   //Rustam: implement ring-buffer
   RaysDispatchUniformBuffer *uniforms = (RaysDispatchUniformBuffer *) pRaytracingPipeline->mSettingsBuffer.contents;
@@ -1143,17 +1126,13 @@ void CmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatc
   // First, we will generate rays on the GPU. We create a compute command encoder which will be used to add
   // commands to the command buffer.
   //In terms of DXR here we bind "Global Root Signature"
+  RaytracingShaderTable *pShaderTable = (RaytracingShaderTable *) pDesc->pShaderTable;
   CmdBindDescriptors(pCmd,
-                     (RootSignature*)pDesc->pRootSignature,
+                     (DescriptorBinder *) pShaderTable->pDescriptorBinder,
+                     (RootSignature *) pDesc->pRootSignature,
                      pDesc->mRootSignatureDescriptorsCount,
                      pDesc->pRootSignatureDescriptorData);
-  RaytracingShaderTable* pShaderTable = (RaytracingShaderTable*)pDesc->pShaderTable;
-  if (pShaderTable->mRayGenData.pLocalRootSignature) {
-    RootSignature *rs = pShaderTable->mRayGenData.pLocalRootSignature;
-    uint32_t dc = pShaderTable->mRayGenData.mRootDataCount;
-    DescriptorData *dd = pShaderTable->mRayGenData.pRootData;
-    CmdBindLocalDescriptors(pCmd, rs, dc, dd);
-  }
+
   id <MTLComputeCommandEncoder> computeEncoder = pCmd->mtlComputeEncoder;
   /*********************************************************************************/
   //Now we work with initial RayGen shader
@@ -1171,7 +1150,7 @@ void CmdDispatchRays(Cmd *pCmd, Raytracing *pRaytracing, const RaytracingDispatc
 
   if (!pShaderTable->mInvokeShaders) { return; }
 
-  AccelerationStructure* pTopLevelAS = (AccelerationStructure*) pDesc->pTopLevelAccelerationStructure;
+  AccelerationStructure *pTopLevelAS = (AccelerationStructure *) pDesc->pTopLevelAccelerationStructure;
 
   // We can then pass the rays to the MPSRayIntersector to compute the intersections with our acceleration structure
   //_intersector.rayMaskOptions = //Rustam: get this from RayMask from shader

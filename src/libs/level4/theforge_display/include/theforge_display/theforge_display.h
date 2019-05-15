@@ -54,5 +54,11 @@ EXTERN_C void TheForge_Display_QueuePresent(TheForge_Queue *p_queue,
                                     TheForge_Semaphore **pp_wait_semaphores);
 EXTERN_C void TheForge_Display_ToggleVSync(TheForge_Renderer *pRenderer, TheForge_Display_SwapChain **ppSwapchain);
 
+//Returns the recommended format for the swapchain.
+//If true is passed for the hintHDR parameter, it will return an HDR format IF the platform supports it
+//If false is passed or the platform does not support HDR a non HDR format is returned.
+EXTERN_C Image_Format TheForge_Display_GetRecommendedSwapchainFormat(bool hintHDR);
+
+
 
 #endif //WYRD_SWAPCHAIN_H

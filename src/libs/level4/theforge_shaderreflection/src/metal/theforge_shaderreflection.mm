@@ -2,13 +2,15 @@
 #include "tinystl/vector.h"
 #include "tinystl/unordered_map.h"
 #include "theforge/renderer.hpp"
-#include "theforge/shader_reflection.hpp"
+#include "theforge_shaderreflection/theforge_shaderreflection.hpp"
 #include "theforge/metal/structs.hpp"
+#include "os/filesystem.hpp"
 
 #define MAX_REFLECT_STRING_LENGTH 128
 #define MAX_BUFFER_BINDINGS 31
 
-namespace TheForge { namespace Metal {
+namespace TheForge { namespace ShaderReflection {
+namespace Metal {
 
 struct BufferStructMember {
   char name[MAX_REFLECT_STRING_LENGTH];
@@ -278,156 +280,151 @@ void AddShaderResource(
   *ppCurrentName += pResources[idx].name_size + 1;
 }
 
-void CreateShaderReflection(
-    Renderer *pRenderer,
-    Shader *shader,
-    const uint8_t *shaderCode,
-    uint32_t shaderSize,
-    ShaderStage shaderStage,
-    tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats, ShaderReflection *pOutReflection) {
-  if (pOutReflection == NULL) {
-    assert(0);
+void CreateComputeShaderReflection(
+    TheForge::Metal::Renderer *pRenderer,
+    id <MTLFunction> mtlComputeShader,
+    char const *shaderCode,
+    ShaderReflectionInfo **ppOutReflectionInfo) {
+  using namespace TheForge::Metal;
+
+  if (ppOutReflectionInfo == NULL) {
+    ASSERT(false);
     return;    // TODO: error msg
   }
 
   NSError *error = nil;
-
   ShaderReflectionInfo *pReflectionInfo = nil;
 
-  // Setup temporary pipeline to get reflection data
-  if (shaderStage == SHADER_STAGE_COMP) {
-    MTLComputePipelineDescriptor *computePipelineDesc = [[MTLComputePipelineDescriptor alloc] init];
-    computePipelineDesc.computeFunction = shader->mtlComputeShader;
+  MTLComputePipelineDescriptor *computePipelineDesc = [[MTLComputePipelineDescriptor alloc] init];
+  computePipelineDesc.computeFunction = mtlComputeShader;
 
-    MTLComputePipelineReflection *ref;
-    id <MTLComputePipelineState> pipelineState =
-        [pRenderer->pDevice newComputePipelineStateWithDescriptor:computePipelineDesc
-                                                          options:MTLPipelineOptionBufferTypeInfo
-                                                       reflection:&ref
-                                                            error:&error];
+  MTLComputePipelineReflection *ref;
+  id <MTLComputePipelineState> pipelineState =
+      [pRenderer->pDevice newComputePipelineStateWithDescriptor:computePipelineDesc
+                                                        options:MTLPipelineOptionBufferTypeInfo
+                                                     reflection:&ref
+                                                          error:&error];
 
-    if (!pipelineState) {
-      NSLog(@ "Error generation compute pipeline object: %@", error);
-      assert(!"Compute pipeline object shouldn't fail to be created.");
-      return;
-    }
+  if (!pipelineState) {
+    NSLog(@ "Error generation compute pipeline object: %@", error);
+    LOGERROR("Compute pipeline object failed to be created.");
+    return;
+  }
 
-    pReflectionInfo = (ShaderReflectionInfo *) malloc(sizeof(ShaderReflectionInfo));
-    memset(pReflectionInfo, 0, sizeof(ShaderReflectionInfo));
-    ReflectShader(pReflectionInfo, ref.arguments);
+  *ppOutReflectionInfo = (ShaderReflectionInfo *) malloc(sizeof(ShaderReflectionInfo));
+  memset(*ppOutReflectionInfo, 0, sizeof(ShaderReflectionInfo));
+  ReflectShader(*ppOutReflectionInfo, ref.arguments);
 
-    // Note: Metal compute shaders don't specify the number of threads per group in the shader code.
-    // Instead this must be specified from the client API.
-    // To fix this, the parser expects the metal shader code to specify it like other languages do in the following way:
-    // Ex: // [numthreads(256, 1, 1)]
-    // Notice that it is a commented out line, since we don't want this line to be taken into account by the Metal shader compiler.
+//  shader->mNumThreadsPerGroup[0] = pOutReflection->mNumThreadsPerGroup[0];
+//  shader->mNumThreadsPerGroup[1] = pOutReflection->mNumThreadsPerGroup[1];
+//  shader->mNumThreadsPerGroup[2] = pOutReflection->mNumThreadsPerGroup[2];
+}
+void CreateGfxShaderReflection(
+    TheForge::Metal::Renderer *pRenderer,
+    id <MTLFunction> mtlVertexShader,
+    id <MTLFunction> mtlFragmentShader,
+    char const *vertexShaderCode,
+    char const *fragmentShaderCode,
 
-    const char *numThreadsStart = strstr((const char *) shaderCode, "[numthreads(");
-    if (numThreadsStart == NULL) {
-      assert(!"Compute shaders require: [numthreads(x,y,z)]");
-      return;
-    }
-    numThreadsStart += strlen("[numthreads(");
-    const char *numThreadsEnd = strstr(numThreadsStart, ")");
-    if (numThreadsEnd == NULL) {
-      assert(!"Malformed[numthreads(x,y,z)]");
-      return;
-    }
+    tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats,
+    ShaderReflectionInfo *pOutVertexReflectionInfo,
+    ShaderReflectionInfo *pOutFragmentReflectionInfo) {
+  using namespace TheForge::Metal;
 
-    char buff[128] = "";
-    size_t len = numThreadsEnd - numThreadsStart;
-    memcpy(buff, numThreadsStart, len);
-    int count = sscanf(
-        buff, "%d,%d,%d", &pOutReflection->mNumThreadsPerGroup[0], &pOutReflection->mNumThreadsPerGroup[1],
-        &pOutReflection->mNumThreadsPerGroup[2]);
-    if (count != 3) {
-      assert(!"Malformed[numthreads(x,y,z)]");
-      return;
-    }
+  if (pOutVertexReflectionInfo == nullptr || pOutFragmentReflectionInfo == nullptr) {
+    ASSERT(false);
+    return;    // TODO: error msg
+  }
+  NSError *error = nil;
 
-    shader->mNumThreadsPerGroup[0] = pOutReflection->mNumThreadsPerGroup[0];
-    shader->mNumThreadsPerGroup[1] = pOutReflection->mNumThreadsPerGroup[1];
-    shader->mNumThreadsPerGroup[2] = pOutReflection->mNumThreadsPerGroup[2];
-  } else {
-    MTLRenderPipelineDescriptor *renderPipelineDesc = [[MTLRenderPipelineDescriptor alloc] init];
+  MTLRenderPipelineDescriptor *renderPipelineDesc = [[MTLRenderPipelineDescriptor alloc] init];
 
-    renderPipelineDesc.vertexFunction = shader->mtlVertexShader;
-    renderPipelineDesc.fragmentFunction = shader->mtlFragmentShader;
+  renderPipelineDesc.vertexFunction = mtlVertexShader;
+  renderPipelineDesc.fragmentFunction = mtlFragmentShader;
 
-    uint maxColorAttachments = MAX_RENDER_TARGET_ATTACHMENTS;
+  uint maxColorAttachments = MAX_RENDER_TARGET_ATTACHMENTS;
 #ifdef TARGET_IOS
-    if (![pRenderer->pDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily2_v1])
+  if (![pRenderer->pDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily2_v1])
         maxColorAttachments = 4;
 #endif
-    for (uint i = 0; i < maxColorAttachments; i++) {
-      renderPipelineDesc.colorAttachments[i].pixelFormat = MTLPixelFormatBGRA8Unorm;
-    }
-    renderPipelineDesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
-
-    // We need to create a vertex descriptor if needed to obtain reflection information
-    // We are forced to initialize the vertex descriptor with dummy information just to get
-    // the reflection information.
-    MTLVertexDescriptor *vertexDesc = [[MTLVertexDescriptor alloc] init];
-
-    if (shaderStage == SHADER_STAGE_VERT) {
-      // read line by line and find vertex attribute definitions
-      char *p, *temp;
-      p = strtok_r((char *) shaderCode, "\n", &temp);
-      do {
-        const char *pattern = "attribute(";
-        const char *start = strstr(p, pattern);
-        if (start != nil) {
-          // vertex attribute definitino found: create a vertex descriptor for this
-          int attrNumber = atoi(start + strlen(pattern));
-          MTLVertexFormat vf = (strstr((const char *) p, "uint") ? MTLVertexFormatUInt : MTLVertexFormatFloat);
-          (*vertexAttributeFormats)[attrNumber] = vf;
-        }
-      } while ((p = strtok_r(NULL, "\n", &temp)) != NULL);
-    }
-
-    for (uint32_t i = 0; i < MAX_VERTEX_ATTRIBS; i++) {
-      vertexDesc.attributes[i].offset = 0;
-      vertexDesc.attributes[i].bufferIndex = 0;
-
-      MTLVertexFormat vf = MTLVertexFormatFloat;
-
-      tinystl::unordered_map<uint32_t, MTLVertexFormat>::iterator it = vertexAttributeFormats->find(i);
-      if (it.node != nil) {
-        vf = it.node->second;
-      }
-
-      vertexDesc.attributes[i].format = vf;
-    }
-    vertexDesc.layouts[0].stride = MAX_VERTEX_ATTRIBS * sizeof(float);
-    vertexDesc.layouts[0].stepRate = 1;
-    vertexDesc.layouts[0].stepFunction = shader->mtlVertexShader.patchType != MTLPatchTypeNone
-                                         ? MTLVertexStepFunctionPerPatchControlPoint
-                                         : MTLVertexStepFunctionPerVertex;
-
-    renderPipelineDesc.vertexDescriptor = vertexDesc;
-
-    MTLRenderPipelineReflection *ref;
-    id <MTLRenderPipelineState>
-        pipelineState = [pRenderer->pDevice newRenderPipelineStateWithDescriptor:renderPipelineDesc
-                                                                         options:MTLPipelineOptionBufferTypeInfo
-                                                                      reflection:&ref
-                                                                           error:&error];
-    if (!pipelineState) {
-      NSLog(@ "Error generation render pipeline object: %@", error);
-      assert(!"Render pipeline object shouldn't fail to create.");
-      return;
-    }
-
-    if (shaderStage == SHADER_STAGE_VERT) {
-      pReflectionInfo = (ShaderReflectionInfo *) calloc(1, sizeof(ShaderReflectionInfo));
-      ReflectShader(pReflectionInfo, ref.vertexArguments);
-    } else if (shaderStage == SHADER_STAGE_FRAG) {
-      pReflectionInfo = (ShaderReflectionInfo *) calloc(1, sizeof(ShaderReflectionInfo));
-      ReflectShader(pReflectionInfo, ref.fragmentArguments);
-    } else {
-      assert(!"No reflection information found in shader!");
-    }
+  for (uint i = 0; i < maxColorAttachments; i++) {
+    renderPipelineDesc.colorAttachments[i].pixelFormat = MTLPixelFormatBGRA8Unorm;
   }
+  renderPipelineDesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+
+  // We need to create a vertex descriptor if needed to obtain reflection information
+  // We are forced to initialize the vertex descriptor with dummy information just to get
+  // the reflection information.
+  MTLVertexDescriptor *vertexDesc = [[MTLVertexDescriptor alloc] init];
+
+  // read line by line and find vertex attribute definitions
+  char *p, *temp;
+  p = strtok_r((char *) vertexShaderCode, "\n", &temp);
+  do {
+    const char *pattern = "attribute(";
+    const char *start = strstr(p, pattern);
+    if (start != nil) {
+      // vertex attribute definitino found: create a vertex descriptor for this
+      int attrNumber = atoi(start + strlen(pattern));
+      MTLVertexFormat vf = (strstr((const char *) p, "uint") ? MTLVertexFormatUInt : MTLVertexFormatFloat);
+      (*vertexAttributeFormats)[attrNumber] = vf;
+    }
+  } while ((p = strtok_r(NULL, "\n", &temp)) != NULL);
+
+  for (uint32_t i = 0; i < MAX_VERTEX_ATTRIBS; i++) {
+    vertexDesc.attributes[i].offset = 0;
+    vertexDesc.attributes[i].bufferIndex = 0;
+
+    MTLVertexFormat vf = MTLVertexFormatFloat;
+
+    tinystl::unordered_map<uint32_t, MTLVertexFormat>::iterator it = vertexAttributeFormats->find(i);
+    if (it.node != nil) {
+      vf = it.node->second;
+    }
+
+    vertexDesc.attributes[i].format = vf;
+  }
+  vertexDesc.layouts[0].stride = MAX_VERTEX_ATTRIBS * sizeof(float);
+  vertexDesc.layouts[0].stepRate = 1;
+  vertexDesc.layouts[0].stepFunction = mtlVertexShader.patchType != MTLPatchTypeNone
+                                       ? MTLVertexStepFunctionPerPatchControlPoint
+                                       : MTLVertexStepFunctionPerVertex;
+
+  renderPipelineDesc.vertexDescriptor = vertexDesc;
+
+  MTLRenderPipelineReflection *ref;
+  id <MTLRenderPipelineState>
+      pipelineState = [pRenderer->pDevice
+      newRenderPipelineStateWithDescriptor:renderPipelineDesc
+                                   options:MTLPipelineOptionBufferTypeInfo
+                                reflection:&ref
+                                     error:&error];
+  if (!pipelineState) {
+    NSLog(@ "Error generation render pipeline object: %@", error);
+    LOGERROR("Render pipeline object failed to create.");
+    return;
+  }
+
+  pOutVertexReflectionInfo = (ShaderReflectionInfo *) calloc(1, sizeof(ShaderReflectionInfo));
+  pOutFragmentReflectionInfo = (ShaderReflectionInfo *) calloc(1, sizeof(ShaderReflectionInfo));
+
+  ReflectShader(pOutVertexReflectionInfo, ref.vertexArguments);
+  ReflectShader(pOutFragmentReflectionInfo, ref.fragmentArguments);
+}
+
+void CreateShaderReflection(
+    ShaderReflectionInfo *pReflectionInfo,
+    ShaderStage shaderStage,
+    tinystl::unordered_map<uint32_t, MTLVertexFormat> *vertexAttributeFormats,
+    Reflection *pOutReflection) {
+
+  if (pOutReflection == NULL) {
+    assert(0);
+    return;    // TODO: error msg
+  }
+  using namespace TheForge::Metal;
+
+  NSError *error = nil;
 
   assert(pReflectionInfo != nil);
 
@@ -456,6 +453,7 @@ void CreateShaderReflection(
   char *namePool = (char *) calloc(namePoolSize, 1);
   char *pCurrentName = namePool;
 
+  /*
   // start with the vertex input
   VertexInput *pVertexInputs = NULL;
   const uint32_t vertexInputCount = (uint32_t) vertexBuffers.size();
@@ -472,7 +470,7 @@ void CreateShaderReflection(
       pCurrentName += pVertexInputs[i].name_size + 1;
     }
   }
-
+*/
   uint32_t resourceIdxByBufferIdx[MAX_BUFFER_BINDINGS];
 
   // continue with resources
@@ -498,7 +496,7 @@ void CreateShaderReflection(
             (char *) bufferInfo.name);
 
         if (bufferInfo.isArgBuffer) {
-           pResources[resourceIdx].backend.mtlArgumentBufferType = bufferInfo.argBufferType;
+          pResources[resourceIdx].backend.mtlArgumentBufferType = bufferInfo.argBufferType;
         } else {
           pResources[resourceIdx].backend.mtlArgumentBufferType = RESOURCE_STATE_UNDEFINED;
         }
@@ -536,10 +534,10 @@ void CreateShaderReflection(
     }
   }
 
-  ShaderVariable *pVariables = NULL;
+  Variable *pVariables = NULL;
   // now do variables
   if (variablesCount > 0) {
-    pVariables = (ShaderVariable *) malloc(sizeof(ShaderVariable) * variablesCount);
+    pVariables = (Variable *) malloc(sizeof(Variable) * variablesCount);
     for (uint32_t i = 0; i < variablesCount; ++i) {
       const BufferStructMember& variable = pReflectionInfo->variableMembers[i];
 
@@ -562,8 +560,8 @@ void CreateShaderReflection(
   pOutReflection->pNamePool = namePool;
   pOutReflection->mNamePoolSize = namePoolSize;
 
-  pOutReflection->pVertexInputs = pVertexInputs;
-  pOutReflection->mVertexInputsCount = vertexInputCount;
+//  pOutReflection->pVertexInputs = pVertexInputs;
+//  pOutReflection->mVertexInputsCount = vertexInputCount;
 
   pOutReflection->pShaderResources = pResources;
   pOutReflection->mShaderResourceCount = resourceCount;
@@ -578,7 +576,279 @@ void CreateShaderReflection(
   free(pReflectionInfo);
 }
 
-} } // end namespace TheForge::Metal
+id <MTLFunction> CreateMetalFunction(
+    TheForge::Metal::Renderer *pRenderer,
+    const char *shader_name,
+    const char *entry_point,
+    const char *source,
+    NSDictionary *macroDictionary) {
+
+  NSString *shaderSource = [[NSString alloc] initWithUTF8String:source];
+  NSError *error = nil;
+
+  MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
+  options.preprocessorMacros = macroDictionary;
+  id <MTLLibrary> lib = [pRenderer->pDevice newLibraryWithSource:shaderSource options:options error:&error];
+
+  // Warning
+  if (error) {
+    if (lib) {
+      LOGWARNINGF(
+          "Loaded shader %s with the following warnings:\n %s",
+          shader_name,
+          [[error localizedDescription] UTF8String]);
+      error = nil;    //  error string is an autorelease object.
+    }
+      // Error
+    else {
+      LOGERRORF(
+          "Couldn't load shader %s with the following error:\n %s",
+          shader_name,
+          [[error localizedDescription] UTF8String]);
+      error = nil;    //  error string is an autorelease object.
+    }
+  }
+
+  // Compile the code
+  if (lib) {
+    NSString *entryPointNStr = [[NSString alloc] initWithUTF8String:entry_point];
+    id <MTLFunction> function = [lib newFunctionWithName:entryPointNStr];
+    assert(function != nil && "Entry point not found in shader.");
+    return function;
+  } else {
+    return nil;
+  }
+}
+
+NSDictionary *CreateMacroDictionary(
+    size_t shader_macros_count,
+    Macro const *shader_macros) {
+  // Create a NSDictionary for all the shader macros.
+  NSNumberFormatter *numberFormatter =
+      [[NSNumberFormatter alloc] init];    // Used for reading NSNumbers macro values from strings.
+  numberFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+
+  NSArray *defArray = [[NSArray alloc] init];
+  NSArray *valArray = [[NSArray alloc] init];
+  for (uint i = 0; i < shader_macros_count; i++) {
+    defArray = [defArray arrayByAddingObject:[[NSString alloc] initWithUTF8String:shader_macros[i].definition]];
+
+    // Try reading the macro value as a NSNumber. If failed, use it as an NSString.
+    NSString *valueString = [[NSString alloc] initWithUTF8String:shader_macros[i].value];
+    NSNumber *valueNumber = [numberFormatter numberFromString:valueString];
+    if (valueNumber) {
+      valArray = [valArray arrayByAddingObject:valueNumber];
+    } else {
+      valArray = [valArray arrayByAddingObject:valueString];
+    }
+  }
+  return [[NSDictionary alloc] initWithObjects:valArray forKeys:defArray];
+}
+
+void CompileBinaryShader(
+    TheForge::Metal::Renderer *pRenderer,
+    SourceDesc *pSourceDesc,
+    TheForge::BinaryShaderDesc **ppBinaryShaderDesc,
+    Pipeline **ppOutReflection) {
+
+  using namespace TheForge::Metal;
+
+  ASSERT(pRenderer);
+  ASSERT(pSourceDesc);
+  ASSERT(pRenderer->pDevice != nil);
+  ASSERT(ppBinaryShaderDesc);
+
+  *ppBinaryShaderDesc = nullptr;
+
+  TheForge::BinaryShaderDesc *pBinaryShaderDesc = (TheForge::BinaryShaderDesc *) calloc(1, sizeof(*pBinaryShaderDesc));
+
+  pBinaryShaderDesc->mStages = pSourceDesc->mStages;
+
+  // split graphics shaders from compute
+  if (pSourceDesc->mStages & SHADER_STAGE_ALL_GRAPHICS) {
+    tinystl::unordered_map<uint32_t, MTLVertexFormat> vertexAttributeFormats;
+
+    NSDictionary *vertexMacroDict = CreateMacroDictionary(pSourceDesc->mVert.mNumMacros, pSourceDesc->mVert.mMacros);
+    NSDictionary *fragMacroDict = CreateMacroDictionary(pSourceDesc->mFrag.mNumMacros, pSourceDesc->mFrag.mMacros);
+    __strong id <MTLFunction> vertexFunc = CreateMetalFunction(pRenderer,
+                                                               pSourceDesc->mVert.mName,
+                                                               pSourceDesc->mVert.mEntryPoint,
+                                                               pSourceDesc->mVert.mCode,
+                                                               vertexMacroDict);
+    __strong id <MTLFunction> fragFunc = CreateMetalFunction(pRenderer,
+                                                             pSourceDesc->mFrag.mName,
+                                                             pSourceDesc->mFrag.mEntryPoint,
+                                                             pSourceDesc->mFrag.mCode,
+                                                             fragMacroDict);
+
+      ShaderReflectionInfo pReflectionInfo[2];
+
+      CreateGfxShaderReflection(pRenderer, vertexFunc, fragFunc,
+                                pSourceDesc->mVert.mCode,
+                                pSourceDesc->mFrag.mCode,
+                                &vertexAttributeFormats,
+                                &pReflectionInfo[0],
+                                &pReflectionInfo[1]);
+    if (ppOutReflection != nullptr) {
+      ShaderReflection::Pipeline *pOutReflection = (ShaderReflection::Pipeline *) calloc(1, sizeof(*pOutReflection));
+      CreateShaderReflection(&pReflectionInfo[0],
+                             SHADER_STAGE_VERT,
+                             &vertexAttributeFormats, &pOutReflection->mStageReflections[0]);
+      CreateShaderReflection(&pReflectionInfo[1],
+                             SHADER_STAGE_FRAG,
+                             nullptr, &pOutReflection->mStageReflections[1]);
+
+      pOutReflection->mShaderStages = SHADER_STAGE_VERT | SHADER_STAGE_FRAG;
+      pOutReflection->mStageReflectionCount = 2;
+      FinishShaderPipeline(pBinaryShaderDesc, pOutReflection);
+      *ppOutReflection = pOutReflection;
+    }
+  } else {
+    NSDictionary *macroDict = CreateMacroDictionary(pSourceDesc->mComp.mNumMacros, pSourceDesc->mComp.mMacros);
+    __strong id <MTLFunction> function = CreateMetalFunction(pRenderer,
+                                                             pSourceDesc->mComp.mName,
+                                                             pSourceDesc->mComp.mEntryPoint,
+                                                             pSourceDesc->mComp.mCode,
+                                                             macroDict);
+
+    if (ppOutReflection != nullptr) {
+      ShaderReflectionInfo *pReflectionInfo;
+      ShaderReflection::Pipeline *pOutReflection = (ShaderReflection::Pipeline *) calloc(1, sizeof(*pOutReflection));
+      CreateComputeShaderReflection(pRenderer, function,
+                                    pSourceDesc->mComp.mCode,
+                                    &pReflectionInfo);
+
+      CreateShaderReflection(&pReflectionInfo[0],
+                             SHADER_STAGE_COMP,
+                             nullptr, &pOutReflection->mStageReflections[0]);
+      pOutReflection->mShaderStages = SHADER_STAGE_COMP;
+      pOutReflection->mStageReflectionCount = 1;
+      FinishShaderPipeline(pBinaryShaderDesc, pOutReflection);
+      *ppOutReflection = pOutReflection;
+
+      // Note: Metal compute shaders don't specify the number of threads per group in the shader code.
+      // Instead this must be specified from the client API.
+      // To fix this, the parser expects the metal shader code to specify it like other languages do in the following way:
+      // Ex: // [numthreads(256, 1, 1)]
+      // Notice that it is a commented out line, since we don't want this line to be taken into account by the Metal shader compiler.
+      const char *numThreadsStart = strstr((char const *) pSourceDesc->mComp.mCode, "[numthreads(");
+      if (numThreadsStart == NULL) {
+        assert(!"Compute shaders require: [numthreads(x,y,z)]");
+        return;
+      }
+      numThreadsStart += strlen("[numthreads(");
+      const char *numThreadsEnd = strstr(numThreadsStart, ")");
+      if (numThreadsEnd == NULL) {
+        assert(!"Malformed[numthreads(x,y,z)]");
+        return;
+      }
+
+      char buff[128] = "";
+      size_t len = numThreadsEnd - numThreadsStart;
+      memcpy(buff, numThreadsStart, len);
+      int count = sscanf(
+          buff, "%d,%d,%d",
+          &pBinaryShaderDesc->mComp.mNumThreadsPerGroup[0],
+          &pBinaryShaderDesc->mComp.mNumThreadsPerGroup[1],
+          &pBinaryShaderDesc->mComp.mNumThreadsPerGroup[2]);
+      if (count != 3) {
+        assert(!"Malformed[numthreads(x,y,z)]");
+        return;
+      }
+    }
+  }
+  *ppBinaryShaderDesc = pBinaryShaderDesc;
+  return;
+}
+
+} // end namespace Metal
+
+// Get renderer shader macros
+RendererDefinesDesc const *GetRendererShaderDefines(Renderer *pRenderer) {
+  static RendererDefinesDesc defineDesc = {NULL, 0};
+  return &defineDesc;
+}
+
+// On Metal, on the other hand, we can compile from code into a MTLLibrary, but cannot save this
+// object's bytecode to disk. We instead use the xcbuild bash tool to compile the shaders.
+void CompileShader(
+    Renderer *pRenderer,
+    const tinystl::string& fileName,
+    uint32_t macroCount,
+    Macro *pMacros,
+    tinystl::vector<char> *pByteCode,
+    const char *pEntryPoint) {
+
+  tinystl::string xcrun = "/usr/bin/xcrun";
+  tinystl::string intermediateFile = fileName + ".air";
+  tinystl::string libFile = fileName + ".metallib";
+  tinystl::vector<tinystl::string> args;
+  tinystl::string tmpArg = "";
+
+  // Compile the source into a temporary .air file.
+  args.push_back("-sdk");
+  args.push_back("macosx");
+  args.push_back("metal");
+  args.push_back("-c");
+  tmpArg = tinystl::string::format(
+      ""
+      "%s"
+      "",
+      fileName.c_str());
+  args.push_back(tmpArg);
+  args.push_back("-o");
+  args.push_back(intermediateFile.c_str());
+
+  //enable the 2 below for shader debugging on xcode 10.0
+  //args.push_back("-MO");
+  //args.push_back("-gline-tables-only");
+  args.push_back("-D");
+  args.push_back("MTL_SHADER=1");    // Add MTL_SHADER macro to differentiate structs in headers shared by app/shader code.
+  // Add user defined macros to the command line
+  for (uint32_t i = 0; i < macroCount; ++i) {
+    args.push_back("-D");
+    args.push_back(tinystl::string::format("%s = %i", pMacros[i].definition, pMacros[i].value));
+  }
+  if (Os::FileSystem::SystemRun(xcrun, args) == 0) {
+    // Create a .metallib file from the .air file.
+    args.clear();
+    tmpArg = "";
+    args.push_back("-sdk");
+    args.push_back("macosx");
+    args.push_back("metallib");
+    args.push_back(intermediateFile.c_str());
+    args.push_back("-o");
+    tmpArg = tinystl::string::format(
+        ""
+        "%s"
+        "",
+        libFile.c_str());
+    args.push_back(tmpArg);
+    if (Os::FileSystem::SystemRun(xcrun, args) == 0) {
+      // Remove the temp .air file.
+      args.clear();
+      args.push_back(intermediateFile.c_str());
+      Os::FileSystem::SystemRun("rm", args);
+
+      // Store the compiled bytecode.
+      VFile::ScopedFile file(VFile::File::FromFile(libFile, Os_FM_ReadBinary));
+      ASSERT(file);
+      pByteCode->resize(file->Size());
+      memcpy(pByteCode->data(), file->ReadString().c_str(), pByteCode->size());
+
+      // Remove the temp .mtl file.
+      args.clear();
+      args.push_back(libFile.c_str());
+      Os::FileSystem::SystemRun("rm", args);
+
+    } else
+      LOGERRORF("Failed to assemble shader's %s .metallib file", fileName.c_str());
+  } else {
+    LOGERRORF("Failed to compile shader %s", fileName.c_str());
+  }
+}
+
+}} // end namespace
 
 /*
  * Copyright (c) 2018-2019 Confetti Interactive Inc.

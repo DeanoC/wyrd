@@ -28,6 +28,8 @@ void QueuePresent(Queue *p_queue,
                   Semaphore **pp_wait_semaphores);
 void ToggleVSync(Renderer *pRenderer, SwapChain **ppSwapchain);
 
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR);
+
 } } // end namespace
 
 #endif //WYRD_THEFORGE_DISPLAY_THEFORGE_DISPLAY_HPP

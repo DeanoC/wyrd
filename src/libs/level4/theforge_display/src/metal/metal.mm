@@ -3,7 +3,6 @@
 
 #include "core/core.h"
 #include "guishell/platform.hpp"
-#include "theforge/shader_reflection.hpp"
 #include "theforge/metal/renderer.hpp"
 #include "theforge/metal/utils.hpp"
 #include "theforge_display/metal/metal.hpp"
@@ -208,6 +207,10 @@ void QueuePresent(
   // after committing a command buffer no more commands can be encoded on it: create a new command buffer for future commands
   pSwapChain->presentCommandBuffer = [pQueue->mtlCommandQueue commandBuffer];
   pSwapChain->mMTKDrawable = nil;
+}
+
+Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
+  return Image_Format_B8G8R8A8_UNORM;
 }
 
 } } } // end namespace

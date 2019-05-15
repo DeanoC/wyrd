@@ -39,7 +39,7 @@ using GPUSettings = TheForge_GPUSettings;
 using Renderer = TheForge_Renderer;
 using CommandSignature = TheForge_CommandSignature;
 using ResourceAllocator = TheForge_ResourceAllocator;
-
+using DescriptorBinder = TheForge_DescriptorBinder;
 }
 
 #endif //WYRD_THEFORGE_RENDERER_STRUCTS_HPP

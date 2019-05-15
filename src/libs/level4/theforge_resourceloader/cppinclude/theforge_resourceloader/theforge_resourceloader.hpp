@@ -12,8 +12,9 @@ using Handle = TheForge_ResourceLoader_Handle;
 
 using BufferLoadDesc = TheForge_ResourceLoader_BufferLoadDesc;
 using TextureLoadDesc = TheForge_ResourceLoader_TextureLoadDesc;
-using BufferUpdateDesc = TheForge_ResourceLoader_BufferUpdateDesc;
+using ShaderLoadDesc = TheForge_ResourceLoader_ShaderLoadDesc;
 
+using BufferUpdateDesc = TheForge_ResourceLoader_BufferUpdateDesc;
 using TextureUpdateDesc = TheForge_ResourceLoader_TextureUpdateDesc;
 
 static const uint8_t RT_BUFFER = TheForge_ResourceLoader_RT_BUFFER;
@@ -34,6 +35,8 @@ void WaitTokenCompleted(Handle handle, SyncToken token);
 
 void AddBuffer(Handle handle, BufferLoadDesc *pBuffer, bool batch);
 void AddTexture(Handle handle, TextureLoadDesc *pTexture, bool batch);
+void AddShader(Handle handle, ShaderLoadDesc *pDesc, Shader **ppShader);
+
 void AddBufferAsync(Handle handle, BufferLoadDesc *pBufferDesc, SyncToken *token);
 void AddTextureAsync(Handle handle, TextureLoadDesc *pTextureDesc, SyncToken *token);
 void RemoveBuffer(Handle handle, Buffer *pBuffer);

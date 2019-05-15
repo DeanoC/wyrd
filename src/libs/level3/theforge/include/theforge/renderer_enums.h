@@ -166,11 +166,12 @@ typedef enum TheForge_ShaderStageFlagBits {
   TheForge_SHADER_STAGE_TESE = 0X00000004,
   TheForge_SHADER_STAGE_GEOM = 0X00000008,
   TheForge_SHADER_STAGE_FRAG = 0X00000010,
-  TheForge_SHADER_STAGE_COMP = 0X00000020,
   TheForge_SHADER_STAGE_ALL_GRAPHICS = 0X0000001F,
+  TheForge_SHADER_STAGE_COMP = 0X00000020,
+  TheForge_SHADER_STAGE_LIB = 0X000000040,
   TheForge_SHADER_STAGE_HULL = TheForge_SHADER_STAGE_TESC,
   TheForge_SHADER_STAGE_DOMN = TheForge_SHADER_STAGE_TESE,
-  TheForge_SHADER_STAGE_COUNT = 6,
+  TheForge_SHADER_STAGE_COUNT = 7,
 } TheForge_ShaderStageFlagBits;
 // its used as both flags and and enum. Type makes it clear which is intended
 typedef uint8_t TheForge_ShaderStage;

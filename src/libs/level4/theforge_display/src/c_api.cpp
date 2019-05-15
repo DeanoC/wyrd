@@ -1,6 +1,6 @@
 #include "core/core.h"
-#include "theforge_display/theforge_display.hpp"
 #include "theforge/renderer.hpp"
+#include "theforge_display/theforge_display.hpp"
 
 // I usually don't global namespace things
 using namespace TheForge;
@@ -40,4 +40,8 @@ EXTERN_C void TheForge_Display_QueuePresent(Queue *p_queue,
 
 EXTERN_C void TheForge_Display_ToggleVSync(Renderer *pRenderer, SwapChain **ppSwapchain) {
   ToggleVSync(pRenderer, ppSwapchain);
+}
+
+EXTERN_C Image_Format TheForge_Display_GetRecommendedSwapchainFormat(bool hintHDR) {
+  return GetRecommendedSwapchainFormat(hintHDR);
 }

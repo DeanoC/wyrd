@@ -5,7 +5,6 @@
 #include "math/math.h"
 #include "os/thread.hpp"
 #include "tinystl/unordered_map.h"
-#include "theforge/shader_reflection.hpp"
 #include "theforge/metal/structs.hpp"
 #include "memory_allocator.hpp"
 #include "image/image.h"
@@ -418,15 +417,6 @@ const DescriptorInfo *GetDescriptor(const RootSignature *pRootSignature, const c
     LOGERRORF("Invalid descriptor param (%s)", pResName);
     return NULL;
   }
-}
-
-/************************************************************************/
-// Get renderer shader macros
-/************************************************************************/
-// renderer shader macros allocated on stack
-const RendererShaderDefinesDesc get_renderer_shaderdefines(Renderer *pRenderer) {
-  RendererShaderDefinesDesc defineDesc = {NULL, 0};
-  return defineDesc;
 }
 
 // Resource allocation statistics.
@@ -1142,140 +1132,16 @@ void AddSampler(Renderer *pRenderer, const SamplerDesc *pDesc, Sampler **ppSampl
 
   *ppSampler = pSampler;
 }
+
 void RemoveSampler(Renderer *pRenderer, Sampler *pSampler) {
   ASSERT(pSampler);
   pSampler->mtlSamplerState = nil;
   free(pSampler);
 }
 
-void AddShader(Renderer *pRenderer, const ShaderDesc *pDesc, Shader **ppShaderProgram) {
-  ASSERT(pRenderer);
-  ASSERT(pDesc);
-  ASSERT(pRenderer->pDevice != nil);
-
-  Shader *pShaderProgram = (Shader *) calloc(1, sizeof(*pShaderProgram));
-  pShaderProgram->mStages = pDesc->mStages;
-
-  tinystl::unordered_map<uint32_t, MTLVertexFormat> vertexAttributeFormats;
-
-  uint32_t shaderReflectionCounter = 0;
-  ShaderReflection stageReflections[SHADER_STAGE_COUNT];
-  for (uint32_t i = 0; i < SHADER_STAGE_COUNT; ++i) {
-    tinystl::string source = NULL;
-    const char *entry_point = NULL;
-    const char *shader_name = NULL;
-    TheForge_ShaderMacro const *shader_macros;
-    size_t shader_macros_count = 0;
-    __strong id <MTLFunction> *compiled_code = nullptr;
-
-    ShaderStage stage_mask = (ShaderStage) (1 << i);
-    if (stage_mask == (pShaderProgram->mStages & stage_mask)) {
-      switch (stage_mask) {
-        case SHADER_STAGE_VERT: {
-          source = pDesc->mVert.mCode;
-          entry_point = pDesc->mVert.mEntryPoint;
-          shader_name = pDesc->mVert.mName;
-          shader_macros = pDesc->mVert.mMacros;
-          shader_macros_count = pDesc->mVert.mNumMacros;
-          compiled_code = &(pShaderProgram->mtlVertexShader);
-          pShaderProgram->mtlVertexShaderEntryPoint = pDesc->mVert.mEntryPoint;
-        }
-          break;
-        case SHADER_STAGE_FRAG: {
-          source = pDesc->mFrag.mCode;
-          entry_point = pDesc->mFrag.mEntryPoint;
-          shader_name = pDesc->mFrag.mName;
-          shader_macros = pDesc->mFrag.mMacros;
-          shader_macros_count = pDesc->mFrag.mNumMacros;
-          compiled_code = &(pShaderProgram->mtlFragmentShader);
-          pShaderProgram->mtlFragmentShaderEntryPoint = pDesc->mFrag.mEntryPoint;
-        }
-          break;
-        case SHADER_STAGE_COMP: {
-          source = pDesc->mComp.mCode;
-          entry_point = pDesc->mComp.mEntryPoint;
-          shader_name = pDesc->mComp.mName;
-          shader_macros = pDesc->mComp.mMacros;
-          shader_macros_count = pDesc->mComp.mNumMacros;
-          compiled_code = &(pShaderProgram->mtlComputeShader);
-          pShaderProgram->mtlComputeShaderEntryPoint = pDesc->mComp.mEntryPoint;
-        }
-          break;
-        default: break;
-      }
-
-      // Create a NSDictionary for all the shader macros.
-      NSNumberFormatter *numberFormatter =
-          [[NSNumberFormatter alloc] init];    // Used for reading NSNumbers macro values from strings.
-      numberFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-
-      NSArray *defArray = [[NSArray alloc] init];
-      NSArray *valArray = [[NSArray alloc] init];
-      for (uint i = 0; i < shader_macros_count; i++) {
-        defArray = [defArray arrayByAddingObject:[[NSString alloc] initWithUTF8String:shader_macros[i].definition]];
-
-        // Try reading the macro value as a NSNumber. If failed, use it as an NSString.
-        NSString *valueString = [[NSString alloc] initWithUTF8String:shader_macros[i].value];
-        NSNumber *valueNumber = [numberFormatter numberFromString:valueString];
-        if (valueNumber) {
-          valArray = [valArray arrayByAddingObject:valueNumber];
-        } else {
-          valArray = [valArray arrayByAddingObject:valueString];
-        }
-      }
-      NSDictionary *macroDictionary = [[NSDictionary alloc] initWithObjects:valArray forKeys:defArray];
-
-      // Compile the code
-      NSString *shaderSource = [[NSString alloc] initWithUTF8String:source.c_str()];
-      NSError *error = nil;
-
-      MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
-      options.preprocessorMacros = macroDictionary;
-      id <MTLLibrary> lib = [pRenderer->pDevice newLibraryWithSource:shaderSource options:options error:&error];
-
-      // Warning
-      if (error) {
-        if (lib) {
-          LOGWARNINGF(
-              "Loaded shader %s with the following warnings:\n %s",
-              shader_name,
-              [[error localizedDescription] UTF8String]);
-          error = 0;    //  error string is an autorelease object.
-        }
-          // Error
-        else {
-          LOGERRORF(
-              "Couldn't load shader %s with the following error:\n %s",
-              shader_name,
-              [[error localizedDescription] UTF8String]);
-          error = 0;    //  error string is an autorelease object.
-        }
-      }
-
-      if (lib) {
-        NSString *entryPointNStr = [[NSString alloc] initWithUTF8String:entry_point];
-        id <MTLFunction> function = [lib newFunctionWithName:entryPointNStr];
-        assert(function != nil && "Entry point not found in shader.");
-        *compiled_code = function;
-      }
-
-      CreateShaderReflection(
-          pRenderer,
-          pShaderProgram,
-          (const uint8_t *) source.c_str(),
-          (uint32_t) source.size(),
-          stage_mask,
-          &vertexAttributeFormats,
-          &stageReflections[shaderReflectionCounter++]);
-    }
-  }
-
-  CreatePipelineReflection(stageReflections, shaderReflectionCounter, &pShaderProgram->mReflection);
-
-  *ppShaderProgram = pShaderProgram;
-}
-
-void AddShaderBinary(Renderer *pRenderer, const BinaryShaderDesc *pDesc, Shader **ppShaderProgram) {
+void AddShaderBinary(Renderer *pRenderer,
+    const BinaryShaderDesc *pDesc,
+    Shader **ppShaderProgram) {
   ASSERT(pRenderer);
   ASSERT(pDesc && pDesc->mStages);
   ASSERT(ppShaderProgram);
@@ -1326,24 +1192,9 @@ void AddShaderBinary(Renderer *pRenderer, const BinaryShaderDesc *pDesc, Shader 
       NSString *entryPointNStr = [[NSString alloc] initWithUTF8String:pStage->mEntryPoint];
       id <MTLFunction> function = [lib newFunctionWithName:entryPointNStr];
       *compiled_code = function;
-
-      CreateShaderReflection(
-          pRenderer,
-          pShaderProgram,
-          (const uint8_t *) pStage->mSource,
-          (uint32_t) strlen(pStage->mSource),
-          stage_mask,
-          &vertexAttributeFormats,
-          &pShaderProgram->mReflection.mStageReflections[reflectionCount++]);
-
       *entryPointName = pStage->mEntryPoint;
     }
   }
-
-  CreatePipelineReflection(pShaderProgram->mReflection.mStageReflections,
-                           reflectionCount,
-                           &pShaderProgram->mReflection);
-
   *ppShaderProgram = pShaderProgram;
 }
 
@@ -1352,14 +1203,6 @@ void RemoveShader(Renderer *pRenderer, Shader *pShaderProgram) {
   pShaderProgram->mtlVertexShader = nil;
   pShaderProgram->mtlFragmentShader = nil;
   pShaderProgram->mtlComputeShader = nil;
-
-  // free allocated resources during reflection.
-  for (uint32_t i = 0; i < TheForge_MAX_SHADER_STAGE_COUNT; i++) {
-    free(pShaderProgram->mReflection.mStageReflections[i].pNamePool);
-    free(pShaderProgram->mReflection.mStageReflections[i].pVertexInputs);
-    free(pShaderProgram->mReflection.mStageReflections[i].pShaderResources);
-    free(pShaderProgram->mReflection.mStageReflections[i].pVariables);
-  }
 
   free(pShaderProgram);
 }
@@ -1389,16 +1232,16 @@ void AddGraphicsComputeRootSignature(Renderer *pRenderer,
   // Collect all unique shader resources in the given shaders
   // Resources are parsed by name (two resources named "XYZ" in two shaders will be considered the same resource)
   for (uint32_t sh = 0; sh < pRootSignatureDesc->mShaderCount; ++sh) {
-    PipelineReflection const *pReflection = &pRootSignatureDesc->ppShaders[sh]->mReflection;
+    TheForge_Shader const *pShader = pRootSignatureDesc->ppShaders[sh];
 
-    if (pReflection->mShaderStages & SHADER_STAGE_COMP) {
+    if (pShader->mStages & SHADER_STAGE_COMP) {
       pRootSignature->mPipelineType = PIPELINE_TYPE_COMPUTE;
     } else {
       pRootSignature->mPipelineType = PIPELINE_TYPE_GRAPHICS;
     }
 
-    for (uint32_t i = 0; i < pReflection->mShaderResourceCount; ++i) {
-      ShaderResource const *pRes = &pReflection->pShaderResources[i];
+    for (uint32_t i = 0; i < pShader->mShaderResourceCount; ++i) {
+      ShaderResource const *pRes = &pShader->pShaderResources[i];
 
       // Find all unique resources
       uint32_t index;
@@ -1470,12 +1313,6 @@ void AddGraphicsComputeRootSignature(Renderer *pRenderer,
     pRootSignature->pStaticSamplerSlots[i] = staticSamplers[i].first->reg;
   }
 
-  // Create descriptor manager for this thread.
-  DescriptorManager *pManager = NULL;
-  AddDescriptorManager(pRenderer, pRootSignature, &pManager);
-  stb_ptrmap_add(&pRootSignature->pDescriptorManagerMap,
-                 Os::Thread::GetCurrentThreadID(), pManager);
-
   *ppRootSignature = pRootSignature;
 }
 
@@ -1520,14 +1357,6 @@ void AddRootSignature(Renderer *pRenderer,
 
 void RemoveRootSignature(Renderer *pRenderer, RootSignature *pRootSignature) {
 
-  stb_ptrmap *ptrmap = &pRootSignature->pDescriptorManagerMap;
-  for (int i = 0; i < ptrmap->count; ++i) {
-    RemoveDescriptorManager(pRenderer,
-                            pRootSignature,
-                            (DescriptorManager *) ptrmap->table[i].v);
-  }
-
-  stb_ptrmap_destroy(&pRootSignature->pDescriptorManagerMap);
   stb_udict32_destroy(&pRootSignature->pDescriptorNameToIndexMap);
 
   free(pRootSignature->ppStaticSamplers);
@@ -2187,10 +2016,6 @@ void AddTexture(Renderer *pRenderer,
   }
 
   *ppTexture = pTexture;
-}
-
-Image_Format GetRecommendedSwapchainFormat(bool hintHDR) {
-  return Image_Format_B8G8R8A8_UNORM;
 }
 
 }} // end namespace TheForge::Metal
