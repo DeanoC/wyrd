@@ -1,6 +1,5 @@
 #import <simd/simd.h>
 #import <MetalKit/MetalKit.h>
-//#import <guishell/platform.hpp>
 
 #include "core/core.h"
 #include "math/math.h"

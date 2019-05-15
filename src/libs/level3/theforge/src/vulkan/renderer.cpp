@@ -1,36 +1,20 @@
-/*
- * Copyright (c) 2018-2019 Confetti Interactive Inc.
- *
- * This file is part of The-Forge
- * (see https://github.com/ConfettiFX/The-Forge).
- *
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
-*/
-
-#ifdef VULKAN
-
-#ifndef MICROPROFILE_IMPL
-#define MICROPROFILE_IMPL 1
+#include "core/core.h"
+#include "math/math.h"
+#include "os/thread.hpp"
+#include "tinystl/unordered_map.h"
+#include "theforge/shader_reflection.hpp"
+#include "theforge/vulkan/structs.hpp"
+#include "image/image.h"
+#include "../dynamic_memory_allocator.hpp"
+#include "theforge/vulkan/renderer.hpp"
+#include "vk_mem_alloc.h"
+#if defined(_WIN32)
+#include "core/windows.h"
 #endif
 
-#define RENDERER_IMPLEMENTATION
 #define VMA_IMPLEMENTATION
 #define MAX_FRAMES_IN_FLIGHT 3U
+
 /************************************************************************/
 // Debugging Macros
 /************************************************************************/
@@ -43,16 +27,6 @@
 #define USE_DEBUG_UTILS_EXTENSION
 /************************************************************************/
 /************************************************************************/
-#if defined(_WIN32)
-// Pull in minimal Windows headers
-#if !defined(NOMINMAX)
-#define NOMINMAX
-#endif
-#if !defined(WIN32_LEAN_AND_MEAN)
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <Windows.h>
-#endif
 
 // These are placed separately in Vulkan.cpp and Direct3D12.cpp, but they should be in one place
 // with an option for the user to append custom attributes. However, it should be initialized once
@@ -70,20 +44,6 @@ static const char * g_hackSemanticList[] =
     "TEXCOORD",
 };
 // clang-format on
-
-#if defined(__linux__)
-#define stricmp(a, b) strcasecmp(a, b)
-#define vsprintf_s vsnprintf
-#define strncpy_s strncpy
-#endif
-
-#include "Renderer/IRenderer.h"
-#include "TinySTL/hash.h"
-#include "Renderer/Interfaces/ILogManager.h"
-#include "VulkanMemoryAllocator/VulkanMemoryAllocator.h"
-#include "OS/Core/GPUConfig.h"
-
-#include "Renderer/Interfaces/IMemoryManager.h"
 
 extern void vk_createShaderReflection(const uint8_t* shaderCode, uint32_t shaderSize, ShaderStage shaderStage, ShaderReflection* pOutReflection);
 extern long vk_createBuffer(
@@ -6457,6 +6417,8 @@ void setTextureName(Renderer* pRenderer, Texture* pTexture, const char* pName)
     }
 }
 
+#if 0
+// removed for now
 /************************************************************************/
 /************************************************************************/
 #if MICROPROFILE_GPU_TIMERS_VK
@@ -6710,4 +6672,30 @@ MICROPROFILE_GPU_STATE_IMPL(Internal)
 }    // namespace RENDERER_CPP_NAMESPACE
 #endif
 #include "volk/volk.c"
-#endif
+
+
+
+#endif // tmp remove
+/*
+ * Copyright (c) 2018-2019 Confetti Interactive Inc.
+ *
+ * This file is part of The-Forge
+ * (see https://github.com/ConfettiFX/The-Forge).
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+*/

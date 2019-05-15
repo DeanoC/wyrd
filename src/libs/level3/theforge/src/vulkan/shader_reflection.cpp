@@ -22,8 +22,6 @@
  * under the License.
 */
 
-#ifdef VULKAN
-
 #include "IRenderer.h"
 
 #include "SpirvTools/SpirvTools.h"
@@ -40,7 +38,7 @@ static TextureDimension sSPIRV_TO_TEXTURE_DIM[SPIRV_TEXTURE_DIM_COUNT] = {
     TEXTURE_DIM_UNDEFINED, TEXTURE_DIM_1D, TEXTURE_DIM_2D, TEXTURE_DIM_3D, TEXTURE_DIM_1D_ARRAY, TEXTURE_DIM_2D_ARRAY, TEXTURE_DIM_CUBE,
 };
 
-bool filterResouce(SPIRV_Resource* resource, ShaderStage currentStage)
+bool filterResource(SPIRV_Resource *resource, ShaderStage currentStage)
 {
     bool filter = false;
 
@@ -257,4 +255,3 @@ void vk_createShaderReflection(const uint8_t* shaderCode, uint32_t shaderSize, S
     pOutReflection->pVariables = pVariables;
     pOutReflection->mVariableCount = variablesCount;
 }
-#endif    // #ifdef VULKAN

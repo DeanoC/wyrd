@@ -1,6 +1,6 @@
 #pragma once
-#ifndef WYRD_METAL_STRUCTS_HPP
-#define WYRD_METAL_STRUCTS_HPP
+#ifndef WYRD_THEFORGE_METAL_STRUCTS_HPP
+#define WYRD_THEFORGE_METAL_STRUCTS_HPP
 
 #import <simd/simd.h>
 #import <MetalKit/MetalKit.h>
