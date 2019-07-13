@@ -1,3 +1,6 @@
+ABANDONED replaced with much more modular al2o3 system.
+Makign public for reference
+
 # wyrd
 Open source modular game engine
 List of open source (MIT or similar) game engine related sources used or inspiration for wyrd
